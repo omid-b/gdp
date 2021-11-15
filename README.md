@@ -1,4 +1,3 @@
 # A WORK IN PROGRESS PROJECT!
 
-# geop
-A CLI for geophysical data processing using Python!
+gdp: A CLI for Geophysical Data Processing
