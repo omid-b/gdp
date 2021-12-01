@@ -1,4 +1,8 @@
-.DS_Store
+**.DS_Store
+**_conv.c
+**_io.c
+**_list.c
+**_xyz.c
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
