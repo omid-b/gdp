@@ -35,7 +35,6 @@ def parse_args(*args, **kwargs):
     description="gdp: Geophysical Data Processing",
     conflict_handler='resolve')
     parser.add_argument(
-        '-a',
         '--about',
         action='store_true',
         help='about this package and contact information'
@@ -49,14 +48,60 @@ def parse_args(*args, **kwargs):
     dat_module._positionals.title = 'required argument choices'
     dat_command = dat_module.add_subparsers(dest='command')
     # gdp dat uni
-    dat_uni = dat_command.add_parser('uni', help='generate uniform of data files',
-    description="Generate the uniform of data files (lines)")
+    dat_uni = dat_command.add_parser('uni', help='generate union of data files',
+    description="Generate the union of data files (lines)")
+    dat_uni.add_argument("input_files", nargs="+")
+    dat_uni.add_argument(
+        '-o',
+        '--output',
+        type=str,
+        action='store',
+        help='output file')
+    dat_uni.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
     # gdp dat int
     dat_int = dat_command.add_parser('int', help='generate intersect of data files',
     description="Generate the intersect of data files (lines)")
+    dat_int.add_argument("input_files", nargs="+")
+    dat_int.add_argument(
+        '-o',
+        '--output',
+        type=str,
+        action='store',
+        help='output file')
+    dat_int.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    dat_int.add_argument(
+        '-i',
+        '--inverse',
+        action='store_true',
+        help='inverse operation')
     # gdp dat dif
     dat_dif = dat_command.add_parser('dif', help='generate difference of data files',
-    description="Generate the difference of data files (lines)")    
+    description="Generate the difference of data files (lines)")
+    dat_dif.add_argument("input_files", nargs="+")
+    dat_dif.add_argument(
+        '-o',
+        '--output',
+        type=str,
+        action='store',
+        help='output file')
+    dat_dif.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    dat_dif.add_argument(
+        '-i',
+        '--inverse',
+        action='store_true',
+        help='inverse operation')   
     #===== Module: xyz =====#
     xyz_module = subparsers.add_parser('xyz', help='xyz data type processing module',
     description="Geographic XYZ (lon, lat, ...) ascii data processing module\
@@ -64,8 +109,8 @@ def parse_args(*args, **kwargs):
     xyz_module._positionals.title = 'required argument choices'
     xyz_command = xyz_module.add_subparsers(dest='command')
     # gdp xyz uni
-    xyz_uni = xyz_command.add_parser('uni', help='generate uniform of xyz files',
-    description="Generate the uniform of xyz files")
+    xyz_uni = xyz_command.add_parser('uni', help='generate union of xyz files',
+    description="Generate the union of xyz files")
     # gdp xyz int
     xyz_int = xyz_command.add_parser('int', help='generate intersect of xyz files',
     description="Generate the intersect of xyz files")
@@ -115,22 +160,19 @@ def parse_args(*args, **kwargs):
 
 
 def main(*args, **kwargs):
-    clear_screen()
     args = parse_args(*args, **kwargs)
     if args.about or len(sys.argv) == 1:
         print(f"{about}\n")
         exit(1)
     #===== Module: dat =====#
     if args.module == 'dat':
+        from . import dat
         if args.command == 'uni':
-            subprocess.call('gdp dat uni -h', shell=True)
-            under_dev()
+            dat.union(args)
         if args.command == 'int':
-            subprocess.call('gdp dat int -h', shell=True)
-            under_dev()
+            dat.intersect(args)
         if args.command == 'dif':
-            subprocess.call('gdp dat dif -h', shell=True)
-            under_dev()
+            dat.difference(args)
         else:
             subprocess.call('gdp dat -h', shell=True)
     #===== Module: xyz =====#
