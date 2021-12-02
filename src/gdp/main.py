@@ -114,7 +114,6 @@ def parse_args(*args, **kwargs):
     return parser.parse_args()
 
 
-
 def main(*args, **kwargs):
     clear_screen()
     args = parse_args(*args, **kwargs)
