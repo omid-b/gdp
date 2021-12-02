@@ -1,7 +1,7 @@
 **.DS_Store
 **_conv.c
+**_dat.c
 **_io.c
-**_list.c
 **_xyz.c
 
 # Byte-compiled / optimized / DLL files
