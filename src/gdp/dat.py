@@ -14,19 +14,8 @@ def union(args):
     for x in sets_concat:
         if x not in union:
             union.append(x)
-    union = sorted(union)
-    if args.output:
-        if args.append:
-            fopen = open(args.output,'a')
-        else:
-            fopen = open(args.output,'w')
-        for x in union:
-            fopen.write(f"{x}\n")
-        fopen.close()
-    else:
-        for x in union:
-            print(f"{x}")
-    exit(0)
+    io.output_lines(union, args)
+
 
 
 def intersect(args):
@@ -35,6 +24,25 @@ def intersect(args):
     if nof < 2:
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
+    sets = []
+    sets_concat = []
+    for i in range(nof):
+        sets.append(io.read_file_lines(input_files[i]))
+        sets_concat += sets[-1]
+    intersect = []
+    intersect_inv = []
+    for x in sets_concat:
+        if all(x in l for l in sets):
+            if x not in intersect:
+                intersect.append(x)
+        elif x not in intersect_inv:
+            intersect_inv.append(x)
+    if args.inverse:
+        io.output_lines(intersect_inv, args)
+    else:
+        io.output_lines(intersect, args)
+
+
 
 
 def difference(args):
@@ -43,3 +51,23 @@ def difference(args):
     if nof < 2:
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
+    sets = []
+    sets_concat = []
+    for i in range(nof):
+        sets.append(io.read_file_lines(input_files[i]))
+        sets_concat += sets[-1]
+    difference = []
+    difference_inv = []
+    for x in sets_concat:
+        if all(x not in l for l in sets[1:]):
+            if x not in difference:
+                difference.append(x)
+        elif x not in difference_inv:
+            difference_inv.append(x)
+    if args.inverse:
+        io.output_lines(difference_inv, args)
+    else:
+        io.output_lines(difference, args)
+
+
+

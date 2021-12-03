@@ -4,6 +4,7 @@ import os
 import sys
 import argparse
 import subprocess
+from time import time
 
 version = "0.0.1"
 about = """\
@@ -162,17 +163,20 @@ def parse_args(*args, **kwargs):
 def main(*args, **kwargs):
     args = parse_args(*args, **kwargs)
     if args.about or len(sys.argv) == 1:
+        clear_screen()
         print(f"{about}\n")
         exit(1)
     #===== Module: dat =====#
     if args.module == 'dat':
-        from . import dat
+        from . import _dat
         if args.command == 'uni':
-            dat.union(args)
+            _dat.union(args)
+            exit(0)
         if args.command == 'int':
-            dat.intersect(args)
+            _dat.intersect(args)
+            exit(0)
         if args.command == 'dif':
-            dat.difference(args)
+            _dat.difference(args)
         else:
             subprocess.call('gdp dat -h', shell=True)
     #===== Module: xyz =====#
