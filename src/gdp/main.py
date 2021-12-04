@@ -63,6 +63,12 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    dat_uni.add_argument(
+        '--headers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore')
     # gdp dat int
     dat_int = dat_command.add_parser('int', help='generate intersect of data files',
     description="Generate the intersect of data files (lines)")
@@ -83,6 +89,12 @@ def parse_args(*args, **kwargs):
         '--inverse',
         action='store_true',
         help='inverse operation')
+    dat_int.add_argument(
+        '--headers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore')
     # gdp dat dif
     dat_dif = dat_command.add_parser('dif', help='generate difference of data files',
     description="Generate the difference of data files (lines)")
@@ -102,13 +114,72 @@ def parse_args(*args, **kwargs):
         '-i',
         '--inverse',
         action='store_true',
-        help='inverse operation')   
+        help='inverse operation')
+    dat_dif.add_argument(
+        '--headers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore')
     #===== Module: xyz =====#
     xyz_module = subparsers.add_parser('xyz', help='xyz data type processing module',
     description="Geographic XYZ (lon, lat, ...) ascii data processing module\
     (e.g., velocity models, topography data). Data could have more than three columns.")
     xyz_module._positionals.title = 'required argument choices'
     xyz_command = xyz_module.add_subparsers(dest='command')
+    # gdp xyz out
+    xyz_out = xyz_command.add_parser('out', help='output unique xyz data',
+    description="Output unique xyz data'")
+    xyz_out.add_argument("input_xyz", nargs=1)
+    xyz_out.add_argument(
+        '-x',
+        type=int,
+        action='store',
+        default=1,
+        help='x/longitude column')
+    xyz_out.add_argument(
+        '-y',
+        type=int,
+        action='store',
+        default=2,
+        help='y/latitude column')
+    xyz_out.add_argument(
+        '-z',
+        type=int,
+        action='store',
+        default=3,
+        help='z/data column')
+    xyz_out.add_argument(
+        '-o',
+        '--output',
+        type=str,
+        action='store',
+        help='output file')
+    xyz_out.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    xyz_out.add_argument(
+        '--headers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore')
+    xyz_out.add_argument(
+        '--digits',
+        type=int,
+        action='store',
+        default=4,
+        help='number of digits for output XYZ')
+    xyz_out.add_argument(
+        '--noz',
+        action='store_true',
+        help='do not output z column')
+    xyz_out.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than xyz)')
     # gdp xyz uni
     xyz_uni = xyz_command.add_parser('uni', help='generate union of xyz files',
     description="Generate the union of xyz files")
@@ -159,6 +230,7 @@ def parse_args(*args, **kwargs):
     # return arguments
     return parser.parse_args()
 
+###############################################################
 
 def main(*args, **kwargs):
     args = parse_args(*args, **kwargs)
@@ -168,19 +240,24 @@ def main(*args, **kwargs):
         exit(1)
     #===== Module: dat =====#
     if args.module == 'dat':
-        from . import _dat
+        from . import dat
         if args.command == 'uni':
-            _dat.union(args)
+            dat.union(args)
             exit(0)
         if args.command == 'int':
-            _dat.intersect(args)
+            dat.intersect(args)
             exit(0)
         if args.command == 'dif':
-            _dat.difference(args)
+            dat.difference(args)
         else:
             subprocess.call('gdp dat -h', shell=True)
     #===== Module: xyz =====#
     if args.module == 'xyz':
+        if args.command == 'out':
+            from . import io
+            xyz_lines = io.xyz_lines(args.input_xyz[0], args)
+            io.output_lines(xyz_lines, args)
+            exit(0)
         if args.command == 'uni':
             subprocess.call('gdp xyz uni -h', shell=True)
             under_dev()

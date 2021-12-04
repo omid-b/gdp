@@ -12,7 +12,7 @@ def union(object args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        sets_concat += _io.read_file_lines(input_files[i])
+        sets_concat += _io.read_file_lines(input_files[i], args.header)
     for x in sets_concat:
         if x not in union:
             union.append(x)
@@ -34,7 +34,7 @@ def intersect(object args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        sets.append(_io.read_file_lines(input_files[i]))
+        sets.append(_io.read_file_lines(input_files[i], args.header))
         sets_concat += sets[-1]
     for x in sets_concat:
         if all(x in l for l in sets):
@@ -63,7 +63,7 @@ def difference(object args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        sets.append(_io.read_file_lines(input_files[i]))
+        sets.append(_io.read_file_lines(input_files[i], args.header))
         sets_concat += sets[-1]
     for x in sets_concat:
         if all(x not in l for l in sets[1:]):

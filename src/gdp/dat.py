@@ -2,6 +2,8 @@ from . import io
 
 
 def union(args):
+    print("OKKKKK")
+    print(args.header)
     nof = len(args.input_files)
     input_files = args.input_files
     if nof < 2:
@@ -9,7 +11,7 @@ def union(args):
         exit(1)
     sets_concat = []
     for i in range(nof):
-        sets_concat += io.read_file_lines(input_files[i])
+        sets_concat += io.read_file_lines(input_files[i], args.header)
     union = []
     for x in sets_concat:
         if x not in union:
@@ -27,7 +29,7 @@ def intersect(args):
     sets = []
     sets_concat = []
     for i in range(nof):
-        sets.append(io.read_file_lines(input_files[i]))
+        sets.append(io.read_file_lines(input_files[i], args.header))
         sets_concat += sets[-1]
     intersect = []
     intersect_inv = []
@@ -54,7 +56,7 @@ def difference(args):
     sets = []
     sets_concat = []
     for i in range(nof):
-        sets.append(io.read_file_lines(input_files[i]))
+        sets.append(io.read_file_lines(input_files[i], args.header))
         sets_concat += sets[-1]
     difference = []
     difference_inv = []
