@@ -240,15 +240,16 @@ def main(*args, **kwargs):
         exit(1)
     #===== Module: dat =====#
     if args.module == 'dat':
-        from . import dat
+        from . import _dat
         if args.command == 'uni':
-            dat.union(args)
+            _dat.union(args)
             exit(0)
         if args.command == 'int':
-            dat.intersect(args)
+            _dat.intersect(args)
             exit(0)
         if args.command == 'dif':
-            dat.difference(args)
+            _dat.difference(args)
+            exit(0)
         else:
             subprocess.call('gdp dat -h', shell=True)
     #===== Module: xyz =====#

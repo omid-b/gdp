@@ -77,10 +77,10 @@ def xyz_lines(xyzfile, args):
     return xyzlines
 
 
-def dat_lines(datfile,header):
+def dat_lines(datfile,args):
     try:
         fopen = open(datfile,'r')
-        datlines = fopen.read().splitlines()[header:]
+        datlines = fopen.read().splitlines()[args.headers:]
         fopen.close()
     except Exception as exc:
         print(f"Error reading input file: {datfile}\n")
@@ -89,6 +89,7 @@ def dat_lines(datfile,header):
 
 
 def output_lines(lines, args):
+    # output to stout or a file
     lines_uniq = []
     for x in lines:
         if x not in lines_uniq:

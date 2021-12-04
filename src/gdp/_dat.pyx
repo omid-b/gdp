@@ -1,4 +1,4 @@
-from . import _io
+from . import io
 
 
 def union(object args):
@@ -12,11 +12,11 @@ def union(object args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        sets_concat += _io.read_file_lines(input_files[i], args.header)
+        sets_concat += io.dat_lines(input_files[i], args)
     for x in sets_concat:
         if x not in union:
             union.append(x)
-    _io.output_lines(union, args)
+    io.output_lines(union, args)
 
 
 
@@ -34,7 +34,7 @@ def intersect(object args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        sets.append(_io.read_file_lines(input_files[i], args.header))
+        sets.append(io.dat_lines(input_files[i], args))
         sets_concat += sets[-1]
     for x in sets_concat:
         if all(x in l for l in sets):
@@ -43,9 +43,9 @@ def intersect(object args):
         elif x not in intersect_inv:
             intersect_inv.append(x)
     if args.inverse:
-        _io.output_lines(intersect_inv, args)
+        io.output_lines(intersect_inv, args)
     else:
-        _io.output_lines(intersect, args)
+        io.output_lines(intersect, args)
 
 
 
@@ -63,7 +63,7 @@ def difference(object args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        sets.append(_io.read_file_lines(input_files[i], args.header))
+        sets.append(io.dat_lines(input_files[i], args))
         sets_concat += sets[-1]
     for x in sets_concat:
         if all(x not in l for l in sets[1:]):
@@ -72,9 +72,9 @@ def difference(object args):
         elif x not in difference_inv:
             difference_inv.append(x)
     if args.inverse:
-        _io.output_lines(difference_inv, args)
+        io.output_lines(difference_inv, args)
     else:
-        _io.output_lines(difference, args)
+        io.output_lines(difference, args)
 
 
 
