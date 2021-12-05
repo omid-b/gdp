@@ -54,7 +54,7 @@ def parse_args(*args, **kwargs):
     dat_uni.add_argument("input_files", nargs="+")
     dat_uni.add_argument(
         '-o',
-        '--output',
+        '--outfile',
         type=str,
         action='store',
         help='output file')
@@ -81,7 +81,7 @@ def parse_args(*args, **kwargs):
     dat_int.add_argument("input_files", nargs="+")
     dat_int.add_argument(
         '-o',
-        '--output',
+        '--outfile',
         type=str,
         action='store',
         help='output file')
@@ -113,7 +113,7 @@ def parse_args(*args, **kwargs):
     dat_dif.add_argument("input_files", nargs="+")
     dat_dif.add_argument(
         '-o',
-        '--output',
+        '--outfile',
         type=str,
         action='store',
         help='output file')
@@ -169,7 +169,7 @@ def parse_args(*args, **kwargs):
         help='z/data column number (default=3)')
     xyz_out.add_argument(
         '-o',
-        '--output',
+        '--outfile',
         type=str,
         action='store',
         help='output file')
@@ -228,7 +228,7 @@ def parse_args(*args, **kwargs):
         help='z/data column number (default=3)')
     xyz_uni.add_argument(
         '-o',
-        '--output',
+        '--outfile',
         type=str,
         action='store',
         help='output file')
@@ -287,7 +287,7 @@ def parse_args(*args, **kwargs):
         help='z/data column number (default=3)')
     xyz_int.add_argument(
         '-o',
-        '--output',
+        '--outfile',
         type=str,
         action='store',
         help='output file')
@@ -351,7 +351,7 @@ def parse_args(*args, **kwargs):
         help='z/data column number (default=3)')
     xyz_dif.add_argument(
         '-o',
-        '--output',
+        '--outfile',
         type=str,
         action='store',
         help='output file')

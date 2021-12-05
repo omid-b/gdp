@@ -100,11 +100,11 @@ def output_lines(lines, args):
         if x not in lines_uniq:
             lines_uniq.append(x)
     lines_uniq = sorted(lines_uniq)
-    if args.output:
+    if args.outfile:
         if args.append:
-            fopen = open(args.output,'a')
+            fopen = open(args.outfile,'a')
         else:
-            fopen = open(args.output,'w')
+            fopen = open(args.outfile,'w')
         for x in lines_uniq:
             fopen.write(f"{x}\n")
         fopen.close()
