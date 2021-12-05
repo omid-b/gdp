@@ -54,7 +54,6 @@ def difference(object args):
     cdef int nof = len(args.input_files)
     cdef list input_files = args.input_files
     cdef list sets = []
-    cdef list sets_concat = []
     cdef list difference = []
     cdef list difference_inv = []
     cdef str x
@@ -64,8 +63,7 @@ def difference(object args):
         exit(1)
     for i in range(nof):
         sets.append(io.dat_lines(input_files[i], args))
-        sets_concat += sets[-1]
-    for x in sets_concat:
+    for x in sets[0]:
         if all(x not in l for l in sets[1:]):
             if x not in difference:
                 difference.append(x)

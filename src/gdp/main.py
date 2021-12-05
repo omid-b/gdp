@@ -68,7 +68,13 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=0,
-        help='number of header lines to ignore')
+        help='number of header lines to ignore (default=0)')
+    dat_uni.add_argument(
+        '--footers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
     # gdp dat int
     dat_int = dat_command.add_parser('int', help='generate intersect of data files',
     description="Generate the intersect of data files (lines)")
@@ -94,7 +100,13 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=0,
-        help='number of header lines to ignore')
+        help='number of header lines to ignore (default=0)')
+    dat_int.add_argument(
+        '--footers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
     # gdp dat dif
     dat_dif = dat_command.add_parser('dif', help='generate difference of data files',
     description="Generate the difference of data files (lines)")
@@ -120,7 +132,13 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=0,
-        help='number of header lines to ignore')
+        help='number of header lines to ignore (default=0)')
+    dat_dif.add_argument(
+        '--footers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
     #===== Module: xyz =====#
     xyz_module = subparsers.add_parser('xyz', help='xyz data type processing module',
     description="Geographic XYZ (lon, lat, ...) ascii data processing module\
@@ -130,25 +148,25 @@ def parse_args(*args, **kwargs):
     # gdp xyz out
     xyz_out = xyz_command.add_parser('out', help='output unique xyz data',
     description="Output unique xyz data'")
-    xyz_out.add_argument("input_xyz", nargs=1)
+    xyz_out.add_argument("input_files", nargs=1)
     xyz_out.add_argument(
         '-x',
         type=int,
         action='store',
         default=1,
-        help='x/longitude column')
+        help='x/longitude column number (default=1)')
     xyz_out.add_argument(
         '-y',
         type=int,
         action='store',
         default=2,
-        help='y/latitude column')
+        help='y/latitude column number (default=2)')
     xyz_out.add_argument(
         '-z',
         type=int,
         action='store',
         default=3,
-        help='z/data column')
+        help='z/data column number (default=3)')
     xyz_out.add_argument(
         '-o',
         '--output',
@@ -165,17 +183,23 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=0,
-        help='number of header lines to ignore')
+        help='number of header lines to ignore (default=0)')
     xyz_out.add_argument(
-        '--digits',
+        '--footers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    xyz_out.add_argument(
+        '--decimals',
         type=int,
         action='store',
         default=4,
-        help='number of digits for output XYZ')
+        help='number of decimals for output xyz')
     xyz_out.add_argument(
         '--noz',
         action='store_true',
-        help='do not output z column')
+        help='no z-column available')
     xyz_out.add_argument(
         '--noextra',
         action='store_true',
@@ -183,12 +207,208 @@ def parse_args(*args, **kwargs):
     # gdp xyz uni
     xyz_uni = xyz_command.add_parser('uni', help='generate union of xyz files',
     description="Generate the union of xyz files")
+    xyz_uni.add_argument("input_files", nargs='+')
+    xyz_uni.add_argument(
+        '-x',
+        type=int,
+        action='store',
+        default=1,
+        help='x/longitude column number (default=1)')
+    xyz_uni.add_argument(
+        '-y',
+        type=int,
+        action='store',
+        default=2,
+        help='y/latitude column number (default=2)')
+    xyz_uni.add_argument(
+        '-z',
+        type=int,
+        action='store',
+        default=3,
+        help='z/data column number (default=3)')
+    xyz_uni.add_argument(
+        '-o',
+        '--output',
+        type=str,
+        action='store',
+        help='output file')
+    xyz_uni.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    xyz_uni.add_argument(
+        '--headers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    xyz_uni.add_argument(
+        '--footers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    xyz_uni.add_argument(
+        '--decimals',
+        type=int,
+        action='store',
+        default=4,
+        help='number of decimals for output xyz')
+    xyz_uni.add_argument(
+        '--noz',
+        action='store_true',
+        help='no z-column available')
+    xyz_uni.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than xyz)')
     # gdp xyz int
     xyz_int = xyz_command.add_parser('int', help='generate intersect of xyz files',
     description="Generate the intersect of xyz files")
+    xyz_int.add_argument("input_files", nargs='+')
+    xyz_int.add_argument(
+        '-x',
+        type=int,
+        action='store',
+        default=1,
+        help='x/longitude column number (default=1)')
+    xyz_int.add_argument(
+        '-y',
+        type=int,
+        action='store',
+        default=2,
+        help='y/latitude column number (default=2)')
+    xyz_int.add_argument(
+        '-z',
+        type=int,
+        action='store',
+        default=3,
+        help='z/data column number (default=3)')
+    xyz_int.add_argument(
+        '-o',
+        '--output',
+        type=str,
+        action='store',
+        help='output file')
+    xyz_int.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    xyz_int.add_argument(
+        '--headers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    xyz_int.add_argument(
+        '--footers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    xyz_int.add_argument(
+        '--decimals',
+        type=int,
+        action='store',
+        default=4,
+        help='number of decimals for output xyz')
+    xyz_int.add_argument(
+        '--noz',
+        action='store_true',
+        help='no z-column available')
+    xyz_int.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than xyz)')
+    xyz_int.add_argument(
+        '-i',
+        '--inverse',
+        action='store_true',
+        help='inverse operation')
     # gdp xyz dif
     xyz_dif = xyz_command.add_parser('dif', help='generate difference of xyz files',
     description="Generate the difference of xyz files")
+    xyz_dif.add_argument("input_files", nargs='+')
+    xyz_dif.add_argument(
+        '-x',
+        type=int,
+        action='store',
+        default=1,
+        help='x/longitude column number (default=1)')
+    xyz_dif.add_argument(
+        '-y',
+        type=int,
+        action='store',
+        default=2,
+        help='y/latitude column number (default=2)')
+    xyz_dif.add_argument(
+        '-z',
+        type=int,
+        action='store',
+        default=3,
+        help='z/data column number (default=3)')
+    xyz_dif.add_argument(
+        '-o',
+        '--output',
+        type=str,
+        action='store',
+        help='output file')
+    xyz_dif.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    xyz_dif.add_argument(
+        '--headers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    xyz_dif.add_argument(
+        '--footers',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    xyz_dif.add_argument(
+        '--decimals',
+        type=int,
+        action='store',
+        default=4,
+        help='number of decimals for output xyz')
+    xyz_dif.add_argument(
+        '--noz',
+        action='store_true',
+        help='no z-column available')
+    xyz_dif.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than xyz)')
+    xyz_dif.add_argument(
+        '-i',
+        '--inverse',
+        action='store_true',
+        help='inverse operation')
+    # gdp xyz 1Dto2D
+    xyz_1Dto2D = xyz_command.add_parser('1Dto2D', help='1Dto2D',
+    description="1Dto2D")
+    # gdp xyz 1Dto3D
+    xyz_1Dto3D = xyz_command.add_parser('1Dto3D', help='1Dto3D',
+    description="1Dto3D")
+    # gdp xyz 2Dto1D
+    xyz_2Dto1D = xyz_command.add_parser('2Dto1D', help='2Dto1D',
+    description="2Dto1D")
+    # gdp xyz 2Dto3D
+    xyz_2Dto3D = xyz_command.add_parser('2Dto3D', help='2Dto3D',
+    description="2Dto3D")
+    # gdp xyz 3Dto1D
+    xyz_3Dto1D = xyz_command.add_parser('3Dto1D', help='3Dto1D',
+    description="3Dto1D")
+    # gdp xyz 3Dto2D
+    xyz_3Dto2D = xyz_command.add_parser('3Dto2D', help='3Dto2D',
+    description="3Dto2D")
     # gdp xyz grd
     xyz_grd = xyz_command.add_parser('grd', help='gridding data (interpolation)',
     description="Gridding data (interpolation) with Gaussian smoothing")
@@ -254,20 +474,22 @@ def main(*args, **kwargs):
             subprocess.call('gdp dat -h', shell=True)
     #===== Module: xyz =====#
     if args.module == 'xyz':
+        # from . import xyz
+        from . import _xyz
         if args.command == 'out':
             from . import io
-            xyz_lines = io.xyz_lines(args.input_xyz[0], args)
+            xyz_lines = io.xyz_lines(args.input_files[0], args)
             io.output_lines(xyz_lines, args)
             exit(0)
         if args.command == 'uni':
-            subprocess.call('gdp xyz uni -h', shell=True)
-            under_dev()
+            _xyz.union(args)
+            exit(0)
         if args.command == 'int':
-            subprocess.call('gdp xyz int -h', shell=True)
-            under_dev()
+            _xyz.intersect(args)
+            exit(0)
         if args.command == 'dif':
-            subprocess.call('gdp xyz dif -h', shell=True)
-            under_dev()
+            _xyz.difference(args)
+            exit(0)
         if args.command == 'grd':
             subprocess.call('gdp xyz grd -h', shell=True)
             under_dev()

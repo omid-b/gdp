@@ -8,7 +8,6 @@ def read_xyz(xyzfile, args):
         z = x
     else:
         z = args.z - 1
-    print(z)
     lon = []
     lat = []
     zval = []
@@ -16,7 +15,10 @@ def read_xyz(xyzfile, args):
     # read lines
     try:
         fopen = open(xyzfile, 'r')
-        xyzlines = fopen.read().splitlines()[args.headers:]
+        if args.footers:
+            xyzlines = fopen.read().splitlines()[args.headers:-args.footers]
+        else:
+            xyzlines = fopen.read().splitlines()[args.headers:]
         fopen.close()
     except Exception as exc:
         print(exc)
@@ -68,9 +70,9 @@ def xyz_lines(xyzfile, args):
     xyzlines = []
     nol = len(xyz_data[0])
     for i in range(nol):
-        line_str = f"%.{args.digits}f %.{args.digits}f" %(xyz_data[0][i],xyz_data[1][i])
+        line_str = f"%.{args.decimals}f %.{args.decimals}f" %(xyz_data[0][i],xyz_data[1][i])
         if xyz_data[2][i] != npnan and not args.noz:
-            line_str = f"%s %.{args.digits}f" %(line_str, xyz_data[2][i])
+            line_str = f"%s %.{args.decimals}f" %(line_str, xyz_data[2][i])
         if len(xyz_data[3][i]) and not args.noextra:
             line_str = "%s %s" %(line_str, xyz_data[3][i])
         xyzlines.append(line_str)
@@ -80,7 +82,10 @@ def xyz_lines(xyzfile, args):
 def dat_lines(datfile,args):
     try:
         fopen = open(datfile,'r')
-        datlines = fopen.read().splitlines()[args.headers:]
+        if args.footers:
+            datlines = fopen.read().splitlines()[args.headers:-args.footers]
+        else:
+            datlines = fopen.read().splitlines()[args.headers:]
         fopen.close()
     except Exception as exc:
         print(f"Error reading input file: {datfile}\n")

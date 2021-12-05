@@ -2,8 +2,6 @@ from . import io
 
 
 def union(args):
-    print("OKKKKK")
-    print(args.headers)
     nof = len(args.input_files)
     input_files = args.input_files
     if nof < 2:
