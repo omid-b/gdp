@@ -44,14 +44,104 @@ def parse_args(*args, **kwargs):
     parser._positionals.title = 'list of modules'
     subparsers = parser.add_subparsers(dest='module')
     #===== Module: dat =====#
-    dat_module = subparsers.add_parser('dat', help='general data type processing module',
-    description="General ascii data type processing module (e.g., datalist files: 'datalist.dat')")
+    dat_module = subparsers.add_parser('dat', help='data processing module',
+    description="Geographic or NaN data type processing module")
     dat_module._positionals.title = 'required argument choices'
     dat_command = dat_module.add_subparsers(dest='command')
+    # gdp dat out
+    dat_out = dat_command.add_parser('out', help='output/show content of single data file',
+    description="Output/show content of single data file")
+    dat_out.add_argument("input_files", nargs=1)
+    dat_out.add_argument(
+        '--nan',
+        action='store_true',
+        help='not a numerical data type')
+    dat_out.add_argument(
+        '-x',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='positional column number(s) (e.g., x, y; default=[1, 2])')
+    dat_out.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    dat_out.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    dat_out.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    dat_out.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    dat_out.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    dat_out.add_argument(
+        '--decimal',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[4,4],
+        help='number of decimals for positional and value argumanet (default=[4,4])')
+    dat_out.add_argument(
+        '--novalue',
+        action='store_true',
+        help='no value/data column(s) available')
+    dat_out.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than numerical columns)')
+    dat_out.add_argument(
+        '--nosort',
+        action='store_true',
+        help='do not apply sort to output lines')
+    dat_out.add_argument(
+        '--nouniq',
+        action='store_true',
+        help='do not apply unique to output lines')
+    dat_out.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
     # gdp dat uni
-    dat_uni = dat_command.add_parser('uni', help='generate union of data files',
-    description="Generate the union of data files (lines)")
-    dat_uni.add_argument("input_files", nargs="+")
+    dat_uni = dat_command.add_parser('uni', help='generate the union of input data files',
+    description="Generate the union of input data files")
+    dat_uni.add_argument("input_files", nargs='+')
+    dat_uni.add_argument(
+        '--nan',
+        action='store_true',
+        help='not a numerical data type')
+    dat_uni.add_argument(
+        '-x',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='positional column number(s) (e.g., x, y; default=[1, 2])')
+    dat_uni.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
     dat_uni.add_argument(
         '-o',
         '--outfile',
@@ -64,21 +154,71 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     dat_uni.add_argument(
-        '--headers',
+        '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
     dat_uni.add_argument(
-        '--footers',
+        '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
+    dat_uni.add_argument(
+        '--decimal',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[4,4],
+        help='number of decimals for positional and value argumanet (default=[4,4])')
+    dat_uni.add_argument(
+        '--novalue',
+        action='store_true',
+        help='no value/data column(s) available')
+    dat_uni.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than numerical columns)')
+    dat_uni.add_argument(
+        '-i',
+        '--inverse',
+        action='store_true',
+        help='inverse operation')
+    dat_uni.add_argument(
+        '--nosort',
+        action='store_true',
+        help='do not apply sort to output lines')
+    dat_uni.add_argument(
+        '--nouniq',
+        action='store_true',
+        help='do not apply unique to output lines')
+    dat_uni.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
     # gdp dat int
-    dat_int = dat_command.add_parser('int', help='generate intersect of data files',
-    description="Generate the intersect of data files (lines)")
-    dat_int.add_argument("input_files", nargs="+")
+    dat_int = dat_command.add_parser('int', help='generate the intersect of input data files',
+    description="Generate the intersect of input data files")
+    dat_int.add_argument("input_files", nargs='+')
+    dat_int.add_argument(
+        '--nan',
+        action='store_true',
+        help='not a numerical data type')
+    dat_int.add_argument(
+        '-x',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='positional column number(s) (e.g., x, y; default=[1, 2])')
+    dat_int.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
     dat_int.add_argument(
         '-o',
         '--outfile',
@@ -91,26 +231,71 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     dat_int.add_argument(
-        '-i',
-        '--inverse',
-        action='store_true',
-        help='inverse operation')
-    dat_int.add_argument(
-        '--headers',
+        '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
     dat_int.add_argument(
-        '--footers',
+        '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
+    dat_int.add_argument(
+        '--decimal',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[4,4],
+        help='number of decimals for positional and value argumanet (default=[4,4])')
+    dat_int.add_argument(
+        '--novalue',
+        action='store_true',
+        help='no value/data column(s) available')
+    dat_int.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than numerical columns)')
+    dat_int.add_argument(
+        '-i',
+        '--inverse',
+        action='store_true',
+        help='inverse operation')
+    dat_int.add_argument(
+        '--nosort',
+        action='store_true',
+        help='do not apply sort to output lines')
+    dat_int.add_argument(
+        '--nouniq',
+        action='store_true',
+        help='do not apply unique to output lines')
+    dat_int.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
     # gdp dat dif
-    dat_dif = dat_command.add_parser('dif', help='generate difference of data files',
-    description="Generate the difference of data files (lines)")
-    dat_dif.add_argument("input_files", nargs="+")
+    dat_dif = dat_command.add_parser('dif', help='generate the difference of input data files',
+    description="Generate the difference of input data files")
+    dat_dif.add_argument("input_files", nargs='+')
+    dat_dif.add_argument(
+        '--nan',
+        action='store_true',
+        help='not a numerical data type')
+    dat_dif.add_argument(
+        '-x',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='positional column number(s) (e.g., x, y; default=[1, 2])')
+    dat_dif.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
     dat_dif.add_argument(
         '-o',
         '--outfile',
@@ -122,313 +307,88 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    dat_dif.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    dat_dif.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    dat_dif.add_argument(
+        '--decimal',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[4,4],
+        help='number of decimals for positional and value argumanet (default=[4,4])')
+    dat_dif.add_argument(
+        '--novalue',
+        action='store_true',
+        help='no value/data column(s) available')
+    dat_dif.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than numerical columns)')
     dat_dif.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation')
     dat_dif.add_argument(
-        '--headers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
+        '--nosort',
+        action='store_true',
+        help='do not apply sort to output lines')
     dat_dif.add_argument(
-        '--footers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    #===== Module: xyz =====#
-    xyz_module = subparsers.add_parser('xyz', help='xyz data type processing module',
-    description="Geographic XYZ (lon, lat, ...) ascii data processing module\
-    (e.g., velocity models, topography data). Data could have more than three columns.")
-    xyz_module._positionals.title = 'required argument choices'
-    xyz_command = xyz_module.add_subparsers(dest='command')
-    # gdp xyz out
-    xyz_out = xyz_command.add_parser('out', help='output unique xyz data',
-    description="Output unique xyz data'")
-    xyz_out.add_argument("input_files", nargs=1)
-    xyz_out.add_argument(
-        '-x',
-        type=int,
-        action='store',
-        default=1,
-        help='x/longitude column number (default=1)')
-    xyz_out.add_argument(
-        '-y',
-        type=int,
-        action='store',
-        default=2,
-        help='y/latitude column number (default=2)')
-    xyz_out.add_argument(
-        '-z',
-        type=int,
-        action='store',
-        default=3,
-        help='z/data column number (default=3)')
-    xyz_out.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    xyz_out.add_argument(
-        '-a',
-        '--append',
+        '--nouniq',
         action='store_true',
-        help='append to output')
-    xyz_out.add_argument(
-        '--headers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    xyz_out.add_argument(
-        '--footers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    xyz_out.add_argument(
-        '--decimals',
-        type=int,
-        action='store',
-        default=4,
-        help='number of decimals for output xyz')
-    xyz_out.add_argument(
-        '--noz',
+        help='do not apply unique to output lines')
+    dat_dif.add_argument(
+        '--skipnan',
         action='store_true',
-        help='no z-column available')
-    xyz_out.add_argument(
-        '--noextra',
-        action='store_true',
-        help='do not output extra columns (other than xyz)')
-    # gdp xyz uni
-    xyz_uni = xyz_command.add_parser('uni', help='generate union of xyz files',
-    description="Generate the union of xyz files")
-    xyz_uni.add_argument("input_files", nargs='+')
-    xyz_uni.add_argument(
-        '-x',
-        type=int,
-        action='store',
-        default=1,
-        help='x/longitude column number (default=1)')
-    xyz_uni.add_argument(
-        '-y',
-        type=int,
-        action='store',
-        default=2,
-        help='y/latitude column number (default=2)')
-    xyz_uni.add_argument(
-        '-z',
-        type=int,
-        action='store',
-        default=3,
-        help='z/data column number (default=3)')
-    xyz_uni.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    xyz_uni.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    xyz_uni.add_argument(
-        '--headers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    xyz_uni.add_argument(
-        '--footers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    xyz_uni.add_argument(
-        '--decimals',
-        type=int,
-        action='store',
-        default=4,
-        help='number of decimals for output xyz')
-    xyz_uni.add_argument(
-        '--noz',
-        action='store_true',
-        help='no z-column available')
-    xyz_uni.add_argument(
-        '--noextra',
-        action='store_true',
-        help='do not output extra columns (other than xyz)')
-    # gdp xyz int
-    xyz_int = xyz_command.add_parser('int', help='generate intersect of xyz files',
-    description="Generate the intersect of xyz files")
-    xyz_int.add_argument("input_files", nargs='+')
-    xyz_int.add_argument(
-        '-x',
-        type=int,
-        action='store',
-        default=1,
-        help='x/longitude column number (default=1)')
-    xyz_int.add_argument(
-        '-y',
-        type=int,
-        action='store',
-        default=2,
-        help='y/latitude column number (default=2)')
-    xyz_int.add_argument(
-        '-z',
-        type=int,
-        action='store',
-        default=3,
-        help='z/data column number (default=3)')
-    xyz_int.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    xyz_int.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    xyz_int.add_argument(
-        '--headers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    xyz_int.add_argument(
-        '--footers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    xyz_int.add_argument(
-        '--decimals',
-        type=int,
-        action='store',
-        default=4,
-        help='number of decimals for output xyz')
-    xyz_int.add_argument(
-        '--noz',
-        action='store_true',
-        help='no z-column available')
-    xyz_int.add_argument(
-        '--noextra',
-        action='store_true',
-        help='do not output extra columns (other than xyz)')
-    xyz_int.add_argument(
-        '-i',
-        '--inverse',
-        action='store_true',
-        help='inverse operation')
-    # gdp xyz dif
-    xyz_dif = xyz_command.add_parser('dif', help='generate difference of xyz files',
-    description="Generate the difference of xyz files")
-    xyz_dif.add_argument("input_files", nargs='+')
-    xyz_dif.add_argument(
-        '-x',
-        type=int,
-        action='store',
-        default=1,
-        help='x/longitude column number (default=1)')
-    xyz_dif.add_argument(
-        '-y',
-        type=int,
-        action='store',
-        default=2,
-        help='y/latitude column number (default=2)')
-    xyz_dif.add_argument(
-        '-z',
-        type=int,
-        action='store',
-        default=3,
-        help='z/data column number (default=3)')
-    xyz_dif.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    xyz_dif.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    xyz_dif.add_argument(
-        '--headers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    xyz_dif.add_argument(
-        '--footers',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    xyz_dif.add_argument(
-        '--decimals',
-        type=int,
-        action='store',
-        default=4,
-        help='number of decimals for output xyz')
-    xyz_dif.add_argument(
-        '--noz',
-        action='store_true',
-        help='no z-column available')
-    xyz_dif.add_argument(
-        '--noextra',
-        action='store_true',
-        help='do not output extra columns (other than xyz)')
-    xyz_dif.add_argument(
-        '-i',
-        '--inverse',
-        action='store_true',
-        help='inverse operation')
-    # gdp xyz 1Dto2D
-    xyz_1Dto2D = xyz_command.add_parser('1Dto2D', help='1Dto2D',
+        help='do not output lines with nan value(s)')
+    # gdp dat 1Dto2D
+    dat_1Dto2D = dat_command.add_parser('1Dto2D', help='1Dto2D',
     description="1Dto2D")
-    # gdp xyz 1Dto3D
-    xyz_1Dto3D = xyz_command.add_parser('1Dto3D', help='1Dto3D',
+    # gdp dat 1Dto3D
+    dat_1Dto3D = dat_command.add_parser('1Dto3D', help='1Dto3D',
     description="1Dto3D")
-    # gdp xyz 2Dto1D
-    xyz_2Dto1D = xyz_command.add_parser('2Dto1D', help='2Dto1D',
+    # gdp dat 2Dto1D
+    dat_2Dto1D = dat_command.add_parser('2Dto1D', help='2Dto1D',
     description="2Dto1D")
-    # gdp xyz 2Dto3D
-    xyz_2Dto3D = xyz_command.add_parser('2Dto3D', help='2Dto3D',
+    # gdp dat 2Dto3D
+    dat_2Dto3D = dat_command.add_parser('2Dto3D', help='2Dto3D',
     description="2Dto3D")
-    # gdp xyz 3Dto1D
-    xyz_3Dto1D = xyz_command.add_parser('3Dto1D', help='3Dto1D',
+    # gdp dat 3Dto1D
+    dat_3Dto1D = dat_command.add_parser('3Dto1D', help='3Dto1D',
     description="3Dto1D")
-    # gdp xyz 3Dto2D
-    xyz_3Dto2D = xyz_command.add_parser('3Dto2D', help='3Dto2D',
+    # gdp dat 3Dto2D
+    dat_3Dto2D = dat_command.add_parser('3Dto2D', help='3Dto2D',
     description="3Dto2D")
-    # gdp xyz grd
-    xyz_grd = xyz_command.add_parser('grd', help='gridding data (interpolation)',
+    # gdp dat grd
+    dat_grd = dat_command.add_parser('grd', help='gridding data (interpolation)',
     description="Gridding data (interpolation) with Gaussian smoothing")
-    # gdp xyz pip
-    xyz_pip = xyz_command.add_parser('pip', help='points-in-polygon',
+    # gdp dat pip
+    dat_pip = dat_command.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method)")
-    # gdp xyz sum
-    xyz_sum = xyz_command.add_parser('sum', help='calculate sum of the z column',
+    # gdp dat sum
+    dat_sum = dat_command.add_parser('sum', help='calculate sum of the z column',
     description="Calculate summation of row values in the z column")
-    # gdp xyz avg
-    xyz_avg = xyz_command.add_parser('avg', help='calculate average of the z column',
+    # gdp dat avg
+    dat_avg = dat_command.add_parser('avg', help='calculate average of the z column',
     description="Calculate average of row values in the z column")
-    # gdp xyz med
-    xyz_med = xyz_command.add_parser('med', help='calculate median of the z column',
+    # gdp dat med
+    dat_med = dat_command.add_parser('med', help='calculate median of the z column',
     description="Calculate median of row values in the z column")
-    # gdp xyz mod
-    xyz_mod = xyz_command.add_parser('mod', help='calculate mode of the z column',
+    # gdp dat mod
+    dat_mod = dat_command.add_parser('mod', help='calculate mode of the z column',
     description="Calculate mode of row values in the z column")
-    # gdp xyz std
-    xyz_std = xyz_command.add_parser('std', help='calculate std of the z column',
+    # gdp dat std
+    dat_std = dat_command.add_parser('std', help='calculate std of the z column',
     description="Calculate standard deviation of row values in the z column")
     #===== Module: convert =====#
     conv_module = subparsers.add_parser('conv', help='data conversion module module',
@@ -460,59 +420,72 @@ def main(*args, **kwargs):
         exit(1)
     #===== Module: dat =====#
     if args.module == 'dat':
-        from . import _dat
-        if args.command == 'uni':
-            _dat.union(args)
-            exit(0)
-        if args.command == 'int':
-            _dat.intersect(args)
-            exit(0)
-        if args.command == 'dif':
-            _dat.difference(args)
-            exit(0)
-        else:
-            subprocess.call('gdp dat -h', shell=True)
-    #===== Module: xyz =====#
-    if args.module == 'xyz':
-        # from . import xyz
-        from . import _xyz
+        from . import dat
+        from . import nan
         if args.command == 'out':
             from . import io
-            xyz_lines = io.xyz_lines(args.input_files[0], args)
-            io.output_lines(xyz_lines, args)
+            out_lines = io.dat_lines(args.input_files[0], args)
+            io.output_lines(out_lines, args)
             exit(0)
         if args.command == 'uni':
-            _xyz.union(args)
+            if args.nan:
+                nan.union(args)
+            else:
+                dat.union(args)
             exit(0)
         if args.command == 'int':
-            _xyz.intersect(args)
+            if args.nan:
+                nan.intersect(args)
+            else:
+                dat.intersect(args)
             exit(0)
         if args.command == 'dif':
-            _xyz.difference(args)
+            if args.nan:
+                nan.difference(args)
+            else:
+                dat.difference(args)
+            exit(0)
+        if args.command == '1Dto2D':
+            dat.conv_1Dto2D(args)
+            exit(0)
+        if args.command == '1Dto3D':
+            dat.conv_1Dto3D(args)
+            exit(0)
+        if args.command == '2Dto1D':
+            dat.conv_2Dto1D(args)
+            exit(0)
+        if args.command == '2Dto3D':
+            dat.conv_2Dto3D(args)
+            exit(0)
+        if args.command == '3Dto1D':
+            dat.conv_3Dto1D(args)
+            exit(0)
+        if args.command == '3Dto2D':
+            dat.conv_3Dto2D(args)
             exit(0)
         if args.command == 'grd':
-            subprocess.call('gdp xyz grd -h', shell=True)
+            subprocess.call('gdp dat grd -h', shell=True)
             under_dev()
         if args.command == 'pip':
-            subprocess.call('gdp xyz pip -h', shell=True)
+            subprocess.call('gdp dat pip -h', shell=True)
             under_dev()
         if args.command == 'sum':
-            subprocess.call('gdp xyz sum -h', shell=True)
+            subprocess.call('gdp dat sum -h', shell=True)
             under_dev()
         if args.command == 'avg':
-            subprocess.call('gdp xyz avg -h', shell=True)
+            subprocess.call('gdp dat avg -h', shell=True)
             under_dev()
         if args.command == 'med':
-            subprocess.call('gdp xyz med -h', shell=True)
+            subprocess.call('gdp dat med -h', shell=True)
             under_dev()
         if args.command == 'mod':
-            subprocess.call('gdp xyz mod -h', shell=True)
+            subprocess.call('gdp dat mod -h', shell=True)
             under_dev()
         if args.command == 'std':
-            subprocess.call('gdp xyz std -h', shell=True)
+            subprocess.call('gdp dat std -h', shell=True)
             under_dev()
         else:
-            subprocess.call('gdp xyz -h', shell=True)
+            subprocess.call('gdp dat -h', shell=True)
     #===== Module: conv =====#
     if args.module == 'conv':
         if args.command == 'sac2dat':
@@ -521,11 +494,11 @@ def main(*args, **kwargs):
         if args.command == 'mseed2sac':
             subprocess.call('gdp conv mseed2sac -h', shell=True)
             under_dev()
-        if args.command == 'shp2xyz':
-            subprocess.call('gdp conv shp2xyz -h', shell=True)
+        if args.command == 'shp2dat':
+            subprocess.call('gdp conv shp2dat -h', shell=True)
             under_dev()
-        if args.command == 'nc2xyz':
-            subprocess.call('gdp conv nc2xyz -h', shell=True)
+        if args.command == 'nc2dat':
+            subprocess.call('gdp conv nc2dat -h', shell=True)
             under_dev()
         else:
             subprocess.call('gdp conv -h', shell=True)
