@@ -10,7 +10,7 @@ def union(args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        datlines[i] = io.dat_lines(input_files[i],args)
+        datlines[i] = io.data_lines(input_files[i],args)
         nol = len(datlines[i])
         for j in range(nol):
             if datlines[i][j] not in union:
@@ -38,7 +38,7 @@ def intersect(args):
         exit(1)
     ###
     for i in range(nof):
-        datlines[i] = io.dat_lines(input_files[i],args)
+        datlines[i] = io.data_lines(input_files[i],args)
     nol = len(datlines[0])
     for j in range(nol):
         if all(datlines[0][j] in l for l in datlines[1:]):
@@ -69,7 +69,7 @@ def difference(args):
         exit(1)
     ###
     for i in range(nof):
-        datlines[i] = io.dat_lines(input_files[i],args)
+        datlines[i] = io.data_lines(input_files[i],args)
     nol = len(datlines[0])
     for j in range(nol):
         if all(datlines[0][j] not in l for l in datlines[1:]):

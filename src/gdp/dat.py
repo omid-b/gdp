@@ -10,7 +10,7 @@ def union(args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        datlines[i] = io.dat_lines(input_files[i], args)
+        datlines[i] = io.data_lines(input_files[i], args)
         for line in datlines[i]:
             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
     union = []
@@ -42,7 +42,7 @@ def intersect(args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        datlines[i] = io.dat_lines(input_files[i], args)
+        datlines[i] = io.data_lines(input_files[i], args)
         for line in datlines[i]:
             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
     intersect = []
@@ -75,7 +75,7 @@ def difference(args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        datlines[i] = io.dat_lines(input_files[i], args)
+        datlines[i] = io.data_lines(input_files[i], args)
         for line in datlines[i]:
             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
     difference = []
@@ -99,61 +99,23 @@ def difference(args):
         io.output_lines(difference, args)
 
 
-# def difference(args):
-#     nof = len(args.input_files)
-#     input_files = args.input_files
-#     input_files_lines = []
-#     input_files_xy = [[] for i in range(nof)]
-#     if nof < 2:
-#         print("Error! Number of input_files should be larger than 2 for this operation.")
-#         exit(1)
-#     for i in range(nof):
-#         input_files_lines.append(io.xyz_lines(input_files[i], args))
-#         for line in input_files_lines[i]:
-#             input_files_xy[i].append(' '.join(line.split()[0:2]))
-#     difference = []
-#     difference_xy = []
-#     nol = len(input_files_lines[0])
-#     for j in range(nol):
-#         if all(input_files_xy[0][j] not in l for l in input_files_xy[1:])\
-#         and input_files_xy[0][j] not in difference_xy:
-#             difference_xy.append(input_files_xy[0][j])
-#             difference.append(input_files_lines[0][j])
-#     if args.inverse:
-#         difference_inv = []
-#         for i in range(nof):
-#             nol = len(input_files_lines[i])
-#             for j in range(nol):
-#                 line = input_files_lines[i][j]
-#                 if line not in difference:
-#                     difference_inv.append(line)
-#         io.output_lines(difference_inv, args)
-#     else:
-#         io.output_lines(difference, args)
-
-
-def conv_1Dto2D(args):
-    print("HELLLLOOO!!")
-    pass
-
-
-def conv_1Dto3D(args):
-    pass
-
-
-def conv_2Dto1D(args):
-    pass    
-
-
-def conv_2Dto3D(args):
-    pass 
-
-
-def conv_3Dto1D(args):
-    pass 
-
-
-def conv_3Dto1D(args):
-    pass 
-
+def is_point_in_polygon(point, polygon):
+    '''
+    point: [point_lon, point_lat]
+    polygon: [[polygon_lon],[polygon_lat]]
+    '''
+    poly_lon_range = [min(polygon[0]), max(polygon[0])]
+    poly_lat_range = [min(polygon[1]), max(polygon[1])]
+    if point[0] < poly_lon_range[0] or point[0] > poly_lon_range[1] or point[1] < poly_lat_range[0] or point[1] > poly_lat_range[1]:
+        return False
+    else:
+        dlon = (poly_lon_range[1] - poly_lon_range[0]) / 10
+        dlat = (poly_lat_range[1] - poly_lat_range[0]) / 10
+        pt_north = (point[0], poly_lat_range[1] + dlat)
+        pt_south = (point[0], poly_lat_range[0] - dlat)
+        pt_east = (poly_lon_range[1] + dlon, point[1])
+        pt_west = (poly_lon_range[0] - dlon, point[1])
+        test_lines = [
+        [point, pt_north]
+        ]
 

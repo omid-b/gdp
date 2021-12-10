@@ -21,46 +21,46 @@ def read_numerical_data(datfile, header, footer,  decimal, pos_indx, val_indx, n
     try:
         fopen = open(datfile, 'r')
         if footer != 0:
-            datlines = fopen.read().splitlines()[header:-footer]
+            datalines = fopen.read().splitlines()[header:-footer]
         else:
-            datlines = fopen.read().splitlines()[header:]
+            datalines = fopen.read().splitlines()[header:]
         fopen.close()
     except Exception as exc:
         print(exc)
         exit(0)
-    nol = len(datlines)
+    nol = len(datalines)
     # process lines: positional columns
     for i in range(nol):
-        ncol = len(datlines[i].split())
+        ncol = len(datalines[i].split())
         for ix in range(len(pos_indx)):
             # positional arguments
             try:
-                pos[ix].append(float(datlines[i].split()[pos_indx[ix]]))
+                pos[ix].append(float(datalines[i].split()[pos_indx[ix]]))
             except:
                 pos[ix].append(npnan)
     # process lines: val & extra
     for i in range(nol):
-        ncol = len(datlines[i].split())
+        ncol = len(datalines[i].split())
         for iv in range(len(val_indx)):
             # value arguments
             try:
-                val[iv].append(float(datlines[i].split()[val_indx[iv]]))
+                val[iv].append(float(datalines[i].split()[val_indx[iv]]))
             except:
                 val[iv].append(npnan)
         # extra
-        extra_str_lst = datlines[i].split()
+        extra_str_lst = datalines[i].split()
         for ix in range(len(pos_indx)):
-            if pos_indx[ix] >= len(datlines[i].split()):
+            if pos_indx[ix] >= len(datalines[i].split()):
                 pos_str = 'nan'
             else:
-                pos_str = datlines[i].split()[pos_indx[ix]]
+                pos_str = datalines[i].split()[pos_indx[ix]]
             if pos_str in extra_str_lst:
                 extra_str_lst.remove(pos_str)
         for iv in range(len(val_indx)):
-            if val_indx[iv] >= len(datlines[i].split()):
+            if val_indx[iv] >= len(datalines[i].split()):
                 val_str = 'nan'
             else:
-                val_str = datlines[i].split()[val_indx[iv]]
+                val_str = datalines[i].split()[val_indx[iv]]
             if val_str in extra_str_lst:
                 extra_str_lst.remove(val_str)
         extra_str = ' '.join(extra_str_lst).strip()
@@ -69,7 +69,7 @@ def read_numerical_data(datfile, header, footer,  decimal, pos_indx, val_indx, n
     return dat
 
 
-def dat_lines(datfile,args):
+def data_lines(datfile,args):
     if len(args.decimal) == 1:
         dec = [args.decimal[0], args.decimal[0]]
     else:
@@ -78,32 +78,35 @@ def dat_lines(datfile,args):
         try:
             fopen = open(datfile,'r')
             if args.footer != 0:
-                datlines = fopen.read().splitlines()[args.header:-args.footer]
+                datalines_all = fopen.read().splitlines()[args.header:-args.footer]
             else:
-                datlines = fopen.read().splitlines()[args.header:]
+                datalines_all = fopen.read().splitlines()[args.header:]
             fopen.close()
         except Exception as exc:
             print(f"Error reading input file: {datfile}\n")
             exit(1)
+        datalines = []
+        for x in datalines_all:
+            datalines.append(x.strip())
     else:
-        dat = read_numerical_data(datfile, args.header, args.footer,  args.decimal, args.x, args.v, args.novalue)
+        data = read_numerical_data(datfile, args.header, args.footer,  args.decimal, args.x, args.v, args.novalue)
         from numpy import nan as npnan
-        datlines = []
-        nol = len(dat[2])
+        datalines = []
+        nol = len(data[2])
         for i in range(nol):
             pos_str = []
-            for ix in range(len(dat[0])):
-                pos_str.append( f"%.{dec[0]}f" %(dat[0][ix][i]) )
+            for ix in range(len(data[0])):
+                pos_str.append( f"%.{dec[0]}f" %(data[0][ix][i]) )
             line_str = ' '.join(pos_str)
-            for iv in range(len(dat[1])):
-                if dat[1][iv][i] != npnan:
-                    line_str = f"%s %.{dec[1]}f" %(line_str, dat[1][iv][i])
+            for iv in range(len(data[1])):
+                if data[1][iv][i] != npnan:
+                    line_str = f"%s %.{dec[1]}f" %(line_str, data[1][iv][i])
                 else:
                     line_str = f"{line_str} NaN"
-            if len(dat[2][i]) and not args.noextra:
-                line_str = "%s %s" %(line_str, dat[2][i])
-            datlines.append(line_str)
-    return datlines
+            if len(data[2][i]) and not args.noextra:
+                line_str = "%s %s" %(line_str, data[2][i])
+            datalines.append(line_str)
+    return datalines
 
 
 def output_lines(lines, args):
