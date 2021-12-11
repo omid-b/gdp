@@ -1,13 +1,9 @@
 #!/usr/bin/env python3
 
 def read_numerical_data(datfile, header, footer,\
-    decimal, pos_indx, val_indx, novalue=False, skipnan=False):
+    pos_indx, val_indx, novalue=False, skipnan=False):
     from numpy import array
     from numpy import nan as npnan
-    if len(decimal) == 1:
-        dec = [decimal[0], decimal[0]]
-    else:
-        dec = decimal
     pos_indx = array(pos_indx) - 1 # index of positional columns
     pos_indx = pos_indx.tolist()
     if novalue:
@@ -85,7 +81,6 @@ def read_numerical_data(datfile, header, footer,\
                     val_skipnan[iv].append(val[iv][i])
                 extra_skipnan.append(extra[i])
         dat = [pos_skipnan, val_skipnan, extra_skipnan]
-        print(dat)
     return dat
 
 
@@ -111,7 +106,7 @@ def data_lines(datfile,args):
             datalines.append(x.strip())
     else:
         data = read_numerical_data(datfile, args.header, args.footer,\
-               args.decimal, args.x, args.v, args.novalue, args.skipnan)
+               args.x, args.v, args.novalue, args.skipnan)
         from numpy import nan as npnan
         datalines = []
         nol = len(data[2])

@@ -99,7 +99,7 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=[4,4],
-        help='number of decimals for positional and value argumanet (default=[4,4])')
+        help='number of decimals for positional and value argument (default=[4,4])')
     data_show.add_argument(
         '--novalue',
         action='store_true',
@@ -171,7 +171,7 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=[4,4],
-        help='number of decimals for positional and value argumanet (default=[4,4])')
+        help='number of decimals for positional and value argument (default=[4,4])')
     data_union.add_argument(
         '--novalue',
         action='store_true',
@@ -248,7 +248,7 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=[4,4],
-        help='number of decimals for positional and value argumanet (default=[4,4])')
+        help='number of decimals for positional and value argument (default=[4,4])')
     data_intersect.add_argument(
         '--novalue',
         action='store_true',
@@ -325,7 +325,7 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=[4,4],
-        help='number of decimals for positional and value argumanet (default=[4,4])')
+        help='number of decimals for positional and value argument (default=[4,4])')
     data_difference.add_argument(
         '--novalue',
         action='store_true',
@@ -360,7 +360,73 @@ def parse_args(*args, **kwargs):
     description="Gridding data (interpolation) with Gaussian smoothing")
     # gdp data pip
     data_pip = data_command.add_parser('pip', help='points-in-polygon',
-    description="Points-in-polygon (ray tracing method)")
+    description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
+    data_pip.add_argument("input_files", nargs=2)
+    data_pip.add_argument(
+        '-x',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='positional column number(s) (e.g., x, y; default=[1, 2])')
+    data_pip.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[],
+        help='value/data column number(s) (default=[3])')
+    data_pip.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_pip.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    data_pip.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_pip.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_pip.add_argument(
+        '--decimal',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[4,4],
+        help='number of decimals for positional and value argument (default=[4,4])')
+    data_pip.add_argument(
+        '--novalue',
+        action='store_true',
+        help='no value/data column(s) available')
+    data_pip.add_argument(
+        '--noextra',
+        action='store_true',
+        help='do not output extra columns (other than numerical columns)')
+    data_pip.add_argument(
+        '-i',
+        '--inverse',
+        action='store_true',
+        help='inverse operation')
+    data_pip.add_argument(
+        '--nosort',
+        action='store_true',
+        help='do not apply sort to output lines')
+    data_pip.add_argument(
+        '--nouniq',
+        action='store_true',
+        help='do not apply unique to output lines')
     # gdp data sum
     data_sum = data_command.add_parser('sum', help='calculate sum of a numerical column',
     description="Calculate summation of row values in a numerical column")
@@ -453,8 +519,8 @@ def main(*args, **kwargs):
             subprocess.call('gdp data gridder -h', shell=True)
             under_dev()
         if args.command == 'pip':
-            subprocess.call('gdp data pip -h', shell=True)
-            under_dev()
+            dat.points_in_polygon(args)
+            exit(0)
         if args.command == 'sum':
             subprocess.call('gdp data sum -h', shell=True)
             under_dev()
