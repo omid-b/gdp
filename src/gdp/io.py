@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
-def read_numerical_data(datfile, header, footer,  decimal, pos_indx, val_indx, novalue=False):
+def read_numerical_data(datfile, header, footer,\
+    decimal, pos_indx, val_indx, novalue=False, skipnan=False):
     from numpy import array
     from numpy import nan as npnan
     if len(decimal) == 1:
@@ -51,14 +52,14 @@ def read_numerical_data(datfile, header, footer,  decimal, pos_indx, val_indx, n
         extra_str_lst = datalines[i].split()
         for ix in range(len(pos_indx)):
             if pos_indx[ix] >= len(datalines[i].split()):
-                pos_str = 'nan'
+                pos_str = npnan
             else:
                 pos_str = datalines[i].split()[pos_indx[ix]]
             if pos_str in extra_str_lst:
                 extra_str_lst.remove(pos_str)
         for iv in range(len(val_indx)):
             if val_indx[iv] >= len(datalines[i].split()):
-                val_str = 'nan'
+                val_str = npnan
             else:
                 val_str = datalines[i].split()[val_indx[iv]]
             if val_str in extra_str_lst:
@@ -66,10 +67,30 @@ def read_numerical_data(datfile, header, footer,  decimal, pos_indx, val_indx, n
         extra_str = ' '.join(extra_str_lst).strip()
         extra.append(extra_str)
     dat = [pos, val, extra]
+    # skipnan = True ?
+    if skipnan:
+        pos_skipnan = [[] for ix in range(len(pos_indx))]
+        val_skipnan = [[] for iv in range(len(val_indx))]
+        extra_skipnan = []
+        for i in range(nol):
+            temp = []
+            for ix in range(len(pos_indx)):
+                temp.append(pos[ix][i])
+            for iv in range(len(val_indx)):
+                temp.append(val[iv][i])
+            if npnan not in temp:
+                for ix in range(len(pos_indx)):
+                    pos_skipnan[ix].append(pos[ix][i])
+                for iv in range(len(val_indx)):
+                    val_skipnan[iv].append(val[iv][i])
+                extra_skipnan.append(extra[i])
+        dat = [pos_skipnan, val_skipnan, extra_skipnan]
+        print(dat)
     return dat
 
 
 def data_lines(datfile,args):
+    from numpy import nan as npnan
     if len(args.decimal) == 1:
         dec = [args.decimal[0], args.decimal[0]]
     else:
@@ -89,7 +110,8 @@ def data_lines(datfile,args):
         for x in datalines_all:
             datalines.append(x.strip())
     else:
-        data = read_numerical_data(datfile, args.header, args.footer,  args.decimal, args.x, args.v, args.novalue)
+        data = read_numerical_data(datfile, args.header, args.footer,\
+               args.decimal, args.x, args.v, args.novalue, args.skipnan)
         from numpy import nan as npnan
         datalines = []
         nol = len(data[2])
@@ -102,7 +124,7 @@ def data_lines(datfile,args):
                 if data[1][iv][i] != npnan:
                     line_str = f"%s %.{dec[1]}f" %(line_str, data[1][iv][i])
                 else:
-                    line_str = f"{line_str} NaN"
+                    line_str = f"{line_str} {npnan}"
             if len(data[2][i]) and not args.noextra:
                 line_str = "%s %s" %(line_str, data[2][i])
             datalines.append(line_str)
@@ -110,12 +132,6 @@ def data_lines(datfile,args):
 
 
 def output_lines(lines, args):
-    if args.skipnan:
-        nonan = []
-        for line in lines:
-            if 'nan' not in line.lower().split():
-                nonan.append(line)
-        lines = nonan
     lines_out = []
     if args.nouniq == False:
         for x in lines:

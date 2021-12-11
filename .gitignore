@@ -1,6 +1,7 @@
 **.DS_Store
 **_conv.c
 **_dat.c
+**_nan.c
 **_io.c
 **_xyz.c
 
