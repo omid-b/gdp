@@ -99,23 +99,26 @@ def difference(args):
         io.output_lines(difference, args)
 
 
-def is_point_in_polygon(point, polygon):
-    '''
-    point: [point_lon, point_lat]
-    polygon: [[polygon_lon],[polygon_lat]]
-    '''
-    poly_lon_range = [min(polygon[0]), max(polygon[0])]
-    poly_lat_range = [min(polygon[1]), max(polygon[1])]
-    if point[0] < poly_lon_range[0] or point[0] > poly_lon_range[1] or point[1] < poly_lat_range[0] or point[1] > poly_lat_range[1]:
-        return False
+def points_in_polygon(args):
+    from . import geographic
+    points_file = args.input_files[0]
+    polygon_file = args.input_files[1]
+    points_data = io.read_numerical_data(points_file, args.header, args.footer,\
+                                        args.x, args.v, novalue=True, skipnan=True)
+    polygon_data = io.read_numerical_data(polygon_file, args.header, args.footer,\
+                                        args.x, args.v, novalue=True, skipnan=True)
+    polygon = geographic.Polygon(polygon_data[0][0], polygon_data[0][1])
+    nop = len(points_data[2]) # number of points
+    if nop:
+        outdata_lines = []
+        for ip in range(nop):
+            point = geographic.Point(points_data[0][0][ip], points_data[0][1][ip])
+            if polygon.is_point_in(point,args.inverse):
+                outdata_lines.append(f"%.{args.decimal[0]}f %.{args.decimal[0]}f %s" %(point.lon, point.lat, points_data[2][ip]))
+        io.output_lines(outdata_lines, args)
     else:
-        dlon = (poly_lon_range[1] - poly_lon_range[0]) / 10
-        dlat = (poly_lat_range[1] - poly_lat_range[0]) / 10
-        pt_north = (point[0], poly_lat_range[1] + dlat)
-        pt_south = (point[0], poly_lat_range[0] - dlat)
-        pt_east = (poly_lon_range[1] + dlon, point[1])
-        pt_west = (poly_lon_range[0] - dlon, point[1])
-        test_lines = [
-        [point, pt_north]
-        ]
+        print(f"Error in reading points_file: {points_file}\nNaN columns will be ignored")
+        exit(1)
+
+
 

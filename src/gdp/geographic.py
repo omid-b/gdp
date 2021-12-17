@@ -77,7 +77,7 @@ class Polygon:
         self.lon = polygon_lon
         self.lat = polygon_lat
         if polygon_lon[0] != polygon_lon[-1] or polygon_lat[0] != polygon_lat[-1]:
-            print(f"Error in class Polygon! The first and last points must be the same.\n")
+            print(f"Error in class Polygon! The first and last points must be the same (closed polygon).\n")
             exit(1)
 
     def get_lines(self):
@@ -89,7 +89,7 @@ class Polygon:
             lines.append(Line(point1, point2))
         return lines
 
-    def is_point_in(self, point):
+    def is_point_in(self, point, inverse=False):
         lon_range = [min(self.lon), max(self.lon)]
         lat_range = [min(self.lat), max(self.lat)]
         if point.lon < lon_range[0] or point.lon > lon_range[1] or point.lat < lat_range[0] or point.lat > lat_range[1]:
@@ -113,10 +113,16 @@ class Polygon:
                         num_intersects += 1
                 if num_intersects: # no need to test other crossing lines
                     break
-            if num_intersects % 2:
-                return True
+            if inverse:
+                if num_intersects % 2:
+                    return False
+                else:
+                    return True
             else:
-                return False
+                if num_intersects % 2:
+                    return True
+                else:
+                    return False
 
 
 if __name__ == "__main__":

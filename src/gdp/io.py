@@ -54,14 +54,14 @@ def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx):
         extra_str_lst = datalines[i].split()
         for ix in range(len(pos_indx)):
             if pos_indx[ix] >= len(datalines[i].split()):
-                pos_str = 'nan'
+                pos_str = npnan
             else:
                 pos_str = datalines[i].split()[pos_indx[ix]]
             if pos_str in extra_str_lst:
                 extra_str_lst.remove(pos_str)
         for iv in range(len(val_indx)):
             if val_indx[iv] >= len(datalines[i].split()):
-                val_str = 'nan'
+                val_str = npnan
             else:
                 val_str = datalines[i].split()[val_indx[iv]]
             if val_str in extra_str_lst:
@@ -69,6 +69,24 @@ def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx):
         extra_str = ' '.join(extra_str_lst).strip()
         extra.append(extra_str)
     dat = [pos, val, extra]
+    # skipnan = True ?
+    if skipnan:
+        pos_skipnan = [[] for ix in range(len(pos_indx))]
+        val_skipnan = [[] for iv in range(len(val_indx))]
+        extra_skipnan = []
+        for i in range(nol):
+            temp = []
+            for ix in range(len(pos_indx)):
+                temp.append(pos[ix][i])
+            for iv in range(len(val_indx)):
+                temp.append(val[iv][i])
+            if npnan not in temp:
+                for ix in range(len(pos_indx)):
+                    pos_skipnan[ix].append(pos[ix][i])
+                for iv in range(len(val_indx)):
+                    val_skipnan[iv].append(val[iv][i])
+                extra_skipnan.append(extra[i])
+        dat = [pos_skipnan, val_skipnan, extra_skipnan]
     return dat
 
 
@@ -105,7 +123,7 @@ def data_lines(datfile,args):
                 if data[1][iv][i] != npnan:
                     line_str = f"%s %{fmt[1]}f" %(line_str, data[1][iv][i])
                 else:
-                    line_str = f"{line_str} NaN"
+                    line_str = f"{line_str} {npnan}"
             if len(data[2][i]) and not args.noextra:
                 line_str = "%s %s" %(line_str, data[2][i])
             datalines.append(line_str)
@@ -113,12 +131,6 @@ def data_lines(datfile,args):
 
 
 def output_lines(lines, args):
-    if args.skipnan:
-        nonan = []
-        for line in lines:
-            if 'nan' not in line.lower().split():
-                nonan.append(line)
-        lines = nonan
     lines_out = []
     if args.uniq:
         for x in lines:
