@@ -1,19 +1,22 @@
 #!/usr/bin/env python3
 
-def read_numerical_data(datfile, header, footer,  decimal, pos_indx, val_indx, novalue=False):
+def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx):
     from numpy import array
     from numpy import nan as npnan
-    if len(decimal) == 1:
-        dec = [decimal[0], decimal[0]]
+    if len(fmt) == 1:
+        fmt = [fmt[0], fmt[0]]
     else:
-        dec = decimal
-    pos_indx = array(pos_indx) - 1 # index of positional columns
-    pos_indx = pos_indx.tolist()
-    if novalue:
-        val_indx = []
+        fmt = fmt
+    if len(pos_indx):
+        pos_indx = array(pos_indx) - 1 # index of positional columns
+        pos_indx = pos_indx.tolist()
     else:
+        pos_indx = []
+    if len(val_indx):
         val_indx = array(val_indx) - 1
         val_indx = val_indx.tolist()
+    else:
+        val_indx = []
     pos = [[] for ix in range(len(pos_indx))] # list of positional values
     val = [[] for iv in range(len(val_indx))] # list of values/data
     extra = []
@@ -70,11 +73,11 @@ def read_numerical_data(datfile, header, footer,  decimal, pos_indx, val_indx, n
 
 
 def data_lines(datfile,args):
-    if len(args.decimal) == 1:
-        dec = [args.decimal[0], args.decimal[0]]
+    if len(args.fmt) == 1:
+        fmt = [args.fmt[0], args.fmt[0]]
     else:
-        dec = args.decimal
-    if args.nan:
+        fmt = args.fmt
+    if args.nan or len(args.x) == len(args.v) == 0:
         try:
             fopen = open(datfile,'r')
             if args.footer != 0:
@@ -89,18 +92,18 @@ def data_lines(datfile,args):
         for x in datalines_all:
             datalines.append(x.strip())
     else:
-        data = read_numerical_data(datfile, args.header, args.footer,  args.decimal, args.x, args.v, args.novalue)
+        data = read_numerical_data(datfile, args.header, args.footer,  args.fmt, args.x, args.v)
         from numpy import nan as npnan
         datalines = []
         nol = len(data[2])
         for i in range(nol):
             pos_str = []
             for ix in range(len(data[0])):
-                pos_str.append( f"%.{dec[0]}f" %(data[0][ix][i]) )
+                pos_str.append( f"%{fmt[0]}f" %(data[0][ix][i]) )
             line_str = ' '.join(pos_str)
             for iv in range(len(data[1])):
                 if data[1][iv][i] != npnan:
-                    line_str = f"%s %.{dec[1]}f" %(line_str, data[1][iv][i])
+                    line_str = f"%s %{fmt[1]}f" %(line_str, data[1][iv][i])
                 else:
                     line_str = f"{line_str} NaN"
             if len(data[2][i]) and not args.noextra:
@@ -117,13 +120,13 @@ def output_lines(lines, args):
                 nonan.append(line)
         lines = nonan
     lines_out = []
-    if args.nouniq == False:
+    if args.uniq:
         for x in lines:
             if x not in lines_out:
                 lines_out.append(x)
     else:
         lines_out = lines
-    if args.nosort == False:
+    if args.sort:
         lines_out = sorted(lines_out)
     # print to stdout or write to outfile
     if args.outfile:
@@ -132,10 +135,10 @@ def output_lines(lines, args):
         else:
             fopen = open(args.outfile,'w')
         for x in lines_out:
-            fopen.write(f"{x.lower()}\n")
+            fopen.write(f"{x}\n")
         fopen.close()
     else:
         for x in lines_out:
-            print(f"{x.lower()}")
+            print(f"{x}")
 
 

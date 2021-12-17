@@ -2,6 +2,7 @@
 **_conv.c
 **_dat.c
 **_io.c
+**_nan.c
 **_xyz.c
 
 # Byte-compiled / optimized / DLL files

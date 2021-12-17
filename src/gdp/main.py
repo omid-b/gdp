@@ -48,78 +48,74 @@ def parse_args(*args, **kwargs):
     description="Geographic or NaN data type processing module")
     data_module._positionals.title = 'required argument choices'
     data_command = data_module.add_subparsers(dest='command')
-    # gdp data show
-    data_show = data_command.add_parser('show', help='Show/output content of single data file',
+    # gdp data cat
+    data_cat = data_command.add_parser('cat', help='concatenate and reformat input files',
     description="Show/output content of single data file")
-    data_show.add_argument("input_files", nargs=1)
-    data_show.add_argument(
+    data_cat.add_argument("input_files", nargs='+')
+    data_cat.add_argument(
         '--nan',
         action='store_true',
         help='not a numerical data type')
-    data_show.add_argument(
+    data_cat.add_argument(
         '-x',
-        nargs='+',
+        nargs='*',
         type=int,
         action='store',
         default=[1, 2],
-        help='positional column number(s) (e.g., x, y; default=[1, 2])')
-    data_show.add_argument(
+        help='positional column number(s) (default=[1, 2]; [] is also accepted)')
+    data_cat.add_argument(
         '-v',
-        nargs='+',
+        nargs='*',
         type=int,
         action='store',
         default=[3],
-        help='value/data column number(s) (default=[3])')
-    data_show.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    data_show.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    data_show.add_argument(
+        help='value/data column number(s) (default=[3]; [] is also accepted)')
+    data_cat.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    data_show.add_argument(
+    data_cat.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    data_show.add_argument(
-        '--decimal',
+    data_cat.add_argument(
+        '--fmt',
         nargs='+',
-        type=int,
+        type=str,
         action='store',
-        default=[4,4],
-        help='number of decimals for positional and value argumanet (default=[4,4])')
-    data_show.add_argument(
-        '--novalue',
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
+    data_cat.add_argument(
+        '--sort',
         action='store_true',
-        help='no value/data column(s) available')
-    data_show.add_argument(
+        help='apply sort to output lines')
+    data_cat.add_argument(
+        '--uniq',
+        action='store_true',
+        help='apply uniq to output lines')
+    data_cat.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
-    data_show.add_argument(
-        '--nosort',
-        action='store_true',
-        help='do not apply sort to output lines')
-    data_show.add_argument(
-        '--nouniq',
-        action='store_true',
-        help='do not apply unique to output lines')
-    data_show.add_argument(
+    data_cat.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s)')
+    data_cat.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_cat.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
     # gdp data union
     data_union = data_command.add_parser('union', help='generate the union of input data files',
     description="Generate the union of input data files")
@@ -134,25 +130,14 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=[1, 2],
-        help='positional column number(s) (e.g., x, y; default=[1, 2])')
+        help='positional column number(s) (default=[1, 2]; [] is also accepted)')
     data_union.add_argument(
         '-v',
-        nargs='+',
+        nargs='*',
         type=int,
         action='store',
         default=[3],
-        help='value/data column number(s) (default=[3])')
-    data_union.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    data_union.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
+        help='value/data column number(s) (default=[3]; [] is also accepted)')
     data_union.add_argument(
         '--header',
         type=int,
@@ -166,37 +151,44 @@ def parse_args(*args, **kwargs):
         default=0,
         help='number of footer lines to ignore (default=0)')
     data_union.add_argument(
-        '--decimal',
+        '--fmt',
         nargs='+',
-        type=int,
+        type=str,
         action='store',
-        default=[4,4],
-        help='number of decimals for positional and value argumanet (default=[4,4])')
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
     data_union.add_argument(
-        '--novalue',
+        '--sort',
         action='store_true',
-        help='no value/data column(s) available')
+        help='apply sort to output lines')
+    data_union.add_argument(
+        '--uniq',
+        action='store_true',
+        help='apply uniq to output lines')
     data_union.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
+    data_union.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
     data_union.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation')
     data_union.add_argument(
-        '--nosort',
-        action='store_true',
-        help='do not apply sort to output lines')
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
     data_union.add_argument(
-        '--nouniq',
+        '-a',
+        '--append',
         action='store_true',
-        help='do not apply unique to output lines')
-    data_union.add_argument(
-        '--skipnan',
-        action='store_true',
-        help='do not output lines with nan value(s)')
+        help='append to output')
     # gdp data intersect
     data_intersect = data_command.add_parser('intersect', help='generate the intersect of input data files',
     description="Generate the intersect of input data files")
@@ -211,25 +203,14 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=[1, 2],
-        help='positional column number(s) (e.g., x, y; default=[1, 2])')
+        help='positional column number(s) (default=[1, 2]; [] is also accepted)')
     data_intersect.add_argument(
         '-v',
-        nargs='+',
+        nargs='*',
         type=int,
         action='store',
         default=[3],
-        help='value/data column number(s) (default=[3])')
-    data_intersect.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    data_intersect.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
+        help='value/data column number(s) (default=[3]; [] is also accepted)')
     data_intersect.add_argument(
         '--header',
         type=int,
@@ -243,37 +224,44 @@ def parse_args(*args, **kwargs):
         default=0,
         help='number of footer lines to ignore (default=0)')
     data_intersect.add_argument(
-        '--decimal',
+        '--fmt',
         nargs='+',
-        type=int,
+        type=str,
         action='store',
-        default=[4,4],
-        help='number of decimals for positional and value argumanet (default=[4,4])')
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
     data_intersect.add_argument(
-        '--novalue',
+        '--sort',
         action='store_true',
-        help='no value/data column(s) available')
+        help='apply sort to output lines')
+    data_intersect.add_argument(
+        '--uniq',
+        action='store_true',
+        help='apply uniq to output lines')
     data_intersect.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
+    data_intersect.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
     data_intersect.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation')
     data_intersect.add_argument(
-        '--nosort',
-        action='store_true',
-        help='do not apply sort to output lines')
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
     data_intersect.add_argument(
-        '--nouniq',
+        '-a',
+        '--append',
         action='store_true',
-        help='do not apply unique to output lines')
-    data_intersect.add_argument(
-        '--skipnan',
-        action='store_true',
-        help='do not output lines with nan value(s)')
+        help='append to output')
     # gdp data difference
     data_difference = data_command.add_parser('difference', help='generate the difference of input data files',
     description="Generate the difference of input data files")
@@ -288,25 +276,14 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=[1, 2],
-        help='positional column number(s) (e.g., x, y; default=[1, 2])')
+        help='positional column number(s) (default=[1, 2]; [] is also accepted)')
     data_difference.add_argument(
         '-v',
-        nargs='+',
+        nargs='*',
         type=int,
         action='store',
         default=[3],
-        help='value/data column number(s) (default=[3])')
-    data_difference.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    data_difference.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
+        help='value/data column number(s) (default=[3]; [] is also accepted)')
     data_difference.add_argument(
         '--header',
         type=int,
@@ -320,37 +297,44 @@ def parse_args(*args, **kwargs):
         default=0,
         help='number of footer lines to ignore (default=0)')
     data_difference.add_argument(
-        '--decimal',
+        '--fmt',
         nargs='+',
-        type=int,
+        type=str,
         action='store',
-        default=[4,4],
-        help='number of decimals for positional and value argumanet (default=[4,4])')
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
     data_difference.add_argument(
-        '--novalue',
+        '--sort',
         action='store_true',
-        help='no value/data column(s) available')
+        help='apply sort to output lines')
+    data_difference.add_argument(
+        '--uniq',
+        action='store_true',
+        help='apply uniq to output lines')
     data_difference.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
+    data_difference.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
     data_difference.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation')
     data_difference.add_argument(
-        '--nosort',
-        action='store_true',
-        help='do not apply sort to output lines')
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
     data_difference.add_argument(
-        '--nouniq',
+        '-a',
+        '--append',
         action='store_true',
-        help='do not apply unique to output lines')
-    data_difference.add_argument(
-        '--skipnan',
-        action='store_true',
-        help='do not output lines with nan value(s)')
+        help='append to output')
     # gdp data unmerge
     data_unmerge = data_command.add_parser('unmerge', help='unmerge concatenated data file',
     description="unmerge a concatenated data file into multiple data files")
@@ -426,9 +410,11 @@ def main(*args, **kwargs):
     if args.module == 'data':
         from . import dat
         from . import nan
-        if args.command == 'show':
+        if args.command == 'cat':
             from . import io
-            out_lines = io.data_lines(args.input_files[0], args)
+            out_lines = []
+            for inpfile in args.input_files:
+                out_lines += io.data_lines(inpfile, args)
             io.output_lines(out_lines, args)
             exit(0)
         if args.command == 'union':
