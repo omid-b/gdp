@@ -93,7 +93,10 @@ class Polygon:
         lon_range = [min(self.lon), max(self.lon)]
         lat_range = [min(self.lat), max(self.lat)]
         if point.lon < lon_range[0] or point.lon > lon_range[1] or point.lat < lat_range[0] or point.lat > lat_range[1]:
-            return False
+            if inverse:
+                return True
+            else:
+                return False
         else:
             pass
             dlon = (lon_range[1] - lon_range[0]) / 10

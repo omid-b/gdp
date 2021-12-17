@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx):
+def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx, skipnan=False):
     from numpy import array
     from numpy import nan as npnan
     if len(fmt) == 1:
@@ -110,7 +110,7 @@ def data_lines(datfile,args):
         for x in datalines_all:
             datalines.append(x.strip())
     else:
-        data = read_numerical_data(datfile, args.header, args.footer,  args.fmt, args.x, args.v)
+        data = read_numerical_data(datfile, args.header, args.footer,  args.fmt, args.x, args.v, args.skipnan)
         from numpy import nan as npnan
         datalines = []
         nol = len(data[2])

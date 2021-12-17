@@ -50,7 +50,7 @@ def parse_args(*args, **kwargs):
     data_command = data_module.add_subparsers(dest='command')
     # gdp data cat
     data_cat = data_command.add_parser('cat', help='concatenate and reformat input files',
-    description="Show/output content of single data file")
+    description="Concatenate and reformat input files")
     data_cat.add_argument("input_files", nargs='+')
     data_cat.add_argument(
         '--nan',
@@ -345,32 +345,18 @@ def parse_args(*args, **kwargs):
     # gdp data pip
     data_pip = data_command.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
-    data_pip.add_argument("input_files", nargs=2)
+    data_pip._positionals.title = 'required arguments'
+    data_pip._optionals.title = 'optional arguments/settings for points_file'
+    data_pip.add_argument("points_file", nargs=1, type=str, help="path to points_file")
+    data_pip.add_argument("polygon_file", nargs=1, type=str,
+        help="path to polygon_file; '*.shp' is also accepted (first polygon is read); if ascii: file content column format must be [lon, lat]")
     data_pip.add_argument(
         '-x',
-        nargs='+',
+        nargs=2,
         type=int,
         action='store',
         default=[1, 2],
-        help='positional column number(s) (e.g., x, y; default=[1, 2])')
-    data_pip.add_argument(
-        '-v',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[],
-        help='value/data column number(s) (default=[3])')
-    data_pip.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    data_pip.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
+        help='positional column number(s) (default=[1, 2])')
     data_pip.add_argument(
         '--header',
         type=int,
@@ -384,33 +370,21 @@ def parse_args(*args, **kwargs):
         default=0,
         help='number of footer lines to ignore (default=0)')
     data_pip.add_argument(
-        '--decimal',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[4,4],
-        help='number of decimals for positional and value argument (default=[4,4])')
-    data_pip.add_argument(
-        '--novalue',
-        action='store_true',
-        help='no value/data column(s) available')
-    data_pip.add_argument(
-        '--noextra',
-        action='store_true',
-        help='do not output extra columns (other than numerical columns)')
-    data_pip.add_argument(
         '-i',
         '--inverse',
         action='store_true',
-        help='inverse operation')
+        help='inverse operation: points outside polygon')
     data_pip.add_argument(
-        '--nosort',
-        action='store_true',
-        help='do not apply sort to output lines')
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
     data_pip.add_argument(
-        '--nouniq',
+        '-a',
+        '--append',
         action='store_true',
-        help='do not apply unique to output lines')
+        help='append to output')
     # gdp data sum
     data_sum = data_command.add_parser('sum', help='calculate sum of a numerical column',
     description="Calculate summation of row values in a numerical column")

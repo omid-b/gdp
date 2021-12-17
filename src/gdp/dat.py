@@ -1,4 +1,5 @@
 
+import os
 from . import io
 
 def union(args):
@@ -98,23 +99,63 @@ def difference(args):
     else:
         io.output_lines(difference, args)
 
+# import os
+# import sys
+# import numpy as np
+# import geopandas as gpd
+# from shapely.geometry import mapping
+# from . import point
+# from . import polyline
+
+# class Polygon_shp:
+#     def __init__(self, shapefile):
+#         try:
+#             self.shp = gpd.read_file(shapefile)
+#         except Exception as e:
+#             print(f"Error reading shapefile! {e}")
+#             exit(1)
+
+#     def get_lon(self):
+#         lon = np.array(mapping(self.shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
+#         return lon
+
+#     def get_lat(self):
+#         lat = np.array(mapping(self.shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
+#         return lat
+
 
 def points_in_polygon(args):
     from . import geographic
-    points_file = args.input_files[0]
-    polygon_file = args.input_files[1]
-    points_data = io.read_numerical_data(points_file, args.header, args.footer,\
-                                        args.x, args.v, novalue=True, skipnan=True)
-    polygon_data = io.read_numerical_data(polygon_file, args.header, args.footer,\
-                                        args.x, args.v, novalue=True, skipnan=True)
-    polygon = geographic.Polygon(polygon_data[0][0], polygon_data[0][1])
-    nop = len(points_data[2]) # number of points
+    points_file = args.points_file[0]
+    polygon_file = args.polygon_file[0]
+    points_data = io.read_numerical_data(points_file, args.header, args.footer,  [".10",".10"], args.x, [])
+    if os.path.splitext(polygon_file)[1] == ".shp":
+        # if polygon_file is *.shp
+        import numpy as np
+        import geopandas as gpd
+        from shapely.geometry import mapping
+        try:
+            shp = gpd.read_file(polygon_file)
+            polygon_lon = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
+            polygon_lat = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
+        except Exception as e:
+            print(f"Error reading shapefile! {e}")
+            exit(1)
+    else:
+        # else if polygon_file is not *.shp (ascii file)
+        polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
+        polygon_lon = polygon_data[0][0]
+        polygon_lat = polygon_data[0][1]
+    polygon = geographic.Polygon(polygon_lon, polygon_lat)
+    nop = len(points_data[0][0]) # number of points
     if nop:
         outdata_lines = []
         for ip in range(nop):
             point = geographic.Point(points_data[0][0][ip], points_data[0][1][ip])
             if polygon.is_point_in(point,args.inverse):
-                outdata_lines.append(f"%.{args.decimal[0]}f %.{args.decimal[0]}f %s" %(point.lon, point.lat, points_data[2][ip]))
+                outdata_lines.append(f"%f %f %s" %(point.lon, point.lat, points_data[2][ip]))
+        args.uniq = False
+        args.sort = False
         io.output_lines(outdata_lines, args)
     else:
         print(f"Error in reading points_file: {points_file}\nNaN columns will be ignored")
