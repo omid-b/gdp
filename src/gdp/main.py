@@ -388,18 +388,167 @@ def parse_args(*args, **kwargs):
     # gdp data sum
     data_sum = data_command.add_parser('sum', help='calculate sum of a numerical column',
     description="Calculate summation of row values in a numerical column")
+    data_sum.add_argument("input_files", nargs='+')
+    data_sum.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    data_sum.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_sum.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_sum.add_argument(
+        '--decimal',
+        nargs=1,
+        type=int,
+        action='store',
+        default=2,
+        help='number of decimals (default=2)')
+    data_sum.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_sum.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
     # gdp data mean
     data_mean = data_command.add_parser('mean', help='calculate mean of a numerical column',
     description="Calculate mean of row values in a numerical column")
+    data_mean.add_argument("input_files", nargs='+')
+    data_mean.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    data_mean.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_mean.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_mean.add_argument(
+        '--decimal',
+        nargs=1,
+        type=int,
+        action='store',
+        default=2,
+        help='number of decimals (default=2)')
+    data_mean.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_mean.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
     # gdp data median
     data_median = data_command.add_parser('median', help='calculate median of a numerical column',
     description="Calculate median of row values in a numerical column")
-    # gdp data mode
-    data_mode = data_command.add_parser('mode', help='calculate mode of a numerical column',
-    description="Calculate mode of row values in a numerical column")
+    data_median.add_argument("input_files", nargs='+')
+    data_median.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    data_median.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_median.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_median.add_argument(
+        '--decimal',
+        nargs=1,
+        type=int,
+        action='store',
+        default=2,
+        help='number of decimals (default=2)')
+    data_median.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_median.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
     # gdp data std
     data_std = data_command.add_parser('std', help='calculate std of a numerical column',
     description="Calculate standard deviation of row values in a numerical column")
+    data_std.add_argument("input_files", nargs='+')
+    data_std.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    data_std.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_std.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_std.add_argument(
+        '--decimal',
+        nargs=1,
+        type=int,
+        action='store',
+        default=2,
+        help='number of decimals (default=2)')
+    data_std.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_std.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
     #===== Module: convert =====#
     convert_module = subparsers.add_parser('convert', help='data conversion module (file type/format)',
     description="Conversion of different data types or formats (e.g., mseed2sac, 2Dto1D etc.)")
@@ -482,20 +631,17 @@ def main(*args, **kwargs):
             dat.points_in_polygon(args)
             exit(0)
         if args.command == 'sum':
-            subprocess.call('gdp data sum -h', shell=True)
-            under_dev()
+            dat.calc_sum(args)
+            exit(0)
         if args.command == 'mean':
-            subprocess.call('gdp data mean -h', shell=True)
-            under_dev()
+            dat.calc_mean(args)
+            exit(0)
         if args.command == 'median':
-            subprocess.call('gdp data median -h', shell=True)
-            under_dev()
-        if args.command == 'mode':
-            subprocess.call('gdp data mode -h', shell=True)
-            under_dev()
+            dat.calc_median(args)
+            exit(0)
         if args.command == 'std':
-            subprocess.call('gdp data std -h', shell=True)
-            under_dev()
+            dat.calc_std(args)
+            exit(0)
         else:
             subprocess.call('gdp data -h', shell=True)
     #===== Module: convert =====#

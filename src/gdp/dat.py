@@ -99,30 +99,6 @@ def difference(args):
     else:
         io.output_lines(difference, args)
 
-# import os
-# import sys
-# import numpy as np
-# import geopandas as gpd
-# from shapely.geometry import mapping
-# from . import point
-# from . import polyline
-
-# class Polygon_shp:
-#     def __init__(self, shapefile):
-#         try:
-#             self.shp = gpd.read_file(shapefile)
-#         except Exception as e:
-#             print(f"Error reading shapefile! {e}")
-#             exit(1)
-
-#     def get_lon(self):
-#         lon = np.array(mapping(self.shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
-#         return lon
-
-#     def get_lat(self):
-#         lat = np.array(mapping(self.shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
-#         return lat
-
 
 def points_in_polygon(args):
     from . import geographic
@@ -162,4 +138,57 @@ def points_in_polygon(args):
         exit(1)
 
 
+def calc_sum(args):
+    from numpy import nansum
+    outdata_lines = []
+    for inpfile in args.input_files:
+        sum_column = []
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal}"], [], args.v)
+        for col in data[1]:
+            sum_column.append(f"%.{args.decimal[0]}f" %(nansum(col)))
+        outdata_lines.append(' '.join([inpfile] + sum_column))
+    args.sort = False
+    args.uniq = False
+    io.output_lines(outdata_lines, args)
 
+
+def calc_mean(args):
+    from numpy import nanmean
+    outdata_lines = []
+    for inpfile in args.input_files:
+        mean_column = []
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal}"], [], args.v)
+        for col in data[1]:
+            mean_column.append(f"%.{args.decimal[0]}f" %(float(nanmean(col))))
+        outdata_lines.append(' '.join([inpfile] + mean_column))
+    args.sort = False
+    args.uniq = False
+    io.output_lines(outdata_lines, args)
+
+
+def calc_median(args):
+    from numpy import nanmedian
+    outdata_lines = []
+    for inpfile in args.input_files:
+        median_column = []
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal}"], [], args.v)
+        for col in data[1]:
+            median_column.append(f"%.{args.decimal[0]}f" %(float(nanmedian(col))))
+        outdata_lines.append(' '.join([inpfile] + median_column))
+    args.sort = False
+    args.uniq = False
+    io.output_lines(outdata_lines, args)
+
+
+def calc_std(args):
+    from numpy import nanstd
+    outdata_lines = []
+    for inpfile in args.input_files:
+        std_column = []
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal}"], [], args.v)
+        for col in data[1]:
+            std_column.append(f"%.{args.decimal[0]}f" %(nanstd(col)))
+        outdata_lines.append(' '.join([inpfile] + std_column))
+    args.sort = False
+    args.uniq = False
+    io.output_lines(outdata_lines, args)
