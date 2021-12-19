@@ -337,8 +337,55 @@ def parse_args(*args, **kwargs):
         help='append to output')
     # gdp data unmerge
     data_unmerge = data_command.add_parser('unmerge', help='unmerge concatenated data file',
-    description="unmerge a concatenated data file into multiple data files")
-    data_unmerge.add_argument("input_files", nargs=1)
+    description="Unmerge a concatenated data file into multiple data files")
+    data_unmerge._positionals.title = 'required positional arguments'
+    data_unmerge._optionals.title = 'optional/required arguments'
+    data_unmerge.add_argument("input_file", nargs=1)
+    data_unmerge.add_argument(
+        '--method',
+        choices=['nrow','ncol'],
+        required=True,
+        help='REQUIRED: unmerge method (choices: nrow/ncol); nrow: split data based on fixed number of rows/lines; ncol: split data based on fixed number of columns')
+    data_unmerge.add_argument(
+        '-n',
+        '--number',
+        type=int,
+        required=True,
+        help='REQUIRED: number of rows (method=nrow), or columns (method=ncol) to identify data split')
+    data_unmerge.add_argument(
+        '-o',
+        '--outdir',
+        type=str,
+        action='store',
+        help='output directory')
+    data_unmerge.add_argument(
+        '--outext',
+        type=str,
+        action='store',
+        default = 'dat',
+        help='REQUIRED: output files extension (default=dat)')
+    data_unmerge.add_argument(
+        '--name',
+        type=int,
+        default=1,
+        help='output file name row/line in each split data (default=1)')
+    data_unmerge.add_argument(
+        '--start',
+        type=int,
+        default=0,
+        help='only for method=ncol; start row from the reference row (default=0)')
+    data_unmerge.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_unmerge.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
     # gdp data gridder
     data_gridder = data_command.add_parser('gridder', help='gridding data (interpolation)',
     description="Gridding data (interpolation) with Gaussian smoothing")
@@ -624,6 +671,33 @@ def main(*args, **kwargs):
             else:
                 dat.difference(args)
             exit(0)
+        if args.command == 'unmerge':
+            # check arguments
+            if args.number < 0 :
+                print(f"\nError! Argument 'number' should be a positive integer\n")
+                exit(1)
+            if args.header < 0 :
+                print(f"\nError! Argument 'header' should be a positive integer\n")
+                exit(1)
+            if args.footer < 0 :
+                print(f"\nError! Argument 'footer' should be a positive integer\n")
+                exit(1)
+            if args.name < 1 :
+                print(f"\nError! Argument 'name' should be a positive integer (> 0) for method=nrow\n")
+                exit(1)
+            if args.name > args.number:
+                print(f"\nError! Argument 'name' should be less than or equal argument 'number' for method=nrow\n")
+                exit(1)
+            # start unmerge
+            if args.method == 'nrow':
+                if args.start:
+                    print(f"\nError! Argument 'start' is only for method=ncol\n")
+                    exit(1)
+                nan.unmerge_nrow(args)
+                exit(0)
+            else:
+                nan.unmerge_ncol(args)
+                exit(0)
         if args.command == 'gridder':
             subprocess.call('gdp data gridder -h', shell=True)
             under_dev()

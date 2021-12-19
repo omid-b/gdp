@@ -1,6 +1,8 @@
+# numerical data type processing module
 
 import os
 from . import io
+
 
 def union(args):
     nof = len(args.input_files)

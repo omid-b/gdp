@@ -1,3 +1,6 @@
+# non-numerical/NaN data type processing module
+
+import os
 from . import io
 
 
@@ -85,6 +88,76 @@ def difference(args):
         io.output_lines(difference_inv, args)
     else:
         io.output_lines(difference, args)
+
+
+def unmerge_nrow(args):
+    try:
+        fopen = open(args.input_file[0],'r')
+        if args.footer != 0:
+            datalines = fopen.read().splitlines()[args.header:-args.footer]
+        else:
+            datalines = fopen.read().splitlines()[args.header:]
+    except Exception as exc:
+        print(exc)
+        exit(1)
+    indexes = [x for x in range(0, len(datalines), args.number)]
+    if indexes[-1] < len(datalines):
+        indexes.append(len(datalines))
+    # split data
+    ndata = len(indexes) - 1
+    for i in range(ndata):
+        split_data_lines = datalines[indexes[i]:indexes[i+1]]
+        split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.outext}"
+        if args.outdir:
+            if not os.path.isdir(args.outdir):
+                os.mkdir(args.outdir)
+            fopen = open(f'{os.path.join(args.outdir, split_data_name)}','w')
+            fopen.write('\n'.join(split_data_lines))
+            fopen.write('\n')
+            fopen.close()
+        else:
+            stdout = [f"File name: {split_data_name}"] + split_data_lines
+            stdout = '\n'.join(stdout)
+            print(f"{stdout}\n")
+
+
+def unmerge_ncol(args):
+    try:
+        fopen = open(args.input_file[0],'r')
+        if args.footer != 0:
+            datalines = fopen.read().splitlines()[args.header:-args.footer]
+        else:
+            datalines = fopen.read().splitlines()[args.header:]
+    except Exception as exc:
+        print(exc)
+        exit(1)
+    indexes = []
+    for i, dline in enumerate(datalines):
+        if len(dline.split()) == args.number:
+            indexes.append(i + args.start)
+    if indexes[-1] < len(datalines):
+        indexes.append(len(datalines))
+    # handle errors
+    if min(indexes) < 0:
+        print(f"\nError! Argument 'start' is too low!\n")
+        exit(1)
+    # split data
+    ndata = len(indexes) - 1
+    for i in range(ndata):
+        split_data_lines = datalines[indexes[i]:indexes[i+1]]
+        split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.outext}"
+        if args.outdir:
+            if not os.path.isdir(args.outdir):
+                os.mkdir(args.outdir)
+            fopen = open(f'{os.path.join(args.outdir, split_data_name)}','w')
+            fopen.write('\n'.join(split_data_lines))
+            fopen.write('\n')
+            fopen.close()
+        else:
+            stdout = [f"File name: {split_data_name}"] + split_data_lines
+            stdout = '\n'.join(stdout)
+            print(f"{stdout}\n")
+
 
 
 
