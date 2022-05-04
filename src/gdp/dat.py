@@ -145,7 +145,7 @@ def calc_sum(args):
     outdata_lines = []
     for inpfile in args.input_files:
         sum_column = []
-        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal}"], [], args.v)
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             sum_column.append(f"%.{args.decimal[0]}f" %(nansum(col)))
         outdata_lines.append(' '.join([inpfile] + sum_column))
@@ -159,7 +159,7 @@ def calc_mean(args):
     outdata_lines = []
     for inpfile in args.input_files:
         mean_column = []
-        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal}"], [], args.v)
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             mean_column.append(f"%.{args.decimal[0]}f" %(float(nanmean(col))))
         outdata_lines.append(' '.join([inpfile] + mean_column))
@@ -173,7 +173,7 @@ def calc_median(args):
     outdata_lines = []
     for inpfile in args.input_files:
         median_column = []
-        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal}"], [], args.v)
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             median_column.append(f"%.{args.decimal[0]}f" %(float(nanmedian(col))))
         outdata_lines.append(' '.join([inpfile] + median_column))
@@ -187,7 +187,7 @@ def calc_std(args):
     outdata_lines = []
     for inpfile in args.input_files:
         std_column = []
-        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal}"], [], args.v)
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             std_column.append(f"%.{args.decimal[0]}f" %(nanstd(col)))
         outdata_lines.append(' '.join([inpfile] + std_column))

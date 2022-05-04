@@ -460,7 +460,7 @@ def parse_args(*args, **kwargs):
         nargs=1,
         type=int,
         action='store',
-        default=2,
+        default=[2],
         help='number of decimals (default=2)')
     data_sum.add_argument(
         '-o',
@@ -501,7 +501,7 @@ def parse_args(*args, **kwargs):
         nargs=1,
         type=int,
         action='store',
-        default=2,
+        default=[2],
         help='number of decimals (default=2)')
     data_mean.add_argument(
         '-o',
@@ -542,7 +542,7 @@ def parse_args(*args, **kwargs):
         nargs=1,
         type=int,
         action='store',
-        default=2,
+        default=[2],
         help='number of decimals (default=2)')
     data_median.add_argument(
         '-o',
@@ -583,7 +583,7 @@ def parse_args(*args, **kwargs):
         nargs=1,
         type=int,
         action='store',
-        default=2,
+        default=[2],
         help='number of decimals (default=2)')
     data_std.add_argument(
         '-o',
