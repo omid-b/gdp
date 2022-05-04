@@ -394,7 +394,7 @@ def parse_args(*args, **kwargs):
     description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
     data_pip._positionals.title = 'required arguments'
     data_pip._optionals.title = 'optional arguments/settings for points_file'
-    data_pip.add_argument("points_file", nargs=1, type=str, help="path to points_file")
+    data_pip.add_argument("points_file", nargs='*', type=str, help="path to points_file(s)")
     data_pip.add_argument("polygon_file", nargs=1, type=str,
         help="path to polygon_file; '*.shp' is also accepted (first polygon is read); if ascii: file content column format must be [lon, lat]")
     data_pip.add_argument(
