@@ -405,6 +405,20 @@ def parse_args(*args, **kwargs):
         help='REQUIRED: smoothing length (km)'
     )
     data_gridder.add_argument(
+        '--lonrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='longitude range: [minlon, maxlon] (default=Auto)')
+    data_gridder.add_argument(
+        '--latrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='latitude range: [minlat, maxlat] (default=Auto)')
+    data_gridder.add_argument(
         '-x',
         nargs=2,
         type=int,
@@ -438,6 +452,10 @@ def parse_args(*args, **kwargs):
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"])')
     data_gridder.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
+    data_gridder.add_argument(
         '-o',
         '--outfile',
         type=str,
@@ -445,26 +463,6 @@ def parse_args(*args, **kwargs):
         help='output file/folder'
     )
 
-    # data_difference.add_argument(
-    #     '-x',
-    #     nargs='+',
-    #     type=int,
-    #     action='store',
-    #     default=[1, 2],
-    #     help='positional column number(s) (default=[1, 2]; [] is also accepted)')
-    # data_difference.add_argument(
-    #     '--fmt',
-    #     nargs='+',
-    #     type=str,
-    #     action='store',
-    #     default=[".4",".4"],
-    #     help='float format for positional and value columns respectively (default=[".4",".4"])')
-    # data_unmerge.add_argument(
-    #     '-n',
-    #     '--number',
-    #     type=int,
-    #     required=True,
-    #     help='REQUIRED: number of rows (method=nrow), or columns (method=ncol) to identify data split')
 
     # gdp data pip
     data_pip = data_command.add_parser('pip', help='points-in-polygon',
@@ -862,6 +860,32 @@ def main(*args, **kwargs):
         if args.command == 'gridder':
             if len(args.spacing) == 1:
                 args.spacing = [args.spacing[0], args.spacing[0]]
+
+            if args.spacing[0] <= 0 or args.spacing[1] <= 0:
+                print(f"Error! 'spacing' should be positive.")
+                exit(1)
+            elif args.smoothing <= 0:
+                print(f"Error! 'smoothing' should be positive.")
+                exit(1)
+            elif args.lonrange[0] > args.lonrange[1]:
+                print(f"Error! Argument 'lonrange' should be entered in [minlon, maxlon] format.")
+                exit(1)
+            elif args.latrange[0] > args.latrange[1]:
+                print(f"Error! Argument 'latrange' should be entered in [minlat, maxlat] format.")
+                exit(1)
+            elif args.lonrange[0] < -180:
+                print(f"Error! minimum longitude is less than -180.")
+                exit(1)
+            elif args.lonrange[1] > 180:
+                print(f"Error! maximum longitude is greater than 180.")
+                exit(1)
+            elif args.latrange[0] < -90:
+                print(f"Error! minimum latitude is less than -90.")
+                exit(1)
+            elif args.latrange[1] > 90:
+                print(f"Error! maximum latitude is greater than 90.")
+                exit(1)
+
             dat.gridder(args)
             exit(0)
         if args.command == 'pip':

@@ -1,14 +1,16 @@
 # numerical data type processing module
 
 import os
-from . import io
-
+import warnings
 import numpy as np
 from math import radians, degrees, sin, cos, atan2, acos
+from . import io
 
 def gridder(args):
     from . import geographic
     from scipy.spatial import distance
+    outfile_orig = args.outfile
+    skipnan_orig = args.skipnan
     args.nan = False
     args.skipnan = True
     if len(args.fmt) == 1:
@@ -35,13 +37,22 @@ def gridder(args):
                 vals = np.array(vals, dtype=float).tolist()
                 for iv in range(nvals):
                     data_val[i][iv].append(vals[iv])
+
     # start main process
     # d: data, g: gridded
     for idat, xy in enumerate(data_xy):
         dlon = [row[0] for row in xy]
         dlat = [row[1] for row in xy]
-        reflon = (np.min(dlon)+np.max(dlon))/2
-        reflat = (np.min(dlat)+np.max(dlat))/2
+        if len(dlon) == 0:
+            print(f"\nError! No data for input value column; File: '{os.path.split(input_files[idat])[1]}'\n" +
+                  f"value column number(s): {' '.join(np.array(args.v, dtype=str))}\n")
+            continue
+
+        if not outfile_orig:
+            print(f"\nFile: '{os.path.split(input_files[idat])[1]}'")
+
+        reflon = (np.nanmin(dlon)+np.nanmax(dlon))/2
+        reflat = (np.nanmin(dlat)+np.nanmax(dlat))/2
         
         applat = reflat-90
         if applat < -90:
@@ -56,10 +67,20 @@ def gridder(args):
         earth_radius = geographic.calc_earth_radius((reflat + applat) / 2)
         circ = radians(earth_radius)
 
-        maxLon = max(dlon)
-        minLon = min(dlon)
-        maxLat = max(dlat)
-        minLat = min(dlat)
+        if args.lonrange[1] == 0.999:
+            minLon = min(dlon)
+            maxLon = max(dlon)
+        else:
+            minLon = args.lonrange[0]
+            maxLon = args.lonrange[1]
+
+        if args.latrange[1] == 0.999:
+            minLat = min(dlat)
+            maxLat = max(dlat)
+        else:
+            minLat = args.latrange[0]
+            maxLat = args.latrange[1]
+
 
         loninc = args.spacing[0]
         latinc = args.spacing[1]
@@ -115,20 +136,40 @@ def gridder(args):
                 xgrid.append(circ * deltadiff)
                 ygrid.append(circ * sin(radians(delta)) * tazdiff)
 
-        # gridding and output results
+        # gridding 
         out_lines = []
         gval = [np.zeros(ngp).tolist() for x in range(nvals)]
         for igp in range(ngp):
             line = f"%{fmt[0]}f %{fmt[0]}f" %(gridlon[igp], gridlat[igp])
             wgt = calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
             wgtsum = np.sum(wgt)
-            for iv in range(nvals):
-                gval[iv][igp] += np.sum(wgt * np.array(data_val[idat][iv])) / wgtsum
-                line = f"{line} %{fmt[1]}f" %(gval[iv][igp])
-            out_lines.append(line)
 
+            for iv in range(nvals):
+
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    gval[iv][igp] += np.sum(wgt * np.array(data_val[idat][iv])) / wgtsum
+
+                line = f"{line} %{fmt[1]}f" %(gval[iv][igp])
+
+            if skipnan_orig:
+                if 'nan' not in line.split():
+                    out_lines.append(line)
+            else:
+                out_lines.append(line)
+
+        # output results
+        args.append = False
         args.sort = True
         args.uniq = False
+
+        if nof > 1 and outfile_orig:
+            if not os.path.isdir(outfile_orig):
+                os.mkdir(outfile_orig)
+            args.outfile = os.path.join(outfile_orig, os.path.split(input_files[idat])[1])
+        else:
+            args.outfile = outfile_orig
+
         io.output_lines(out_lines, args)
 
 
@@ -266,7 +307,7 @@ def difference(args):
 
 def points_in_polygon(args):
     from . import geographic
-    outfile_orig = args.outfile
+    outfile_orig = os.path.abspath(args.outfile)
     for points_file in args.points_file:
         polygon_file = args.polygon_file[0]
         points_data = io.read_numerical_data(points_file, args.header, args.footer,  [".10",".10"], args.x, [])
