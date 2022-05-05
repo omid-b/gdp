@@ -48,6 +48,7 @@ def parse_args(*args, **kwargs):
     description="Geographic or NaN data type processing module")
     data_module._positionals.title = 'required argument choices'
     data_command = data_module.add_subparsers(dest='command')
+    
     # gdp data cat
     data_cat = data_command.add_parser('cat', help='concatenate and reformat input files',
     description="Concatenate and reformat input files")
@@ -116,6 +117,7 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    
     # gdp data union
     data_union = data_command.add_parser('union', help='generate the union of input data files',
     description="Generate the union of input data files")
@@ -189,6 +191,7 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    
     # gdp data intersect
     data_intersect = data_command.add_parser('intersect', help='generate the intersect of input data files',
     description="Generate the intersect of input data files")
@@ -262,6 +265,7 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    
     # gdp data difference
     data_difference = data_command.add_parser('difference', help='generate the difference of input data files',
     description="Generate the difference of input data files")
@@ -335,6 +339,7 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    
     # gdp data unmerge
     data_unmerge = data_command.add_parser('unmerge', help='unmerge concatenated data file',
     description="Unmerge a concatenated data file into multiple data files")
@@ -386,9 +391,10 @@ def parse_args(*args, **kwargs):
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
+
     # gdp data gridder
-    data_gridder = data_command.add_parser('gridder', help='gridding data (interpolation)',
-    description="Gridding data (interpolation) with Gaussian smoothing")
+    data_gridder = data_command.add_parser('gridder', help='gridding 2D/map data (interpolation)',
+    description="Gridding 2D/map data (interpolation) with Gaussian smoothing")
     data_gridder.add_argument("input_files", nargs='+')
     data_gridder.add_argument(
         '--spacing',
@@ -402,7 +408,7 @@ def parse_args(*args, **kwargs):
         '--smoothing',
         type=float,
         required=True,
-        help='REQUIRED: smoothing length (km)'
+        help='REQUIRED: grid smoothing length (km)'
     )
     data_gridder.add_argument(
         '--lonrange',
@@ -410,14 +416,14 @@ def parse_args(*args, **kwargs):
         type=float,
         action='store',
         default=[-0.999, 0.999],
-        help='longitude range: [minlon, maxlon] (default=Auto)')
+        help='grid longitude range: [minlon, maxlon] (default=Auto)')
     data_gridder.add_argument(
         '--latrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
-        help='latitude range: [minlat, maxlat] (default=Auto)')
+        help='grid latitude range: [minlat, maxlat] (default=Auto)')
     data_gridder.add_argument(
         '-x',
         nargs=2,
@@ -462,7 +468,12 @@ def parse_args(*args, **kwargs):
         action='store',
         help='output file/folder'
     )
-
+    data_gridder.add_argument(
+        '--pip',
+        type=str,
+        action='store',
+        help='polygon to run "points-in-polygon" process before outputing the results'
+    )
 
     # gdp data pip
     data_pip = data_command.add_parser('pip', help='points-in-polygon',
@@ -507,9 +518,10 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    
     # gdp data min
-    data_min = data_command.add_parser('min', help='calculate min of a numerical column',
-    description="Calculate minimum of row values in a numerical column")
+    data_min = data_command.add_parser('min', help='calculate min of numerical column(s)',
+    description="Calculate minimum of row values in numerical column(s)")
     data_min.add_argument("input_files", nargs='+')
     data_min.add_argument(
         '-v',
@@ -550,8 +562,8 @@ def parse_args(*args, **kwargs):
         help='append to output')
 
     # gdp data max
-    data_max = data_command.add_parser('max', help='calculate max of a numerical column',
-    description="Calculate maximum of row values in a numerical column")
+    data_max = data_command.add_parser('max', help='calculate max of numerical column(s)',
+    description="Calculate maximum of row values in numerical column(s)")
     data_max.add_argument("input_files", nargs='+')
     data_max.add_argument(
         '-v',
@@ -592,8 +604,8 @@ def parse_args(*args, **kwargs):
         help='append to output')
 
     # gdp data sum
-    data_sum = data_command.add_parser('sum', help='calculate sum of a numerical column',
-    description="Calculate summation of row values in a numerical column")
+    data_sum = data_command.add_parser('sum', help='calculate sum of numerical column(s)',
+    description="Calculate summation of row values in numerical column(s)")
     data_sum.add_argument("input_files", nargs='+')
     data_sum.add_argument(
         '-v',
@@ -632,9 +644,10 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    
     # gdp data mean
-    data_mean = data_command.add_parser('mean', help='calculate mean of a numerical column',
-    description="Calculate mean of row values in a numerical column")
+    data_mean = data_command.add_parser('mean', help='calculate mean of numerical column(s)',
+    description="Calculate mean of row values in numerical column(s)")
     data_mean.add_argument("input_files", nargs='+')
     data_mean.add_argument(
         '-v',
@@ -673,9 +686,10 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    
     # gdp data median
-    data_median = data_command.add_parser('median', help='calculate median of a numerical column',
-    description="Calculate median of row values in a numerical column")
+    data_median = data_command.add_parser('median', help='calculate median of numerical column(s)',
+    description="Calculate median of row values in numerical column(s)")
     data_median.add_argument("input_files", nargs='+')
     data_median.add_argument(
         '-v',
@@ -714,9 +728,10 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+    
     # gdp data std
-    data_std = data_command.add_parser('std', help='calculate std of a numerical column',
-    description="Calculate standard deviation of row values in a numerical column")
+    data_std = data_command.add_parser('std', help='calculate std of numerical column(s)',
+    description="Calculate standard deviation of row values in numerical column(s)")
     data_std.add_argument("input_files", nargs='+')
     data_std.add_argument(
         '-v',
@@ -760,33 +775,43 @@ def parse_args(*args, **kwargs):
     description="Conversion of different data types or formats (e.g., mseed2sac, 2Dto1D etc.)")
     convert_module._positionals.title = 'required argument choices'
     convert_command = convert_module.add_subparsers(dest='command')
-    # gdp data 1Dto2D
+    
+    # gdp convert 1Dto2D
     convert_1Dto2D = convert_command.add_parser('1Dto2D', help='1Dto2D',
     description="1Dto2D")
-    # gdp data 1Dto3D
+    
+    # gdp convert 1Dto3D
     convert_1Dto3D = convert_command.add_parser('1Dto3D', help='1Dto3D',
     description="1Dto3D")
-    # gdp data 2Dto1D
+    
+    # gdp convert 2Dto1D
     convert_2Dto1D = convert_command.add_parser('2Dto1D', help='2Dto1D',
     description="2Dto1D")
-    # gdp data 2Dto3D
+    
+    # gdp convert 2Dto3D
     convert_2Dto3D = convert_command.add_parser('2Dto3D', help='2Dto3D',
     description="2Dto3D")
-    # gdp data 3Dto1D
+    
+    # gdp convert 3Dto1D
     convert_3Dto1D = convert_command.add_parser('3Dto1D', help='3Dto1D',
     description="3Dto1D")
-    # gdp data 3Dto2D
+    
+    # gdp convert 3Dto2D
     convert_3Dto2D = convert_command.add_parser('3Dto2D', help='3Dto2D',
     description="3Dto2D")
+    
     # gdp convert sac2dat
     convert_sac2dat = convert_command.add_parser('sac2dat', help='convert sac to dat (ascii)',
     description="Convert sac to dat (ascii; output format: time, amplitude)")
+    
     # gdp convert mseed2sac
     convert_mseed2sac = convert_command.add_parser('mseed2sac', help='convert mseed to sac',
     description="Convert mseed to sac. This script also handles data fragmentation issue. ")
+    
     # gdp convert shp2dat
     convert_shp2dat = convert_command.add_parser('shp2dat', help='convert shp to dat',
     description="Convert shape file to dat (ascii)")
+    
     # gdp convert nc2xyz
     convert_nc2xyz = convert_command.add_parser('nc2xyz', help='convert nc to xyz',
     description="Convert nc to xyz/ascii")

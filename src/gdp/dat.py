@@ -8,7 +8,6 @@ from . import io
 
 def gridder(args):
     from . import geographic
-    from scipy.spatial import distance
     outfile_orig = args.outfile
     skipnan_orig = args.skipnan
     args.nan = False
@@ -38,6 +37,27 @@ def gridder(args):
                 for iv in range(nvals):
                     data_val[i][iv].append(vals[iv])
 
+    # point in polygon? If so, read polygon data & instantiate polygon object
+    if args.pip:
+        polygon_file = args.pip
+        if os.path.splitext(polygon_file)[1] == ".shp":
+            # if polygon_file is *.shp
+            import geopandas as gpd
+            from shapely.geometry import mapping
+            try:
+                shp = gpd.read_file(polygon_file)
+                polygon_lon = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
+                polygon_lat = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
+            except Exception as e:
+                print(f"Error reading shapefile! {e}")
+                exit(1)
+        else:
+            # else if polygon_file is not *.shp (ascii file)
+            polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
+            polygon_lon = polygon_data[0][0]
+            polygon_lat = polygon_data[0][1]
+        polygon = geographic.Polygon(polygon_lon, polygon_lat)
+
     # start main process
     # d: data, g: gridded
     for idat, xy in enumerate(data_xy):
@@ -48,7 +68,7 @@ def gridder(args):
                   f"value column number(s): {' '.join(np.array(args.v, dtype=str))}\n")
             continue
 
-        if not outfile_orig:
+        if not outfile_orig and nof > 1:
             print(f"\nFile: '{os.path.split(input_files[idat])[1]}'")
 
         reflon = (np.nanmin(dlon)+np.nanmax(dlon))/2
@@ -64,17 +84,17 @@ def gridder(args):
 
         deltaref, tazimref = calc_disthead(applon, applat, reflon, reflat)
 
-        earth_radius = geographic.calc_earth_radius((reflat + applat) / 2)
+        earth_radius = geographic.calc_earth_radius(reflat)
         circ = radians(earth_radius)
 
-        if args.lonrange[1] == 0.999:
+        if args.lonrange[1] == 0.999: # Auto
             minLon = min(dlon)
             maxLon = max(dlon)
         else:
             minLon = args.lonrange[0]
             maxLon = args.lonrange[1]
 
-        if args.latrange[1] == 0.999:
+        if args.latrange[1] == 0.999: # Auto
             minLat = min(dlat)
             maxLat = max(dlat)
         else:
@@ -152,11 +172,21 @@ def gridder(args):
 
                 line = f"{line} %{fmt[1]}f" %(gval[iv][igp])
 
+            point = geographic.Point(float(line.split()[0]), float(line.split()[1]))
+
             if skipnan_orig:
                 if 'nan' not in line.split():
-                    out_lines.append(line)
+                    if args.pip:
+                        if polygon.is_point_in(point):
+                            out_lines.append(line)
+                    else:
+                        out_lines.append(line)
             else:
-                out_lines.append(line)
+                if args.pip:
+                    if polygon.is_point_in(point):
+                        out_lines.append(line)
+                else:
+                    out_lines.append(line)
 
         # output results
         args.append = False
@@ -175,7 +205,6 @@ def gridder(args):
 
 
 
-
 def calc_disthead(slon, slat, flon, flat):
     slon = radians(slon)
     slat = radians(slat)
@@ -183,12 +212,9 @@ def calc_disthead(slon, slat, flon, flat):
     flat = radians(flat)
     delta = acos(sin(slat)*sin(flat)+cos(slat)*cos(flat)*cos(flon-slon))
     azim = atan2(sin(flon-slon)*cos(flat),  sin(flat)*cos(slat) - cos(flon-slon)*cos(flat)*sin(slat))
-
     delta = degrees(delta)
     azim = degrees(azim)
     return [delta, azim]
-
-
 
 
 
@@ -203,7 +229,6 @@ def calc_wgt(xg, yg, xnode, ynode, smoothing):
     wgt = wgt * mask
     return wgt
     
-
 
 
 
