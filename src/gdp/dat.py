@@ -4,14 +4,17 @@ import os
 from . import io
 
 import numpy as np
-from numba import jit
-
+from math import radians, degrees, sin, cos, atan2, acos
 
 def gridder(args):
     from . import geographic
     from scipy.spatial import distance
     args.nan = False
     args.skipnan = True
+    if len(args.fmt) == 1:
+        fmt = [args.fmt[0], args.fmt[0]]
+    else:
+        fmt = args.fmt
     nof = len(args.input_files)
     input_files = args.input_files
     datlines = [[] for i in range(nof)]
@@ -48,82 +51,101 @@ def gridder(args):
         if applon < -180:
             applon = applon+180
 
-        point_ref = geographic.Point(reflon, reflat)
-        point_app = geographic.Point(applon, applat)
-        line = geographic.Line(point_app, point_ref)
-        deltaref = line.calc_gcarc()
-        tazimref = line.calc_az()
+        deltaref, tazimref = calc_disthead(applon, applat, reflon, reflat)
 
         earth_radius = geographic.calc_earth_radius((reflat + applat) / 2)
-        circ = np.radians(earth_radius)
+        circ = radians(earth_radius)
 
+        maxLon = max(dlon)
+        minLon = min(dlon)
+        maxLat = max(dlat)
+        minLat = min(dlat)
 
-        # grid lon & lat
-        glon = []; glat = []
-        for lon in np.arange(np.min(dlon), np.max(dlon)+args.spacing[0], args.spacing[0]):
-            for lat in np.arange(np.min(dlat), np.max(dlat)+args.spacing[0], args.spacing[0]):
-                glon.append(lon)
-                glat.append(lat)
+        loninc = args.spacing[0]
+        latinc = args.spacing[1]
 
-        ngp = len(glon) # number of grid points
+        nx = int(((maxLon-minLon)/loninc)+1)
+        ny = int(((maxLat-minLat)/latinc)+1)
+
         ndp = len(dlon) # number of data points
+        ngp = nx * ny # number of grid points
 
         # input data relative coordinates: xnode & ynode
         xnode = [];  ynode = []
-        for ip in range(len(xy)):
-            point = geographic.Point(xy[ip][0], xy[ip][1])
-            line = geographic.Line(point_app, point)
-            delta = line.calc_gcarc()
-            tazim = line.calc_az()
+        for ip in range(ndp):
+            delta, tazim = calc_disthead(applon, applat, dlon[ip], dlat[ip])
+
             deltadiff = delta - deltaref
-            tazdiff = tazimref - tazim
             if deltadiff > 180:
                 deltadiff -= 360
             elif deltadiff < -180:
                 deltadiff += 360
-            if tazdiff > 180:
-                tazdiff -= 360
-            elif tazdiff < -180:
-                tazdiff += 360
             xnode.append(circ * deltadiff)
-            ynode.append(circ * np.sin(np.radians(delta)) * tazdiff)
-
-        # gridded data relative coordinates: xgrid & ygrid
-        xgrid = [];  ygrid = []
-        for ip in range(ngp):
-            point = geographic.Point(glon[ip], glat[ip])
-            line = geographic.Line(point_app, point)
-            delta = line.calc_gcarc()
-            tazim = line.calc_az()
-            deltadiff = delta - deltaref
+            
             tazdiff = tazimref - tazim
-            if deltadiff > 180:
-                deltadiff -= 360
-            elif deltadiff < -180:
-                deltadiff += 360
             if tazdiff > 180:
                 tazdiff -= 360
             elif tazdiff < -180:
                 tazdiff += 360
-            xgrid.append(circ * deltadiff)
-            ygrid.append(circ * np.sin(np.radians(delta)) * tazdiff)
+            ynode.append(circ * sin(radians(delta)) * tazdiff)
 
-        # gval: [[gval_column_1],[gval_column_2],...]
-        gval = [np.zeros(ndp).tolist() for x in range(nvals)]
+        # grid coordinates
+        gridlon = []; gridlat = []
+        xgrid = [];  ygrid = []
+        for ix in range(nx):
+            lon = minLon + ix*loninc
+            for iy in range(ny):
+                lat = minLat + iy*latinc
+                delta, tazim = calc_disthead(applon, applat, lon, lat)
 
+                deltadiff = delta - deltaref
+                if deltadiff > 180:
+                    deltadiff -= 360
+                elif deltadiff < -180:
+                    deltadiff += 360
+                
+                tazdiff =tazimref-tazim
+                if tazdiff > 180:
+                    tazdiff -= 360
+                elif tazdiff < -180:
+                    tazdiff += 360
+                
+                gridlon.append(lon)
+                gridlat.append(lat)
+                xgrid.append(circ * deltadiff)
+                ygrid.append(circ * sin(radians(delta)) * tazdiff)
+
+        # gridding and output results
+        out_lines = []
+        gval = [np.zeros(ngp).tolist() for x in range(nvals)]
         for igp in range(ngp):
-            # lon = round(glon[igp], 1)
-            # lat = round(glat[igp], 1)
+            line = f"%{fmt[0]}f %{fmt[0]}f" %(gridlon[igp], gridlat[igp])
             wgt = calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
             wgtsum = np.sum(wgt)
             for iv in range(nvals):
-                gval[iv] += np.array(data_val[idat][iv]) * wgt
-                gval[iv] = (1/wgtsum) * gval[iv]
+                gval[iv][igp] += np.sum(wgt * np.array(data_val[idat][iv])) / wgtsum
+                line = f"{line} %{fmt[1]}f" %(gval[iv][igp])
+            out_lines.append(line)
 
-        print('1/wgtsum', wgtsum)
+        args.sort = True
+        args.uniq = False
+        io.output_lines(out_lines, args)
 
 
 
+
+
+def calc_disthead(slon, slat, flon, flat):
+    slon = radians(slon)
+    slat = radians(slat)
+    flon = radians(flon)
+    flat = radians(flat)
+    delta = acos(sin(slat)*sin(flat)+cos(slat)*cos(flat)*cos(flon-slon))
+    azim = atan2(sin(flon-slon)*cos(flat),  sin(flat)*cos(slat) - cos(flon-slon)*cos(flat)*sin(slat))
+
+    delta = degrees(delta)
+    azim = degrees(azim)
+    return [delta, azim]
 
 
 
@@ -136,7 +158,7 @@ def calc_wgt(xg, yg, xnode, ynode, smoothing):
     yg = np.ones(nnodes) * yg
     adistsq = alpha * ( (xg - xnode)**2 + (yg - ynode)**2 )
     wgt = np.exp(-adistsq)
-    mask = np.ma.masked_greater(adistsq, smoothing).mask * np.ones(nnodes)
+    mask = np.ma.masked_less(adistsq, smoothing).mask * np.ones(nnodes)
     wgt = wgt * mask
     return wgt
     
