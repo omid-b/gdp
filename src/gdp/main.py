@@ -389,6 +389,83 @@ def parse_args(*args, **kwargs):
     # gdp data gridder
     data_gridder = data_command.add_parser('gridder', help='gridding data (interpolation)',
     description="Gridding data (interpolation) with Gaussian smoothing")
+    data_gridder.add_argument("input_files", nargs='+')
+    data_gridder.add_argument(
+        '--spacing',
+        nargs='+',
+        type=float,
+        action='store',
+        required=True,
+        help='REQUIRED: grid spacing along [longitude, latitude]'
+    )
+    data_gridder.add_argument(
+        '--smoothing',
+        type=float,
+        required=True,
+        help='REQUIRED: smoothing length (km)'
+    )
+    data_gridder.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='[longitude, latitude] column number(s) (default=[1, 2])')
+    data_gridder.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    data_gridder.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_gridder.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_gridder.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
+    data_gridder.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file/folder'
+    )
+
+    # data_difference.add_argument(
+    #     '-x',
+    #     nargs='+',
+    #     type=int,
+    #     action='store',
+    #     default=[1, 2],
+    #     help='positional column number(s) (default=[1, 2]; [] is also accepted)')
+    # data_difference.add_argument(
+    #     '--fmt',
+    #     nargs='+',
+    #     type=str,
+    #     action='store',
+    #     default=[".4",".4"],
+    #     help='float format for positional and value columns respectively (default=[".4",".4"])')
+    # data_unmerge.add_argument(
+    #     '-n',
+    #     '--number',
+    #     type=int,
+    #     required=True,
+    #     help='REQUIRED: number of rows (method=nrow), or columns (method=ncol) to identify data split')
+
     # gdp data pip
     data_pip = data_command.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
@@ -426,12 +503,96 @@ def parse_args(*args, **kwargs):
         '--outfile',
         type=str,
         action='store',
-        help='output file')
+        help='output file/folder')
     data_pip.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
+    # gdp data min
+    data_min = data_command.add_parser('min', help='calculate min of a numerical column',
+    description="Calculate minimum of row values in a numerical column")
+    data_min.add_argument("input_files", nargs='+')
+    data_min.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    data_min.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_min.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_min.add_argument(
+        '--decimal',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[2],
+        help='number of decimals (default=2)')
+    data_min.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_min.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+
+    # gdp data max
+    data_max = data_command.add_parser('max', help='calculate max of a numerical column',
+    description="Calculate maximum of row values in a numerical column")
+    data_max.add_argument("input_files", nargs='+')
+    data_max.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    data_max.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_max.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_max.add_argument(
+        '--decimal',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[2],
+        help='number of decimals (default=2)')
+    data_max.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_max.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+
     # gdp data sum
     data_sum = data_command.add_parser('sum', help='calculate sum of a numerical column',
     description="Calculate summation of row values in a numerical column")
@@ -699,10 +860,18 @@ def main(*args, **kwargs):
                 nan.unmerge_ncol(args)
                 exit(0)
         if args.command == 'gridder':
-            subprocess.call('gdp data gridder -h', shell=True)
-            under_dev()
+            if len(args.spacing) == 1:
+                args.spacing = [args.spacing[0], args.spacing[0]]
+            dat.gridder(args)
+            exit(0)
         if args.command == 'pip':
             dat.points_in_polygon(args)
+            exit(0)
+        if args.command == 'min':
+            dat.calc_min(args)
+            exit(0)
+        if args.command == 'max':
+            dat.calc_max(args)
             exit(0)
         if args.command == 'sum':
             dat.calc_sum(args)

@@ -128,6 +128,18 @@ class Polygon:
                     return False
 
 
+def calc_earth_radius(lat):
+    from math import cos, sin, sqrt
+    r1 = 6378 # radius at equator
+    r2 = 6356 # radius at pole
+    a1 = r1**2 * cos(lat)
+    a2 = r2**2 * sin(lat)
+    b1 = r1 * cos(lat)
+    b2 = r2 * sin(lat)
+    earth_radius = sqrt((a1**2 + a2**2) / (b1**2 + b2**2))
+    return earth_radius
+
+
 if __name__ == "__main__":
     print("geographic module - classes: Point, Line, Polygon")
     exit(0)

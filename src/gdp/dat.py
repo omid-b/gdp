@@ -3,6 +3,146 @@
 import os
 from . import io
 
+import numpy as np
+from numba import jit
+
+
+def gridder(args):
+    from . import geographic
+    from scipy.spatial import distance
+    args.nan = False
+    args.skipnan = True
+    nof = len(args.input_files)
+    input_files = args.input_files
+    datlines = [[] for i in range(nof)]
+    data_xy = [[] for i in range(nof)]
+    data_val = [[] for i in range(nof)]
+    nvals = len(args.v)
+    for i in range(nof):
+        data_val[i] = [[] for iv in range(nvals)]
+    # preprocessing: read data and omit NaNs
+    for i in range(nof):
+        datlines[i] = io.data_lines(input_files[i], args)
+        for line in datlines[i]:
+            xy = line.split()[0:len(args.x)]
+            vals = line.split()[len(args.x):len(args.x)+len(args.v)]
+            if 'nan' not in xy and 'nan' not in vals:
+                xy = np.array(xy, dtype=float).tolist()
+                data_xy[i].append(xy)
+                vals = np.array(vals, dtype=float).tolist()
+                for iv in range(nvals):
+                    data_val[i][iv].append(vals[iv])
+    # start main process
+    # d: data, g: gridded
+    for idat, xy in enumerate(data_xy):
+        dlon = [row[0] for row in xy]
+        dlat = [row[1] for row in xy]
+        reflon = (np.min(dlon)+np.max(dlon))/2
+        reflat = (np.min(dlat)+np.max(dlat))/2
+        
+        applat = reflat-90
+        if applat < -90:
+            applat = applat+180
+
+        applon = reflon-90
+        if applon < -180:
+            applon = applon+180
+
+        point_ref = geographic.Point(reflon, reflat)
+        point_app = geographic.Point(applon, applat)
+        line = geographic.Line(point_app, point_ref)
+        deltaref = line.calc_gcarc()
+        tazimref = line.calc_az()
+
+        earth_radius = geographic.calc_earth_radius((reflat + applat) / 2)
+        circ = np.radians(earth_radius)
+
+
+        # grid lon & lat
+        glon = []; glat = []
+        for lon in np.arange(np.min(dlon), np.max(dlon)+args.spacing[0], args.spacing[0]):
+            for lat in np.arange(np.min(dlat), np.max(dlat)+args.spacing[0], args.spacing[0]):
+                glon.append(lon)
+                glat.append(lat)
+
+        ngp = len(glon) # number of grid points
+        ndp = len(dlon) # number of data points
+
+        # input data relative coordinates: xnode & ynode
+        xnode = [];  ynode = []
+        for ip in range(len(xy)):
+            point = geographic.Point(xy[ip][0], xy[ip][1])
+            line = geographic.Line(point_app, point)
+            delta = line.calc_gcarc()
+            tazim = line.calc_az()
+            deltadiff = delta - deltaref
+            tazdiff = tazimref - tazim
+            if deltadiff > 180:
+                deltadiff -= 360
+            elif deltadiff < -180:
+                deltadiff += 360
+            if tazdiff > 180:
+                tazdiff -= 360
+            elif tazdiff < -180:
+                tazdiff += 360
+            xnode.append(circ * deltadiff)
+            ynode.append(circ * np.sin(np.radians(delta)) * tazdiff)
+
+        # gridded data relative coordinates: xgrid & ygrid
+        xgrid = [];  ygrid = []
+        for ip in range(ngp):
+            point = geographic.Point(glon[ip], glat[ip])
+            line = geographic.Line(point_app, point)
+            delta = line.calc_gcarc()
+            tazim = line.calc_az()
+            deltadiff = delta - deltaref
+            tazdiff = tazimref - tazim
+            if deltadiff > 180:
+                deltadiff -= 360
+            elif deltadiff < -180:
+                deltadiff += 360
+            if tazdiff > 180:
+                tazdiff -= 360
+            elif tazdiff < -180:
+                tazdiff += 360
+            xgrid.append(circ * deltadiff)
+            ygrid.append(circ * np.sin(np.radians(delta)) * tazdiff)
+
+        # gval: [[gval_column_1],[gval_column_2],...]
+        gval = [np.zeros(ndp).tolist() for x in range(nvals)]
+
+        for igp in range(ngp):
+            # lon = round(glon[igp], 1)
+            # lat = round(glat[igp], 1)
+            wgt = calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
+            wgtsum = np.sum(wgt)
+            for iv in range(nvals):
+                gval[iv] += np.array(data_val[idat][iv]) * wgt
+                gval[iv] = (1/wgtsum) * gval[iv]
+
+        print('1/wgtsum', wgtsum)
+
+
+
+
+
+
+
+
+def calc_wgt(xg, yg, xnode, ynode, smoothing):
+    nnodes = len(xnode)
+    alpha = 1 / (smoothing ** 2)
+    xg = np.ones(nnodes) * xg
+    yg = np.ones(nnodes) * yg
+    adistsq = alpha * ( (xg - xnode)**2 + (yg - ynode)**2 )
+    wgt = np.exp(-adistsq)
+    mask = np.ma.masked_greater(adistsq, smoothing).mask * np.ones(nnodes)
+    wgt = wgt * mask
+    return wgt
+    
+
+
+
 
 def union(args):
     nof = len(args.input_files)
@@ -110,7 +250,6 @@ def points_in_polygon(args):
         points_data = io.read_numerical_data(points_file, args.header, args.footer,  [".10",".10"], args.x, [])
         if os.path.splitext(polygon_file)[1] == ".shp":
             # if polygon_file is *.shp
-            import numpy as np
             import geopandas as gpd
             from shapely.geometry import mapping
             try:
@@ -148,6 +287,33 @@ def points_in_polygon(args):
         else:
             print(f"Error in reading points_file: {points_file}\nNaN columns will be ignored")
             continue
+
+def calc_min(args):
+    from numpy import nanmin
+    outdata_lines = []
+    for inpfile in args.input_files:
+        min_column = []
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
+        for col in data[1]:
+            min_column.append(f"%.{args.decimal[0]}f" %(nanmin(col)))
+        outdata_lines.append(' '.join([inpfile] + min_column))
+    args.sort = False
+    args.uniq = False
+    io.output_lines(outdata_lines, args)
+
+
+def calc_max(args):
+    from numpy import nanmax
+    outdata_lines = []
+    for inpfile in args.input_files:
+        max_column = []
+        data = io.read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
+        for col in data[1]:
+            max_column.append(f"%.{args.decimal[0]}f" %(nanmax(col)))
+        outdata_lines.append(' '.join([inpfile] + max_column))
+    args.sort = False
+    args.uniq = False
+    io.output_lines(outdata_lines, args)
 
 
 def calc_sum(args):
