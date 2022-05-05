@@ -87,19 +87,19 @@ def gridder(args):
         earth_radius = geographic.calc_earth_radius(reflat)
         circ = radians(earth_radius)
 
-        if args.lonrange[1] == 0.999: # Auto
+        if args.xrange[1] == 0.999: # Auto
             minLon = min(dlon)
             maxLon = max(dlon)
         else:
-            minLon = args.lonrange[0]
-            maxLon = args.lonrange[1]
+            minLon = args.xrange[0]
+            maxLon = args.xrange[1]
 
-        if args.latrange[1] == 0.999: # Auto
+        if args.yrange[1] == 0.999: # Auto
             minLat = min(dlat)
             maxLat = max(dlat)
         else:
-            minLat = args.latrange[0]
-            maxLat = args.latrange[1]
+            minLat = args.yrange[0]
+            maxLat = args.yrange[1]
 
 
         loninc = args.spacing[0]

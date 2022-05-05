@@ -411,19 +411,19 @@ def parse_args(*args, **kwargs):
         help='REQUIRED: grid smoothing length (km)'
     )
     data_gridder.add_argument(
-        '--lonrange',
+        '--xrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
-        help='grid longitude range: [minlon, maxlon] (default=Auto)')
+        help='grid x/longitude range: [minlon, maxlon] (default=Auto)')
     data_gridder.add_argument(
-        '--latrange',
+        '--yrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
-        help='grid latitude range: [minlat, maxlat] (default=Auto)')
+        help='grid y/latitude range: [minlat, maxlat] (default=Auto)')
     data_gridder.add_argument(
         '-x',
         nargs=2,
