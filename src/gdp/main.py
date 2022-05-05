@@ -770,9 +770,11 @@ def parse_args(*args, **kwargs):
         '--append',
         action='store_true',
         help='append to output')
+
+
     #===== Module: convert =====#
-    convert_module = subparsers.add_parser('convert', help='data conversion module (file type/format)',
-    description="Conversion of different data types or formats (e.g., mseed2sac, 2Dto1D etc.)")
+    convert_module = subparsers.add_parser('convert', help="data conversion module (not available for version 0.0.1)",
+    description="WARNING! The following commands are not yet developed for version '0.0.1'.\nConversion of different data types or formats (e.g., mseed2sac, 2Dto1D etc.)")
     convert_module._positionals.title = 'required argument choices'
     convert_command = convert_module.add_subparsers(dest='command')
     
@@ -800,21 +802,22 @@ def parse_args(*args, **kwargs):
     convert_3Dto2D = convert_command.add_parser('3Dto2D', help='3Dto2D',
     description="3Dto2D")
     
-    # gdp convert sac2dat
-    convert_sac2dat = convert_command.add_parser('sac2dat', help='convert sac to dat (ascii)',
-    description="Convert sac to dat (ascii; output format: time, amplitude)")
-    
     # gdp convert mseed2sac
     convert_mseed2sac = convert_command.add_parser('mseed2sac', help='convert mseed to sac',
     description="Convert mseed to sac. This script also handles data fragmentation issue. ")
     
+    # gdp convert sac2dat
+    convert_sac2dat = convert_command.add_parser('sac2dat', help='convert sac to dat (ascii)',
+    description="Convert sac to dat (ascii; output format: time, amplitude)")
+        
     # gdp convert shp2dat
-    convert_shp2dat = convert_command.add_parser('shp2dat', help='convert shp to dat',
+    convert_shp2dat = convert_command.add_parser('shp2dat', help='convert shp to dat (ascii)',
     description="Convert shape file to dat (ascii)")
     
     # gdp convert nc2xyz
-    convert_nc2xyz = convert_command.add_parser('nc2xyz', help='convert nc to xyz',
+    convert_nc2xyz = convert_command.add_parser('nc2xyz', help='convert nc to xyz (ascii)',
     description="Convert nc to xyz/ascii")
+    
     # return arguments
     return parser.parse_args()
 
