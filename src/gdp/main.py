@@ -828,7 +828,7 @@ def main(*args, **kwargs):
     if args.about or len(sys.argv) == 1:
         clear_screen()
         print(f"{about}\n")
-        exit(1)
+        exit(0)
     #===== Module: data =====#
     if args.module == 'data':
         from . import dat
@@ -895,22 +895,22 @@ def main(*args, **kwargs):
             elif args.smoothing <= 0:
                 print(f"Error! 'smoothing' should be positive.")
                 exit(1)
-            elif args.lonrange[0] > args.lonrange[1]:
-                print(f"Error! Argument 'lonrange' should be entered in [minlon, maxlon] format.")
+            elif args.xrange[0] > args.xrange[1]:
+                print(f"Error! Argument 'xrange' should be entered in [minlon, maxlon] format.")
                 exit(1)
-            elif args.latrange[0] > args.latrange[1]:
-                print(f"Error! Argument 'latrange' should be entered in [minlat, maxlat] format.")
+            elif args.yrange[0] > args.yrange[1]:
+                print(f"Error! Argument 'yrange' should be entered in [minlat, maxlat] format.")
                 exit(1)
-            elif args.lonrange[0] < -180:
+            elif args.xrange[0] < -180:
                 print(f"Error! minimum longitude is less than -180.")
                 exit(1)
-            elif args.lonrange[1] > 180:
+            elif args.xrange[1] > 180:
                 print(f"Error! maximum longitude is greater than 180.")
                 exit(1)
-            elif args.latrange[0] < -90:
+            elif args.yrange[0] < -90:
                 print(f"Error! minimum latitude is less than -90.")
                 exit(1)
-            elif args.latrange[1] > 90:
+            elif args.yrange[1] > 90:
                 print(f"Error! maximum latitude is greater than 90.")
                 exit(1)
 

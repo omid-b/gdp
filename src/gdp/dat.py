@@ -12,6 +12,7 @@ def gridder(args):
     skipnan_orig = args.skipnan
     args.nan = False
     args.skipnan = True
+    args.noextra = True
     if len(args.fmt) == 1:
         fmt = [args.fmt[0], args.fmt[0]]
     else:
@@ -332,7 +333,7 @@ def difference(args):
 
 def points_in_polygon(args):
     from . import geographic
-    outfile_orig = os.path.abspath(args.outfile)
+    outfile_orig = args.outfile
     for points_file in args.points_file:
         polygon_file = args.polygon_file[0]
         points_data = io.read_numerical_data(points_file, args.header, args.footer,  [".10",".10"], args.x, [])
