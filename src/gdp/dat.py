@@ -5,9 +5,10 @@ import warnings
 import numpy as np
 from math import radians, degrees, sin, cos, atan2, acos
 from . import io
+from . import _dat
 
 def gridder(args):
-    from . import geographic
+    from . import _geographic
     outfile_orig = args.outfile
     skipnan_orig = args.skipnan
     args.nan = False
@@ -57,7 +58,7 @@ def gridder(args):
             polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
             polygon_lon = polygon_data[0][0]
             polygon_lat = polygon_data[0][1]
-        polygon = geographic.Polygon(polygon_lon, polygon_lat)
+        polygon = _geographic.Polygon(polygon_lon, polygon_lat)
 
     # start main process
     # d: data, g: gridded
@@ -85,7 +86,7 @@ def gridder(args):
 
         deltaref, tazimref = calc_disthead(applon, applat, reflon, reflat)
 
-        earth_radius = geographic.calc_earth_radius(reflat)
+        earth_radius = _geographic.calc_earth_radius(reflat)
         circ = radians(earth_radius)
 
         if args.xrange[1] == 0.999: # Auto
@@ -162,7 +163,7 @@ def gridder(args):
         gval = [np.zeros(ngp).tolist() for x in range(nvals)]
         for igp in range(ngp):
             line = f"%{fmt[0]}f %{fmt[0]}f" %(gridlon[igp], gridlat[igp])
-            wgt = calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
+            wgt = _dat.calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
             wgtsum = np.sum(wgt)
 
             for iv in range(nvals):
@@ -173,7 +174,7 @@ def gridder(args):
 
                 line = f"{line} %{fmt[1]}f" %(gval[iv][igp])
 
-            point = geographic.Point(float(line.split()[0]), float(line.split()[1]))
+            point = _geographic.Point(float(line.split()[0]), float(line.split()[1]))
 
             if skipnan_orig:
                 if 'nan' not in line.split():
@@ -332,7 +333,7 @@ def difference(args):
 
 
 def points_in_polygon(args):
-    from . import geographic
+    from . import _geographic
     outfile_orig = args.outfile
     for points_file in args.points_file:
         polygon_file = args.polygon_file[0]
@@ -353,12 +354,12 @@ def points_in_polygon(args):
             polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
             polygon_lon = polygon_data[0][0]
             polygon_lat = polygon_data[0][1]
-        polygon = geographic.Polygon(polygon_lon, polygon_lat)
+        polygon = _geographic.Polygon(polygon_lon, polygon_lat)
         nop = len(points_data[0][0]) # number of points
         if nop:
             outdata_lines = []
             for ip in range(nop):
-                point = geographic.Point(points_data[0][0][ip], points_data[0][1][ip])
+                point = _geographic.Point(points_data[0][0][ip], points_data[0][1][ip])
                 if polygon.is_point_in(point,args.inverse):
                     outdata_lines.append(f"%f %f %s" %(point.lon, point.lat, points_data[2][ip]))
             args.uniq = False
