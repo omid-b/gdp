@@ -340,185 +340,58 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     
-    # gdp data unmerge
-    data_unmerge = data_command.add_parser('unmerge', help='unmerge concatenated data file',
-    description="Unmerge a concatenated data file into multiple data files")
-    data_unmerge._positionals.title = 'required positional arguments'
-    data_unmerge._optionals.title = 'optional/required arguments'
-    data_unmerge.add_argument("input_file", nargs=1)
-    data_unmerge.add_argument(
+    # gdp data split
+    data_split = data_command.add_parser('split', help='split concatenated dataset',
+    description="split a concatenated dataset into multiple data files")
+    data_split._positionals.title = 'required positional arguments'
+    data_split._optionals.title = 'optional/required arguments'
+    data_split.add_argument("input_file", nargs=1)
+    data_split.add_argument(
         '--method',
         choices=['nrow','ncol'],
         required=True,
-        help='REQUIRED: unmerge method (choices: nrow/ncol); nrow: split data based on fixed number of rows/lines; ncol: split data based on fixed number of columns')
-    data_unmerge.add_argument(
+        help='REQUIRED: split method (choices: nrow/ncol); nrow: split data based on fixed number of rows/lines; ncol: split data based on fixed number of columns')
+    data_split.add_argument(
         '-n',
         '--number',
         type=int,
         required=True,
         help='REQUIRED: number of rows (method=nrow), or columns (method=ncol) to identify data split')
-    data_unmerge.add_argument(
+    data_split.add_argument(
         '-o',
         '--outdir',
         type=str,
         action='store',
         help='output directory')
-    data_unmerge.add_argument(
-        '--outext',
+    data_split.add_argument(
+        '--ext',
         type=str,
         action='store',
         default = 'dat',
-        help='REQUIRED: output files extension (default=dat)')
-    data_unmerge.add_argument(
+        help='Output files extension (default=dat)')
+    data_split.add_argument(
         '--name',
         type=int,
         default=1,
         help='output file name row/line in each split data (default=1)')
-    data_unmerge.add_argument(
+    data_split.add_argument(
         '--start',
         type=int,
         default=0,
         help='only for method=ncol; start row from the reference row (default=0)')
-    data_unmerge.add_argument(
+    data_split.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    data_unmerge.add_argument(
+    data_split.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
 
-    # gdp data gridder
-    data_gridder = data_command.add_parser('gridder', help='gridding 2D/map data (interpolation)',
-    description="Gridding 2D/map data (interpolation) with Gaussian smoothing")
-    data_gridder.add_argument("input_files", nargs='+')
-    data_gridder.add_argument(
-        '--spacing',
-        nargs='+',
-        type=float,
-        action='store',
-        required=True,
-        help='REQUIRED: grid spacing along [longitude, latitude]'
-    )
-    data_gridder.add_argument(
-        '--smoothing',
-        type=float,
-        required=True,
-        help='REQUIRED: grid smoothing length (km)'
-    )
-    data_gridder.add_argument(
-        '--xrange',
-        nargs=2,
-        type=float,
-        action='store',
-        default=[-0.999, 0.999],
-        help='grid x/longitude range: [minlon, maxlon] (default=Auto)')
-    data_gridder.add_argument(
-        '--yrange',
-        nargs=2,
-        type=float,
-        action='store',
-        default=[-0.999, 0.999],
-        help='grid y/latitude range: [minlat, maxlat] (default=Auto)')
-    data_gridder.add_argument(
-        '-x',
-        nargs=2,
-        type=int,
-        action='store',
-        default=[1, 2],
-        help='[longitude, latitude] column number(s) (default=[1, 2])')
-    data_gridder.add_argument(
-        '-v',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[3],
-        help='value/data column number(s) (default=[3])')
-    data_gridder.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    data_gridder.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    data_gridder.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for positional and value columns respectively (default=[".4",".4"])')
-    data_gridder.add_argument(
-        '--skipnan',
-        action='store_true',
-        help='do not output lines with nan value(s)')
-    data_gridder.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file/folder'
-    )
-    data_gridder.add_argument(
-        '--pip',
-        type=str,
-        action='store',
-        help='polygon to run "points-in-polygon" process before outputing the results'
-    )
-
-    # gdp data pip
-    data_pip = data_command.add_parser('pip', help='points-in-polygon',
-    description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
-    data_pip._positionals.title = 'required arguments'
-    data_pip._optionals.title = 'optional arguments/settings for points_file'
-    data_pip.add_argument("points_file", nargs='*', type=str, help="path to points_file(s)")
-    data_pip.add_argument("polygon_file", nargs=1, type=str,
-        help="path to polygon_file; '*.shp' is also accepted (first polygon is read); if ascii: file content column format must be [lon, lat]")
-    data_pip.add_argument(
-        '-x',
-        nargs=2,
-        type=int,
-        action='store',
-        default=[1, 2],
-        help='positional column number(s) (default=[1, 2])')
-    data_pip.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    data_pip.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    data_pip.add_argument(
-        '-i',
-        '--inverse',
-        action='store_true',
-        help='inverse operation: points outside polygon')
-    data_pip.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file/folder')
-    data_pip.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    
     # gdp data min
     data_min = data_command.add_parser('min', help='calculate min of numerical column(s)',
     description="Calculate minimum of row values in numerical column(s)")
@@ -771,6 +644,134 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
+    # gdp data pip
+    data_pip = data_command.add_parser('pip', help='points-in-polygon',
+    description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
+    data_pip._positionals.title = 'required arguments'
+    data_pip._optionals.title = 'optional arguments/settings for points_file'
+    data_pip.add_argument("points_file", nargs='*', type=str, help="path to points_file(s)")
+    data_pip.add_argument("polygon_file", nargs=1, type=str,
+        help="path to polygon_file; '*.shp' is also accepted (first polygon is read); if ascii: file content column format must be [lon, lat]")
+    data_pip.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='positional column number(s) (default=[1, 2])')
+    data_pip.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_pip.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_pip.add_argument(
+        '-i',
+        '--inverse',
+        action='store_true',
+        help='inverse operation: points outside polygon')
+    data_pip.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file/folder')
+    data_pip.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+
+    # gdp data gridder
+    data_gridder = data_command.add_parser('gridder', help='gridding/interpolation of 2D/map data',
+    description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
+    data_gridder.add_argument("input_files", nargs='+')
+    data_gridder.add_argument(
+        '--spacing',
+        nargs='+',
+        type=float,
+        action='store',
+        required=True,
+        help='REQUIRED: grid spacing along [longitude, latitude]'
+    )
+    data_gridder.add_argument(
+        '--smoothing',
+        type=float,
+        required=True,
+        help='REQUIRED: grid smoothing length (km)'
+    )
+    data_gridder.add_argument(
+        '--lonrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='grid x/longitude range: [minlon, maxlon] (default=Auto)')
+    data_gridder.add_argument(
+        '--latrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='grid y/latitude range: [minlat, maxlat] (default=Auto)')
+    data_gridder.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='[longitude, latitude] column number(s) (default=[1, 2])')
+    data_gridder.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    data_gridder.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_gridder.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_gridder.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
+    data_gridder.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
+    data_gridder.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file/folder'
+    )
+    data_gridder.add_argument(
+        '--pip',
+        type=str,
+        action='store',
+        help='polygon to run "points-in-polygon" process before outputing the results'
+    )
+
+
 
     #===== Module: convert =====#
     convert_module = subparsers.add_parser('convert', help="data conversion module (not available for version 0.0.1)",
@@ -805,18 +806,78 @@ def parse_args(*args, **kwargs):
     # gdp convert mseed2sac
     convert_mseed2sac = convert_command.add_parser('mseed2sac', help='convert mseed to sac',
     description="Convert mseed to sac. This script also handles data fragmentation issue. ")
+    convert_mseed2sac.add_argument("input_files", nargs='+')
+    convert_mseed2sac.add_argument(
+        '-o',
+        '--outdir',
+        type=str,
+        required=True,
+        help='REQUIRED: path to output directory'
+    )
+    convert_mseed2sac.add_argument(
+        '--reformat',
+        action='store_true',
+        help='reformat output sac files i.e. rename and output to related directories based on mseed start time, station & channel information'
+    )
+    convert_mseed2sac.add_argument(
+        '--offset',
+        type=float,
+        default=0,
+        help='output filename start time offset in seconds (only if rename=True; default=0)'
+    )
+    convert_mseed2sac.add_argument(
+        '--resample',
+        type=float,
+        default=999,
+        help='resample output sac files, sampling freqency must be given'
+    )
+    
     
     # gdp convert sac2dat
     convert_sac2dat = convert_command.add_parser('sac2dat', help='convert sac to dat (ascii)',
-    description="Convert sac to dat (ascii; output format: time, amplitude)")
+    description="Convert sac to dat (ascii); output format: time, amplitude")
+    convert_sac2dat.add_argument("input_files", nargs='+')
+    convert_sac2dat.add_argument(
+        '-o',
+        '--outdir',
+        type=str,
+        required=True,
+        help='REQUIRED: path to output directory'
+    )
+    convert_sac2dat.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".2",".2"],
+        help='float format for time and value columns respectively (default=[".2",".2"])')
+    convert_sac2dat.add_argument(
+        '--timerange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[999, 999],
+        help='time range limit')
         
     # gdp convert shp2dat
     convert_shp2dat = convert_command.add_parser('shp2dat', help='convert shp to dat (ascii)',
     description="Convert shape file to dat (ascii)")
     
-    # gdp convert nc2xyz
-    convert_nc2xyz = convert_command.add_parser('nc2xyz', help='convert nc to xyz (ascii)',
-    description="Convert nc to xyz/ascii")
+    # gdp convert nc2dat
+    convert_nc2dat = convert_command.add_parser('nc2dat', help='convert nc to dat (ascii)',
+    description="Convert nc files to dat/ascii")
+    convert_nc2dat.add_argument("input_files", nargs='+')
+    convert_nc2dat.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file (single input) or folder (multipe inputs)')
+    convert_nc2dat.add_argument(
+        '--metadata',
+        action='store_true',
+        help='only output metadata'
+    )
     
     # return arguments
     return parser.parse_args()
@@ -859,7 +920,7 @@ def main(*args, **kwargs):
             else:
                 dat.difference(args)
             exit(0)
-        if args.command == 'unmerge':
+        if args.command == 'split':
             # check arguments
             if args.number < 0 :
                 print(f"\nError! Argument 'number' should be a positive integer\n")
@@ -876,15 +937,15 @@ def main(*args, **kwargs):
             if args.name > args.number:
                 print(f"\nError! Argument 'name' should be less than or equal argument 'number' for method=nrow\n")
                 exit(1)
-            # start unmerge
+            # start split
             if args.method == 'nrow':
                 if args.start:
                     print(f"\nError! Argument 'start' is only for method=ncol\n")
                     exit(1)
-                nan.unmerge_nrow(args)
+                nan.split_data_nrow(args)
                 exit(0)
             else:
-                nan.unmerge_ncol(args)
+                nan.split_data_ncol(args)
                 exit(0)
         if args.command == 'gridder':
             if len(args.spacing) == 1:
@@ -896,22 +957,22 @@ def main(*args, **kwargs):
             elif args.smoothing <= 0:
                 print(f"Error! 'smoothing' should be positive.")
                 exit(1)
-            elif args.xrange[0] > args.xrange[1]:
-                print(f"Error! Argument 'xrange' should be entered in [minlon, maxlon] format.")
+            elif args.lonrange[0] > args.lonrange[1]:
+                print(f"Error! Argument 'lonrange' should be entered in [minlon, maxlon] format.")
                 exit(1)
-            elif args.yrange[0] > args.yrange[1]:
-                print(f"Error! Argument 'yrange' should be entered in [minlat, maxlat] format.")
+            elif args.latrange[0] > args.latrange[1]:
+                print(f"Error! Argument 'latrange' should be entered in [minlat, maxlat] format.")
                 exit(1)
-            elif args.xrange[0] < -180:
+            elif args.lonrange[0] < -180:
                 print(f"Error! minimum longitude is less than -180.")
                 exit(1)
-            elif args.xrange[1] > 180:
+            elif args.lonrange[1] > 180:
                 print(f"Error! maximum longitude is greater than 180.")
                 exit(1)
-            elif args.yrange[0] < -90:
+            elif args.latrange[0] < -90:
                 print(f"Error! minimum latitude is less than -90.")
                 exit(1)
-            elif args.yrange[1] > 90:
+            elif args.latrange[1] > 90:
                 print(f"Error! maximum latitude is greater than 90.")
                 exit(1)
 
@@ -962,17 +1023,17 @@ def main(*args, **kwargs):
             subprocess.call('gdp convert 3Dto2D -h', shell=True)
             under_dev()
         if args.command == 'sac2dat':
-            subprocess.call('gdp convert sac2dat -h', shell=True)
-            under_dev()
+            conv.sac2dat(args)
+            exit(0)
         if args.command == 'mseed2sac':
-            subprocess.call('gdp convert mseed2sac -h', shell=True)
-            under_dev()
+            conv.mseed2sac(args)
+            exit(0)
         if args.command == 'shp2dat':
             subprocess.call('gdp convert shp2dat -h', shell=True)
             under_dev()
         if args.command == 'nc2dat':
-            subprocess.call('gdp convert nc2dat -h', shell=True)
-            under_dev()
+            conv.nc2dat(args)
+            exit(0)
         else:
             subprocess.call('gdp convert -h', shell=True)
 

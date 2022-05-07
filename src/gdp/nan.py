@@ -90,7 +90,7 @@ def difference(args):
         io.output_lines(difference, args)
 
 
-def unmerge_nrow(args):
+def split_data_nrow(args):
     try:
         fopen = open(args.input_file[0],'r')
         if args.footer != 0:
@@ -107,7 +107,7 @@ def unmerge_nrow(args):
     ndata = len(indexes) - 1
     for i in range(ndata):
         split_data_lines = datalines[indexes[i]:indexes[i+1]]
-        split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.outext}"
+        split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.ext}"
         if args.outdir:
             if not os.path.isdir(args.outdir):
                 os.mkdir(args.outdir)
@@ -121,7 +121,7 @@ def unmerge_nrow(args):
             print(f"{stdout}\n")
 
 
-def unmerge_ncol(args):
+def split_data_ncol(args):
     try:
         fopen = open(args.input_file[0],'r')
         if args.footer != 0:
@@ -145,7 +145,7 @@ def unmerge_ncol(args):
     ndata = len(indexes) - 1
     for i in range(ndata):
         split_data_lines = datalines[indexes[i]:indexes[i+1]]
-        split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.outext}"
+        split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.ext}"
         if args.outdir:
             if not os.path.isdir(args.outdir):
                 os.mkdir(args.outdir)

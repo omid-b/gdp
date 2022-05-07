@@ -1,5 +1,11 @@
 
-# from libcpp cimport bool
+from math import sin
+from math import cos
+from math import atan2
+from math import radians
+from math import degrees
+from math import sqrt
+
 
 class Point:
     def __init__(self, double lon, double lat):
@@ -13,15 +19,14 @@ class Line:
         self.point2 = point2
 
     def calc_gcarc(self):
-        from math import sin, cos, atan2, radians, degrees, sqrt
-        cpdef double lon1
-        cpdef double lon2
-        cpdef double lat1
-        cpdef double lat2
-        cpdef double delta_lon
-        cpdef double delta_lat
-        cpdef double a
-        cpdef double gcarc
+        cdef double lon1
+        cdef double lon2
+        cdef double lat1
+        cdef double lat2
+        cdef double delta_lon
+        cdef double delta_lat
+        cdef double a
+        cdef double gcarc
         lon1, lat1 = radians(self.point1.lon), radians(self.point1.lat)
         lon2, lat2 = radians(self.point2.lon), radians(self.point2.lat)
         delta_lon = lon2 - lon1
@@ -33,16 +38,15 @@ class Line:
     def calc_dist(self):
         # calculate earth radius at mid_latitude first
         # formula from https://rechneronline.de/earth-radius/
-        from math import sin, cos, radians, sqrt
-        cpdef double mid_lat
-        cpdef double r1
-        cpdef double r2
-        cpdef double a1
-        cpdef double a2
-        cpdef double b1
-        cpdef double b2
-        cpdef double earth_radius
-        cpdef double dist
+        cdef double mid_lat
+        cdef double r1
+        cdef double r2
+        cdef double a1
+        cdef double a2
+        cdef double b1
+        cdef double b2
+        cdef double earth_radius
+        cdef double dist
         mid_lat = radians((self.point1.lat + self.point2.lat) / 2)
         r1 = 6378. # radius at equator
         r2 = 6356. # radius at pole
@@ -56,48 +60,46 @@ class Line:
         return dist
 
     def calc_az(self):
-        from math import sin, cos, atan2, radians, degrees
-        cpdef double lon1
-        cpdef double lon2
-        cpdef double lat1
-        cpdef double lat2
-        cpdef double delta_lon
-        cpdef double az
+        cdef double lon1
+        cdef double lon2
+        cdef double lat1
+        cdef double lat2
+        cdef double delta_lon
+        cdef double az
         lon1, lat1 = radians(self.point1.lon), radians(self.point1.lat)
         lon2, lat2 = radians(self.point2.lon), radians(self.point2.lat)
         delta_lon = lon2 - lon1
         az = atan2(sin(delta_lon) * cos(lat2),
-                     cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(delta_lon))
+                   cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(delta_lon))
         az = degrees(az)
         if az < 0:
             az += 360
         return az
 
     def calc_baz(self):
-        from math import sin, cos, atan2, radians, degrees
-        cpdef double lon1
-        cpdef double lon2
-        cpdef double lat1
-        cpdef double lat2
-        cpdef double delta_lon
-        cpdef double baz
+        cdef double lon1
+        cdef double lon2
+        cdef double lat1
+        cdef double lat2
+        cdef double delta_lon
+        cdef double baz
         lon1, lat1 = radians(self.point2.lon), radians(self.point2.lat)
         lon2, lat2 = radians(self.point1.lon), radians(self.point1.lat)
         delta_lon = lon2 - lon1
         baz = atan2(sin(delta_lon) * cos(lat2),
-                     cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(delta_lon))
+                    cos(lat1) * sin(lat2) - sin(lat1) * cos(lat2) * cos(delta_lon))
         baz = degrees(baz)
         if baz < 0:
             baz += 360
         return baz
 
     def is_intersect_line(self, object line):
-        cpdef object point3
-        cpdef object point4
-        cpdef bint ccw_123
-        cpdef bint ccw_124
-        cpdef bint ccw_134
-        cpdef bint ccw_234
+        cdef object point3
+        cdef object point4
+        cdef bint ccw_123
+        cdef bint ccw_124
+        cdef bint ccw_134
+        cdef bint ccw_234
         point3 = line.point1
         point4 = line.point2
         ccw_123 = ((point3.lat-self.point1.lat)*(self.point2.lon-self.point1.lon) > (self.point2.lat-self.point1.lat)*(point3.lon-self.point1.lon))
@@ -116,11 +118,11 @@ class Polygon:
             exit(1)
 
     def get_lines(self):
-        cpdef int i
-        cpdef int nlines
-        cpdef list lines
-        cpdef object point1
-        cpdef object point2
+        cdef int i
+        cdef int nlines
+        cdef list lines
+        cdef object point1
+        cdef object point2
         nlines = len(self.lon) -1
         lines = []
         for i in range(nlines):
@@ -130,22 +132,22 @@ class Polygon:
         return lines
 
     def is_point_in(self, object point, bint inverse=False):
-        cpdef list lon_range
-        cpdef list lat_range
-        cpdef double dlon
-        cpdef double dlat
-        cpdef object point_north
-        cpdef object point_south
-        cpdef object point_east
-        cpdef object point_west
-        cpdef list test_lines
-        cpdef object test_line
-        cpdef object line
-        cpdef int num_intersects
+        cdef list lon_range
+        cdef list lat_range
+        cdef double dlon
+        cdef double dlat
+        cdef object point_north
+        cdef object point_south
+        cdef object point_east
+        cdef object point_west
+        cdef list test_lines
+        cdef object test_line
+        cdef object line
+        cdef int num_intersects
         
 
-        cpdef bint true = True
-        cpdef bint false = False
+        cdef bint true = True
+        cdef bint false = False
         lon_range = [min(self.lon), max(self.lon)]
         lat_range = [min(self.lat), max(self.lat)]
         if point.lon < lon_range[0] or point.lon > lon_range[1] or point.lat < lat_range[0] or point.lat > lat_range[1]:
@@ -184,14 +186,13 @@ class Polygon:
 
 
 cpdef double calc_earth_radius(double lat):
-    from math import cos, sin, sqrt
-    cpdef double r1
-    cpdef double r2
-    cpdef double a1
-    cpdef double a2
-    cpdef double b1
-    cpdef double b2
-    cpdef double earth_radius
+    cdef double r1
+    cdef double r2
+    cdef double a1
+    cdef double a2
+    cdef double b1
+    cdef double b2
+    cdef double earth_radius
     r1 = 6378 # radius at equator
     r2 = 6356 # radius at pole
     a1 = r1**2 * cos(lat)

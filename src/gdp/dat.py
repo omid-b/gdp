@@ -2,12 +2,14 @@
 
 import os
 import warnings
+import shutil
 import numpy as np
 from math import radians, degrees, sin, cos, atan2, acos
 from . import io
-from . import _dat
+
 
 def gridder(args):
+    from . import _dat
     from . import _geographic
     outfile_orig = args.outfile
     skipnan_orig = args.skipnan
@@ -84,25 +86,29 @@ def gridder(args):
         if applon < -180:
             applon = applon+180
 
-        deltaref, tazimref = calc_disthead(applon, applat, reflon, reflat)
+        point_app = _geographic.Point(applon, applat)
+        point_ref = _geographic.Point(reflon, reflat)
+        line_ref = _geographic.Line(point_app, point_ref)
+
+        deltaref = line_ref.calc_gcarc()
+        tazimref = line_ref.calc_az()
 
         earth_radius = _geographic.calc_earth_radius(reflat)
         circ = radians(earth_radius)
 
-        if args.xrange[1] == 0.999: # Auto
+        if args.lonrange[1] == 0.999: # Auto
             minLon = min(dlon)
             maxLon = max(dlon)
         else:
-            minLon = args.xrange[0]
-            maxLon = args.xrange[1]
+            minLon = args.lonrange[0]
+            maxLon = args.lonrange[1]
 
-        if args.yrange[1] == 0.999: # Auto
+        if args.latrange[1] == 0.999: # Auto
             minLat = min(dlat)
             maxLat = max(dlat)
         else:
-            minLat = args.yrange[0]
-            maxLat = args.yrange[1]
-
+            minLat = args.latrange[0]
+            maxLat = args.latrange[1]
 
         loninc = args.spacing[0]
         latinc = args.spacing[1]
@@ -116,7 +122,11 @@ def gridder(args):
         # input data relative coordinates: xnode & ynode
         xnode = [];  ynode = []
         for ip in range(ndp):
-            delta, tazim = calc_disthead(applon, applat, dlon[ip], dlat[ip])
+            point = _geographic.Point(dlon[ip], dlat[ip])
+            line = _geographic.Line(point_app, point)
+
+            delta = line.calc_gcarc()
+            tazim = line.calc_az()
 
             deltadiff = delta - deltaref
             if deltadiff > 180:
@@ -139,7 +149,12 @@ def gridder(args):
             lon = minLon + ix*loninc
             for iy in range(ny):
                 lat = minLat + iy*latinc
-                delta, tazim = calc_disthead(applon, applat, lon, lat)
+
+                point = _geographic.Point(lon, lat)
+                line = _geographic.Line(point_app, point)
+
+                delta = line.calc_gcarc()
+                tazim = line.calc_az()
 
                 deltadiff = delta - deltaref
                 if deltadiff > 180:
@@ -163,6 +178,8 @@ def gridder(args):
         gval = [np.zeros(ngp).tolist() for x in range(nvals)]
         for igp in range(ngp):
             line = f"%{fmt[0]}f %{fmt[0]}f" %(gridlon[igp], gridlat[igp])
+            xnode = np.array(xnode)
+            ynode = np.array(ynode)
             wgt = _dat.calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
             wgtsum = np.sum(wgt)
 
@@ -203,34 +220,6 @@ def gridder(args):
             args.outfile = outfile_orig
 
         io.output_lines(out_lines, args)
-
-
-
-
-def calc_disthead(slon, slat, flon, flat):
-    slon = radians(slon)
-    slat = radians(slat)
-    flon = radians(flon)
-    flat = radians(flat)
-    delta = acos(sin(slat)*sin(flat)+cos(slat)*cos(flat)*cos(flon-slon))
-    azim = atan2(sin(flon-slon)*cos(flat),  sin(flat)*cos(slat) - cos(flon-slon)*cos(flat)*sin(slat))
-    delta = degrees(delta)
-    azim = degrees(azim)
-    return [delta, azim]
-
-
-
-def calc_wgt(xg, yg, xnode, ynode, smoothing):
-    nnodes = len(xnode)
-    alpha = 1 / (smoothing ** 2)
-    xg = np.ones(nnodes) * xg
-    yg = np.ones(nnodes) * yg
-    adistsq = alpha * ( (xg - xnode)**2 + (yg - ynode)**2 )
-    wgt = np.exp(-adistsq)
-    mask = np.ma.masked_less(adistsq, smoothing).mask * np.ones(nnodes)
-    wgt = wgt * mask
-    return wgt
-    
 
 
 
@@ -362,21 +351,39 @@ def points_in_polygon(args):
                 point = _geographic.Point(points_data[0][0][ip], points_data[0][1][ip])
                 if polygon.is_point_in(point,args.inverse):
                     outdata_lines.append(f"%f %f %s" %(point.lon, point.lat, points_data[2][ip]))
-            args.uniq = False
-            args.sort = False
             if len(args.points_file) > 1:
                 if args.outfile:
                     if not os.path.isdir(outfile_orig):
                         os.mkdir(outfile_orig)
                     args.outfile = os.path.join(outfile_orig, os.path.split(points_file)[1])
-                else:
+            elif outfile_orig:
+                args.outfile = os.path.join(outfile_orig)
+
+            args.uniq = False
+            args.sort = False
+            if len(outdata_lines):
+                if not outfile_orig:
                     print(f"\nFile: '{os.path.split(points_file)[1]}'")
                 io.output_lines(outdata_lines, args)
-            else:
-                io.output_lines(outdata_lines, args)
+            elif not outfile_orig:
+                print(f"Warning! Zero output lines for data: '{os.path.split(points_file)[1]}'")
         else:
             print(f"Error in reading points_file: {points_file}\nNaN columns will be ignored")
             continue
+
+    if outfile_orig and os.path.isdir(outfile_orig):
+        if len(os.listdir(outfile_orig)) == 0:
+            if args.inverse:
+                print("Warning! No points outside polygon.")
+            else:
+                print("Warning! No points in polygon.")
+            shutil.rmtree(outfile_orig)
+    elif outfile_orig and not os.path.isfile(outfile_orig):
+        if args.inverse:
+            print("Warning! No points outside polygon.")
+        else:
+            print("Warning! No points in polygon.")
+
 
 def calc_min(args):
     from numpy import nanmin
