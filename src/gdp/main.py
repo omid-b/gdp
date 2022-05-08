@@ -6,7 +6,7 @@ import argparse
 import subprocess
 from time import time
 
-version = "0.0.1"
+version = "0.0.2"
 about = """\
 gdp: Geophysical Data Processing
 \nContact information:
@@ -649,8 +649,8 @@ def parse_args(*args, **kwargs):
     description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
     data_pip._positionals.title = 'required arguments'
     data_pip._optionals.title = 'optional arguments/settings for points_file'
-    data_pip.add_argument("points_file", nargs='*', type=str, help="path to points_file(s)")
-    data_pip.add_argument("polygon_file", nargs=1, type=str,
+    data_pip.add_argument("points_file", nargs='+', type=str, help="path to points_file(s)")
+    data_pip.add_argument("polygon_file", nargs='*', type=str,
         help="path to polygon_file; '*.shp' is also accepted (first polygon is read); if ascii: file content column format must be [lon, lat]")
     data_pip.add_argument(
         '-x',
@@ -676,6 +676,20 @@ def parse_args(*args, **kwargs):
         '--inverse',
         action='store_true',
         help='inverse operation: points outside polygon')
+    data_pip.add_argument(
+        '--lonrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='x/longitude range: [minlon, maxlon]; this option could be used to specify polygon region if a polygon file is not available.')
+    data_pip.add_argument(
+        '--latrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='y/latitude range: [minlat, maxlat]; this option could be used to specify polygon region if a polygon file is not available.')
     data_pip.add_argument(
         '-o',
         '--outfile',
@@ -774,34 +788,34 @@ def parse_args(*args, **kwargs):
 
 
     #===== Module: convert =====#
-    convert_module = subparsers.add_parser('convert', help="data conversion module (not available for version 0.0.1)",
-    description="WARNING! The following commands are not yet developed for version '0.0.1'.\nConversion of different data types or formats (e.g., mseed2sac, 2Dto1D etc.)")
+    convert_module = subparsers.add_parser('convert', help="data conversion module )",
+    description="Conversion of different data types or formats")
     convert_module._positionals.title = 'required argument choices'
     convert_command = convert_module.add_subparsers(dest='command')
     
-    # gdp convert 1Dto2D
-    convert_1Dto2D = convert_command.add_parser('1Dto2D', help='1Dto2D',
-    description="1Dto2D")
+    # # gdp convert 1Dto2D
+    # convert_1Dto2D = convert_command.add_parser('1Dto2D', help='1Dto2D',
+    # description="1Dto2D")
     
-    # gdp convert 1Dto3D
-    convert_1Dto3D = convert_command.add_parser('1Dto3D', help='1Dto3D',
-    description="1Dto3D")
+    # # gdp convert 1Dto3D
+    # convert_1Dto3D = convert_command.add_parser('1Dto3D', help='1Dto3D',
+    # description="1Dto3D")
     
-    # gdp convert 2Dto1D
-    convert_2Dto1D = convert_command.add_parser('2Dto1D', help='2Dto1D',
-    description="2Dto1D")
+    # # gdp convert 2Dto1D
+    # convert_2Dto1D = convert_command.add_parser('2Dto1D', help='2Dto1D',
+    # description="2Dto1D")
     
-    # gdp convert 2Dto3D
-    convert_2Dto3D = convert_command.add_parser('2Dto3D', help='2Dto3D',
-    description="2Dto3D")
+    # # gdp convert 2Dto3D
+    # convert_2Dto3D = convert_command.add_parser('2Dto3D', help='2Dto3D',
+    # description="2Dto3D")
     
-    # gdp convert 3Dto1D
-    convert_3Dto1D = convert_command.add_parser('3Dto1D', help='3Dto1D',
-    description="3Dto1D")
+    # # gdp convert 3Dto1D
+    # convert_3Dto1D = convert_command.add_parser('3Dto1D', help='3Dto1D',
+    # description="3Dto1D")
     
-    # gdp convert 3Dto2D
-    convert_3Dto2D = convert_command.add_parser('3Dto2D', help='3Dto2D',
-    description="3Dto2D")
+    # # gdp convert 3Dto2D
+    # convert_3Dto2D = convert_command.add_parser('3Dto2D', help='3Dto2D',
+    # description="3Dto2D")
     
     # gdp convert mseed2sac
     convert_mseed2sac = convert_command.add_parser('mseed2sac', help='convert mseed to sac',
@@ -859,25 +873,43 @@ def parse_args(*args, **kwargs):
         default=[999, 999],
         help='time range limit')
         
-    # gdp convert shp2dat
-    convert_shp2dat = convert_command.add_parser('shp2dat', help='convert shp to dat (ascii)',
-    description="Convert shape file to dat (ascii)")
+    # # gdp convert shp2dat
+    # convert_shp2dat = convert_command.add_parser('shp2dat', help='convert shp to dat (ascii)',
+    # description="Convert shape file to dat (ascii)")
     
     # gdp convert nc2dat
     convert_nc2dat = convert_command.add_parser('nc2dat', help='convert nc to dat (ascii)',
     description="Convert nc files to dat/ascii")
-    convert_nc2dat.add_argument("input_files", nargs='+')
-    convert_nc2dat.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file (single input) or folder (multipe inputs)')
+    convert_nc2dat.add_argument("input_file", type=str, action='store', help='input nc file')
     convert_nc2dat.add_argument(
         '--metadata',
         action='store_true',
         help='only output metadata'
     )
+    convert_nc2dat.add_argument(
+        '--data',
+        nargs='*',
+        type=str,
+        help='data field name(s); hint: check metadata'
+    )
+    convert_nc2dat.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output data to file')
+    convert_nc2dat.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    convert_nc2dat.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for time and value columns respectively (default=[".4",".4"])')
     
     # return arguments
     return parser.parse_args()
@@ -957,10 +989,10 @@ def main(*args, **kwargs):
             elif args.smoothing <= 0:
                 print(f"Error! 'smoothing' should be positive.")
                 exit(1)
-            elif args.lonrange[0] > args.lonrange[1]:
+            elif args.lonrange[0] >= args.lonrange[1]:
                 print(f"Error! Argument 'lonrange' should be entered in [minlon, maxlon] format.")
                 exit(1)
-            elif args.latrange[0] > args.latrange[1]:
+            elif args.latrange[0] >= args.latrange[1]:
                 print(f"Error! Argument 'latrange' should be entered in [minlat, maxlat] format.")
                 exit(1)
             elif args.lonrange[0] < -180:

@@ -324,9 +324,33 @@ def difference(args):
 def points_in_polygon(args):
     from . import _geographic
     outfile_orig = args.outfile
-    for points_file in args.points_file:
+
+    # build polygon class
+    polygon_lon = []
+    polygon_lat = []
+    if args.lonrange != [-0.999, 0.999] and args.latrange != [-0.999, 0.999]:
+        if args.lonrange[0] >= args.lonrange[1]:
+            print(f"Error! Argument 'lonrange' should be entered in [minlon, maxlon] format.")
+            exit(1)
+        elif args.latrange[0] >= args.latrange[1]:
+            print(f"Error! Argument 'latrange' should be entered in [minlat, maxlat] format.")
+            exit(1)
+        elif args.lonrange[0] < -180:
+            print(f"Error! minimum longitude is less than -180.")
+            exit(1)
+        elif args.lonrange[1] > 180:
+            print(f"Error! maximum longitude is greater than 180.")
+            exit(1)
+        elif args.latrange[0] < -90:
+            print(f"Error! minimum latitude is less than -90.")
+            exit(1)
+        elif args.latrange[1] > 90:
+            print(f"Error! maximum latitude is greater than 90.")
+            exit(1)
+        polygon_lon = [args.lonrange[0], args.lonrange[1], args.lonrange[1], args.lonrange[0], args.lonrange[0]]
+        polygon_lat = [args.latrange[0], args.latrange[0], args.latrange[1], args.latrange[1], args.latrange[0]]
+    elif len(args.polygon_file) == 1:
         polygon_file = args.polygon_file[0]
-        points_data = io.read_numerical_data(points_file, args.header, args.footer,  [".10",".10"], args.x, [])
         if os.path.splitext(polygon_file)[1] == ".shp":
             # if polygon_file is *.shp
             import geopandas as gpd
@@ -340,10 +364,19 @@ def points_in_polygon(args):
                 exit(1)
         else:
             # else if polygon_file is not *.shp (ascii file)
-            polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
+            polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], args.x, [])
             polygon_lon = polygon_data[0][0]
             polygon_lat = polygon_data[0][1]
+    
+    if len(polygon_lon): 
         polygon = _geographic.Polygon(polygon_lon, polygon_lat)
+    else:
+        print(f"Error: polygon is not specified. Please use either '--lonrange & --latrange' or an input polygon file.")
+        exit(1)
+
+    # main process
+    for points_file in args.points_file:
+        points_data = io.read_numerical_data(points_file, args.header, args.footer,  [".10",".10"], args.x, [])
         nop = len(points_data[0][0]) # number of points
         if nop:
             outdata_lines = []

@@ -1,61 +1,117 @@
 
 import os
 import shutil
+from . import io
 
 def nc2dat(args):
-    import netCDF4 as nc
+    import random
     import numpy as np
-    input_files = args.input_files
+    import netCDF4 as nc
+    try:
+        ncfile = args.input_file
+        ds = nc.Dataset(ncfile)
+    except Exception as e:
+        print(f"Error reading '{os.path.split(ncfile)[1]}': {e}")
+        exit(1)
+
+    if len(args.fmt) == 1:
+        fmt = [args.fmt[0], args.fmt[0]]
+    else:
+        fmt = args.fmt
     
-    for ncfile in input_files:
-        try:
-            ds = nc.Dataset(ncfile)
-        except Exception as e:
-            print(f"Error reading '{os.path.split(ncfile)[1]}': {e}")
-            continue
+    out_lines = []
+    if args.metadata:
+        for key in ds.__dict__.keys():
+            out_lines.append(f"{key}: {ds.__dict__[key]}")
+        out_lines.append(f"\nVariables:")
+        for key in ds.variables.keys():
+            out_lines.append(f"\nData field: '{key}'\n {ds.variables[key]}")
+    else:
+        all_fields = list(ds.variables.keys())
+        selected_fields = args.data
+        if not selected_fields:
+            print(f"Error! At least one data field name must be given using flag '--data'.\nCheck metadata for more information.")
+            exit(1)
 
-        out_lines = []
-        if args.metadata:
-            for key in ds.__dict__.keys():
-                print(f"{key}: {ds.__dict__[key]}")
-            print(f"\nVariables:")
-            for i, key in enumerate(ds.variables.keys(), start=1):
-                print(f"\nData column {i}: '{key}'\n {ds.variables[key]}")
-
-        else:
-            all_keys = list(ds.variables.keys())
-            data_pos = []
-            data_val = []
-
-            for key in all_keys:
-                ndim = len(np.shape(ds[key][:]))
-                if ndim == 1:
-                    data_pos.append([])
-                    for x in ds[key][:]:
-                        data_pos[-1].append(x)
-                else:
-                    data_val = ds[key][:]
-
-            # position columns shape
-            pos_shape = []
-            for pos in data_pos:
-                pos_shape.append(len(pos))
-            
-            if list(np.shape(data_val)) == pos_shape:
-                print('yes')
+        ndf = len(selected_fields) # number of data fields
+        data_val = []
+        for df in selected_fields:
+            if df not in all_fields:
+                print(f"Error! Could not find data field: '{df}'")
+                exit(1)
             else:
-                print('no', pos_shape)
-                data_pos = data_pos[::-1]
+                data_val.append(ds[df][:].data)
+        
+        data_pos = []
+        for key in all_fields:
+            if len(np.shape(ds[key][:])) == 1:
+                data_pos.append([])
+                for x in ds[key][:]:
+                    data_pos[-1].append(x)
+
+        # match shapes for data_pos and data_val
+        for iv in range(ndf):
+            ntry = 0
+            while True:
+                ntry += 1
                 pos_shape = []
                 for pos in data_pos:
                     pos_shape.append(len(pos))
-                print('yes now?', pos_shape)
+                if list(np.shape(data_val[iv])) == pos_shape:
+                    break
+                else:
+                    random.shuffle(data_pos)
+                if ntry == 100:
+                    break
+            if ntry == 100:
+                print(f"Error! Could not figure out data format for '{os.path.split(ncfile)[1]}'")
+                exit(1)
+        
+        out_lines = gen_nc_dataset_outlines(data_pos, data_val, fmt)
+
+    args.uniq = False
+    args.sort = False
+    io.output_lines(out_lines, args)
+        
 
 
 
 
+def gen_nc_dataset_outlines(positional_matrix, values_matrix, fmt = ['.4', '.4']):
+    import numpy as np
+    outlines = []
+    ndim = len(positional_matrix) # number of dimension
+    ndf = len(values_matrix) # number of data fields
+    shape = list(np.shape(values_matrix[0])) # dimension shape
 
+    if ndim == 2:
+        for i, x in enumerate(positional_matrix[0]):
+            for j, y in enumerate(positional_matrix[1]):
+                outlines.append(f"%{fmt[0]}f %{fmt[0]}f" %(x, y))
+    if ndim == 3:
+        for i, x in enumerate(positional_matrix[0]):
+            for j, y in enumerate(positional_matrix[1]):
+                for k, z in enumerate(positional_matrix[2]):
+                    outlines.append(f"%{fmt[0]}f %{fmt[0]}f %{fmt[0]}f" %(x, y, z))
+    else:
+        print(f"Error! This is not a 2D or 3D dataset.\nCurrrent version of the program only works for 2D and 3D datasets.")
+        exit(1)
 
+    if ndim == 2:
+        for idf in range(ndf):
+            for i in range(len(outlines)):
+                ix = int(np.floor(i / shape[1]))
+                iy = i % shape[1]
+                outlines[i] += f" %{fmt[1]}f" %(values_matrix[idf][ix][iy])
+    elif ndim == 3:
+        for idf in range(ndf):
+            for i in range(len(outlines)):
+                ix = int(np.floor(i / (shape[1] * shape[2]) ))
+                iy = int(np.floor(i / (shape[0] * shape[2]) ))
+                iz = i % shape[2]
+                outlines[i] += f" %{fmt[1]}f" %(values_matrix[idf][ix][iy][iz])
+
+    return outlines
 
 
 
