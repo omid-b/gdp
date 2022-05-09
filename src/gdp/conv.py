@@ -7,8 +7,9 @@ def nc2dat(args):
     import random
     import numpy as np
     import netCDF4 as nc
+
     try:
-        ncfile = args.input_file
+        ncfile = args.input_file[0]
         ds = nc.Dataset(ncfile)
     except Exception as e:
         print(f"Error reading '{os.path.split(ncfile)[1]}': {e}")

@@ -42,8 +42,8 @@ def gridder(args):
                     data_val[i][iv].append(vals[iv])
 
     # point in polygon? If so, read polygon data & instantiate polygon object
-    if args.pip:
-        polygon_file = args.pip
+    if args.polygon:
+        polygon_file = args.polygon
         if os.path.splitext(polygon_file)[1] == ".shp":
             # if polygon_file is *.shp
             import geopandas as gpd
@@ -195,13 +195,13 @@ def gridder(args):
 
             if skipnan_orig:
                 if 'nan' not in line.split():
-                    if args.pip:
+                    if args.polygon:
                         if polygon.is_point_in(point):
                             out_lines.append(line)
                     else:
                         out_lines.append(line)
             else:
-                if args.pip:
+                if args.polygon:
                     if polygon.is_point_in(point):
                         out_lines.append(line)
                 else:
@@ -349,8 +349,8 @@ def points_in_polygon(args):
             exit(1)
         polygon_lon = [args.lonrange[0], args.lonrange[1], args.lonrange[1], args.lonrange[0], args.lonrange[0]]
         polygon_lat = [args.latrange[0], args.latrange[0], args.latrange[1], args.latrange[1], args.latrange[0]]
-    elif len(args.polygon_file) == 1:
-        polygon_file = args.polygon_file[0]
+    elif args.polygon:
+        polygon_file = args.polygon
         if os.path.splitext(polygon_file)[1] == ".shp":
             # if polygon_file is *.shp
             import geopandas as gpd
@@ -371,7 +371,7 @@ def points_in_polygon(args):
     if len(polygon_lon): 
         polygon = _geographic.Polygon(polygon_lon, polygon_lat)
     else:
-        print(f"Error: polygon is not specified. Please use either '--lonrange & --latrange' or an input polygon file.")
+        print(f"Error: polygon is not specified. Please use either '--lonrange & --latrange' or '--polygon'.")
         exit(1)
 
     # main process
@@ -395,13 +395,13 @@ def points_in_polygon(args):
             args.uniq = False
             args.sort = False
             if len(outdata_lines):
-                if not outfile_orig:
+                if not outfile_orig and len(args.points_file) > 1:
                     print(f"\nFile: '{os.path.split(points_file)[1]}'")
                 io.output_lines(outdata_lines, args)
             elif not outfile_orig:
                 print(f"Warning! Zero output lines for data: '{os.path.split(points_file)[1]}'")
         else:
-            print(f"Error in reading points_file: {points_file}\nNaN columns will be ignored")
+            print(f"Error in reading points_file: {points_file}\nNote that 'nan' columns will be ignored")
             continue
 
     if outfile_orig and os.path.isdir(outfile_orig):

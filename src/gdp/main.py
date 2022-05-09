@@ -50,8 +50,8 @@ def parse_args(*args, **kwargs):
     data_command = data_module.add_subparsers(dest='command')
     
     # gdp data cat
-    data_cat = data_command.add_parser('cat', help='concatenate and reformat input files',
-    description="Concatenate and reformat input files")
+    data_cat = data_command.add_parser('cat', help='concatenate and reformat input data files',
+    description="Concatenate and reformat input data files")
     data_cat.add_argument("input_files", nargs='+')
     data_cat.add_argument(
         '--nan',
@@ -677,6 +677,11 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='inverse operation: points outside polygon')
     data_pip.add_argument(
+        '--polygon',
+        type=str,
+        action='store',
+        help='path to polygon file.')
+    data_pip.add_argument(
         '--lonrange',
         nargs=2,
         type=float,
@@ -779,7 +784,7 @@ def parse_args(*args, **kwargs):
         help='output file/folder'
     )
     data_gridder.add_argument(
-        '--pip',
+        '--polygon',
         type=str,
         action='store',
         help='polygon to run "points-in-polygon" process before outputing the results'
@@ -788,7 +793,7 @@ def parse_args(*args, **kwargs):
 
 
     #===== Module: convert =====#
-    convert_module = subparsers.add_parser('convert', help="data conversion module )",
+    convert_module = subparsers.add_parser('convert', help="data conversion module",
     description="Conversion of different data types or formats")
     convert_module._positionals.title = 'required argument choices'
     convert_command = convert_module.add_subparsers(dest='command')
@@ -843,7 +848,7 @@ def parse_args(*args, **kwargs):
         '--resample',
         type=float,
         default=999,
-        help='resample output sac files, sampling freqency must be given'
+        help='output sac files sampling frequency'
     )
     
     
@@ -880,17 +885,18 @@ def parse_args(*args, **kwargs):
     # gdp convert nc2dat
     convert_nc2dat = convert_command.add_parser('nc2dat', help='convert nc to dat (ascii)',
     description="Convert nc files to dat/ascii")
-    convert_nc2dat.add_argument("input_file", type=str, action='store', help='input nc file')
+    convert_nc2dat.add_argument("input_file", type=str, action='store', nargs=1, help='input nc file')
     convert_nc2dat.add_argument(
         '--metadata',
         action='store_true',
         help='only output metadata'
     )
     convert_nc2dat.add_argument(
+    	'-v',
         '--data',
         nargs='*',
         type=str,
-        help='data field name(s); hint: check metadata'
+        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
     )
     convert_nc2dat.add_argument(
         '-o',
