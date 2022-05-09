@@ -4,7 +4,7 @@
 **_nan.c
 **_io.c
 **_nan.c
-**_xyz.c
+**_geographic.c
 
 # Byte-compiled / optimized / DLL files
 __pycache__/
