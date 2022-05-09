@@ -88,7 +88,7 @@ def gen_nc_dataset_outlines(positional_matrix, values_matrix, fmt = ['.4', '.4']
         for i, x in enumerate(positional_matrix[0]):
             for j, y in enumerate(positional_matrix[1]):
                 outlines.append(f"%{fmt[0]}f %{fmt[0]}f" %(x, y))
-    if ndim == 3:
+    elif ndim == 3:
         for i, x in enumerate(positional_matrix[0]):
             for j, y in enumerate(positional_matrix[1]):
                 for k, z in enumerate(positional_matrix[2]):

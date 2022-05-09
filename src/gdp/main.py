@@ -909,7 +909,7 @@ def parse_args(*args, **kwargs):
         type=str,
         action='store',
         default=[".4",".4"],
-        help='float format for time and value columns respectively (default=[".4",".4"])')
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
     
     # return arguments
     return parser.parse_args()
