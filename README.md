@@ -4,7 +4,7 @@ gdp provides a set of tools that are available through command-line-interface (C
 
 ## Release notes
 
-### Version 0.0.4:
+### Version 0.0.5:
 
 This version adds a new module named 'convert' that can be used to convert common geophysical file types or data formats to one another. A brief description of example CLI commands is given below:
 
