@@ -4,6 +4,27 @@ gdp provides a set tools that are available through command-line-interface (CLI)
 
 ## Release notes
 
+### Version 0.0.4:
+
+This version adds a new module named 'convert' that can be used to convert common geophysical file types or data formats to one another. A brief description of example CLI commands is given below:
+
+	- $> gdp convert mseed2sac mseed_dataset/*  --reformat --offset -500 --resample 10 -o sac_dataset
+	This command will convert mseed files in 'mseed_dataset' to another directory named 'sac_dataset'.
+	Flag '--reformat' will cause creating of sub-folders in the output directory in 'YYJJJHHMMSS' format,
+	and the sacfiles within these sub-directories will be renamed as 'YYJJJHHMMSS_STA.CHN', where 'STA' is the 
+	station code and 'CHN' is the channel code. If reformat is enabled, offset time can be adjusted using 
+	'--offset'. Finally, '--resample 10' results in resampling of output timeseries to 10 Hz.
+
+	- $> gdp convert sac2dat sac_dataset/*  -o timeseries --timerange 0 3600
+	This command will output the first hour (0-3600 s) of the sac data in sac_dataset/* .
+
+	- $> gdp convert nc2dat model.nc --metadata
+	     gdp convert nc2dat model.nc -v vs vp --fmt .2 .6 -o model.dat
+	This tool can be used to convert NetCDF files to ascii format. In this example, by running the first command,
+	the program will output meta data information related to 'model.nc'. It's necessary to figure out the data fields
+	that one is interested to extract from the nc file first (in this case, they are 'vp' and 'vs').
+	The second command will print to file the results in a custom format to 'model.dat'.
+
 ### Version 0.0.1:
 
 This version includes a module named 'data' that can be used to process general geophysical data files. A brief description of example CLI commands is given below:
@@ -27,8 +48,8 @@ This version includes a module named 'data' that can be used to process general 
 
 	- $> gdp data intersect file_1.dat file_2.dat file_3.dat
 	Description: Output intersect of a set of numerical data files (two or more) considering positional columns
-	(similar positional columns; the value of the first file will be the output). Note that the first value of
-	the flag '--fmt' will be important here.
+	(similar positional columns that could be specified using '-x' flag; the value of the first file 
+	will be the output). Note that the first value of the flag '--fmt' will be important here.
 
 
 	- $> gdp data difference file_1.dat file_2.dat file_3.dat
@@ -55,32 +76,16 @@ This version includes a module named 'data' that can be used to process general 
 	Description: Output min, max, sum, mean, median, or std of the three first columns in *.xyz files.
 	
 
-	- $> gdp data pip  *.xyz  polygon.dat
-	  $> gdp data pip  *.xyz  polygon.dat -i
+	- $> gdp data pip  *.xyz  --polygon polygon.dat
+	  $> gdp data pip  *.xyz  --polygon polygon.dat -i
 	Description: Only output points inside or outside ('-i') a polygon
 
 
-	- $> gdp data gridder vs_model/depth* --spacing 0.2 --smoothing 50 --pip polygon.dat -o outdir
+	- $> gdp data gridder vs_model/depth* --spacing 0.2 --smoothing 50 --polygon polygon.dat -o outdir
 	Description: This command will perform gridding (2D interpolation) to the input xyz format data files.
 	In case of the above command: '--spacing 0.2' specifies that grid spacing along both
 	longitude and latitude is 0.2 degrees (two values can be given as well; [lon_spacing, lat_spacing]);
 	'--smoothing 50' sets a 50 km Gaussian smoothing to the output grid;
-	'--pip polygon.dat' is optional: if given, only points inside the given polygon will be printed out.
+	'--polygon polygon.dat' is optional: if given, only points inside the given polygon will be printed out.
 
-### Version 0.0.2:
-
-This version adds a new module named 'convert' that can be used to convert common geophysical file types or data formats to one another. A brief description of example CLI commands is given below:
-
-	- $> gdp convert mseed2sac mseed_dataset/*  --reformat --offset -500 --resample 10 -o sac_dataset
-	This command will convert mseed files in 'mseed_dataset' to another directory named 'sac_dataset'.
-	Flag '--reformat' will cause creating of sub-folders in the output directory in 'YYJJJHHMMSS' format,
-	and the sacfiles within these sub-directories will be renamed as 'YYJJJHHMMSS_STA.CHN', where 'STA' is the 
-	station code and 'CHN' is the channel code. If reformat is enabled, offset time can be adjusted using 
-	'--offset'. Finally, '--resample 10' results in resampling of output timeseries to 10 Hz.
-
-	- $> gdp convert sac2dat sac_dataset/*  -o timeseries --timerange 0 3600
-	The first hour (0-3600 s) of the sac data in sac_dataset/* will be output.
-
-	- $> gdp convert nc2dat --data vs vp
-	xxx
 	
