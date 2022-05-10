@@ -1,6 +1,6 @@
 # gdp: Geophysical Data Processing
 
-gdp provides a set tools that are available through command-line-interface (CLI) to process common geophysical data types.
+gdp provides a set of tools that are available through command-line-interface (CLI) to process common geophysical data types.
 
 ## Release notes
 
