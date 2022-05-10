@@ -5,12 +5,20 @@ import warnings
 import shutil
 import numpy as np
 from math import radians, degrees, sin, cos, atan2, acos
+
 from . import io
+
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    try:
+        from . import _funcs as funcs
+        from . import _geographic as geographic
+    except:
+        from . import funcs
+        from . import geographic
 
 
 def gridder(args):
-    from . import _dat
-    from . import _geographic
     outfile_orig = args.outfile
     skipnan_orig = args.skipnan
     args.nan = False
@@ -60,7 +68,7 @@ def gridder(args):
             polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
             polygon_lon = polygon_data[0][0]
             polygon_lat = polygon_data[0][1]
-        polygon = _geographic.Polygon(polygon_lon, polygon_lat)
+        polygon = geographic.Polygon(polygon_lon, polygon_lat)
 
     # start main process
     # d: data, g: gridded
@@ -86,14 +94,14 @@ def gridder(args):
         if applon < -180:
             applon = applon+180
 
-        point_app = _geographic.Point(applon, applat)
-        point_ref = _geographic.Point(reflon, reflat)
-        line_ref = _geographic.Line(point_app, point_ref)
+        point_app = geographic.Point(applon, applat)
+        point_ref = geographic.Point(reflon, reflat)
+        line_ref = geographic.Line(point_app, point_ref)
 
         deltaref = line_ref.calc_gcarc()
         tazimref = line_ref.calc_az()
 
-        earth_radius = _geographic.calc_earth_radius(reflat)
+        earth_radius = geographic.calc_earth_radius(reflat)
         circ = radians(earth_radius)
 
         if args.lonrange[1] == 0.999: # Auto
@@ -122,8 +130,8 @@ def gridder(args):
         # input data relative coordinates: xnode & ynode
         xnode = [];  ynode = []
         for ip in range(ndp):
-            point = _geographic.Point(dlon[ip], dlat[ip])
-            line = _geographic.Line(point_app, point)
+            point = geographic.Point(dlon[ip], dlat[ip])
+            line = geographic.Line(point_app, point)
 
             delta = line.calc_gcarc()
             tazim = line.calc_az()
@@ -150,8 +158,8 @@ def gridder(args):
             for iy in range(ny):
                 lat = minLat + iy*latinc
 
-                point = _geographic.Point(lon, lat)
-                line = _geographic.Line(point_app, point)
+                point = geographic.Point(lon, lat)
+                line = geographic.Line(point_app, point)
 
                 delta = line.calc_gcarc()
                 tazim = line.calc_az()
@@ -180,7 +188,7 @@ def gridder(args):
             line = f"%{fmt[0]}f %{fmt[0]}f" %(gridlon[igp], gridlat[igp])
             xnode = np.array(xnode)
             ynode = np.array(ynode)
-            wgt = _dat.calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
+            wgt = funcs.calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
             wgtsum = np.sum(wgt)
 
             for iv in range(nvals):
@@ -191,7 +199,7 @@ def gridder(args):
 
                 line = f"{line} %{fmt[1]}f" %(gval[iv][igp])
 
-            point = _geographic.Point(float(line.split()[0]), float(line.split()[1]))
+            point = geographic.Point(float(line.split()[0]), float(line.split()[1]))
 
             if skipnan_orig:
                 if 'nan' not in line.split():
@@ -322,7 +330,6 @@ def difference(args):
 
 
 def points_in_polygon(args):
-    from . import _geographic
     outfile_orig = args.outfile
 
     # build polygon class
@@ -369,7 +376,7 @@ def points_in_polygon(args):
             polygon_lat = polygon_data[0][1]
     
     if len(polygon_lon): 
-        polygon = _geographic.Polygon(polygon_lon, polygon_lat)
+        polygon = geographic.Polygon(polygon_lon, polygon_lat)
     else:
         print(f"Error: polygon is not specified. Please use either '--lonrange & --latrange' or '--polygon'.")
         exit(1)
@@ -381,7 +388,7 @@ def points_in_polygon(args):
         if nop:
             outdata_lines = []
             for ip in range(nop):
-                point = _geographic.Point(points_data[0][0][ip], points_data[0][1][ip])
+                point = geographic.Point(points_data[0][0][ip], points_data[0][1][ip])
                 if polygon.is_point_in(point,args.inverse):
                     outdata_lines.append(f"%f %f %s" %(point.lon, point.lat, points_data[2][ip]))
             if len(args.points_file) > 1:
