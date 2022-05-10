@@ -14,7 +14,7 @@ setup(
     cmdclass={'build_ext':build_ext},
     setup_requires=['numpy','cython'],
     include_package_data=True,
-    ext_modules=cythonize("src/gdp/_dat.pyx", "src/gdp/_geographic.pyx"),
+    ext_modules=cythonize(["src/gdp/_dat.pyx", "src/gdp/_geographic.pyx"]),
 )
 
 
