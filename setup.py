@@ -33,8 +33,8 @@ cmdclass['build_ext'] = build_ext
 
 
 extensions = [
-    Extension("gdp._funcs", ["src/gdp/_funcs.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
-    Extension("gdp._geographic", ["src/gdp/_geographic.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
+    Extension("_funcs", ["src/gdp/_funcs.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
+    Extension("_geographic", ["src/gdp/_geographic.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
 ]
 
 
