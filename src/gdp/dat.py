@@ -13,7 +13,7 @@ with warnings.catch_warnings():
     try:
         from . import _funcs as funcs
         from . import _geographic as geographic
-    except:
+    except ImportError:
         from . import funcs
         from . import geographic
 
