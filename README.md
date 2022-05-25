@@ -1,6 +1,6 @@
 # ***gdp*: Geophysical Data Processing**
 
-*gdp* provides a set of tools that are available through command-line-interface (CLI) to process and/convert common geophysical data types.
+*gdp* provides a set of tools that are available through command-line-interface (CLI) to process and/or convert common geophysical data types.
 
 ## Release notes
 
@@ -34,7 +34,7 @@ This version is the first version that is published on *PyPI* and it includes th
 
 ## Examples
 
-Example *gdp* commands are explained below:
+Some example *gdp* commands are explained below:
 
 ```bash
 gdp cat file* -x 1 2 -v 5 3 4 --header 2 --footer 4 --fmt .2 .4 --sort --uniq --noextra -o concatenated.txt
