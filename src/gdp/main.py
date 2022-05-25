@@ -6,7 +6,7 @@ import argparse
 import subprocess
 from time import time
 
-version = "0.1.0"
+version = "0.1.1"
 about = """\
 gdp: Geophysical Data Processing
 \nContact information:
