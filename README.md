@@ -30,7 +30,7 @@ This version is the first version that is published on *PyPI* and it includes th
 
 ## Examples
 
-Example *gdp* commands are explained below:
+Some example *gdp* commands are explained below:
 
 ```bash
 gdp  mseed2sac mseed_dataset/*  --reformat --offset -500 --resample 10 -o sac_dataset 
