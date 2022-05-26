@@ -4,6 +4,50 @@
 
 ## Release notes
 
+### Version 0.1.2 (work in progress roadmap)
+
+The following features might not still work. Please download Version 0.1.1 from https://pypi.org/project/gdp/.
+
+FIX: make sure data is not missing at the beginning or at the end of sac files when using mseed2sac (~ cutter fillz)
+
+The following new tools/modules will be added for this version:
+
+| **Tool/Module** | **Description** |
+|----------|-----------------|
+|shp2dat       |convert GIS shape files (point/polygon) to ascii data|
+|download     |seismic data acquisition module (Obspy and IRIS methods)|
+|sacproc     |sac files processing module|
+|plot     |plot module (gmt and matplotlib)|
+|mag      |geomagnetic data processing and modeling module|
+
+- *download* module will include the following tools:
+
+  1. *init*: initialize current directory for seismic data acquisition i.e. create download.config
+  2. *events*: download list of events according to the list of datacenters (specified in download.config)
+  3. *stations*: download list of stations according to the list of datacenters (specified in download.config)
+  4. *metadata*: download station metadata (xml) according to stations.dat
+  5. *mseeds*: download mseed datafiles based
+
+- *sacproc* module will include the following tools:
+
+  1. *writehdr*: update sac headers using xml metadata (obspy method)
+  2. *remresp*: remove instrument response using xml metadata (obspy method)
+  3. *decimate*: decimate/resample timeseries using obspy methodans 
+  4. *bandpass*: apply bandpass filter (sac method)
+  5. *cut*: cut seismograms (sac method)
+  6. *detrend*: detrend timeseries (obspy method)
+  8. *remchannel*: remove extra channels
+
+- *plot* module will include the following tools:
+
+  1. *stations*: plot stations list using gmt
+  2. *events*: plot events list using gmt
+
+- *mag* module will include the following tools:
+
+  1. *igrf*: calculate igrf (TMI/Inc/Dec) at a point (or multiple points)
+  2. *sphere_mag*: forward modeling of magnetized sphere(s) over a local grid
+
 ### Version 0.1.1
 
 Only README is updated for this version.
@@ -13,7 +57,7 @@ Only README is updated for this version.
 This version is the first version that is published on *PyPI* and it includes the following tools:
 
 
-| **Tool** | **Description** |
+| **Tool/Module** | **Description** |
 |----------|-----------------|
 |cat       |concatenate/reformat numerical or non-numerical data|
 |union     |generate the union of input data files|
