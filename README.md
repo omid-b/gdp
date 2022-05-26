@@ -14,11 +14,12 @@ The following new tools/modules will be added for this version:
 
 | **Tool/Module** | **Description** |
 |----------|-----------------|
-|shp2dat       |convert GIS shape files (point/polygon) to ascii data|
-|download     |seismic data acquisition module (Obspy and IRIS methods)|
-|sacproc     |sac files processing module|
-|plot     |plot module (gmt and matplotlib)|
-|mag      |geomagnetic data processing and modeling module|
+|add       |add value columns of two or more ascii data files|
+|shp2dat   |convert GIS shape files (point/polygon) to ascii data|
+|download  |seismic data acquisition module (Obspy and IRIS methods)|
+|sacproc   |sac files processing module|
+|plot      |plot module (gmt and matplotlib)|
+|mag       |geomagnetic data processing and modeling module|
 
 - *download* module will include the following tools:
 
@@ -46,7 +47,9 @@ The following new tools/modules will be added for this version:
 - *mag* module will include the following tools:
 
   1. *igrf*: calculate igrf (TMI/Inc/Dec) at a point (or multiple points)
-  2. *sphere_mag*: forward modeling of magnetized sphere(s) over a local grid
+  2. *gem2dat*: convert raw data format from a GEM proton magnetometer to ascii format
+  3. *sphere*: forward modeling of uniformly magnetized sphere(s) over a local grid
+
 
 ### Version 0.1.1
 
