@@ -8,6 +8,8 @@
 
 The following features might not still work. Please download Version 0.1.1 from https://pypi.org/project/gdp/.
 
+***NOTE**: In this version, *mseed2sac* and *sac2dat* will be moved into the *seismic* module
+
 FIX: make sure data is not missing at the beginning or at the end of sac files when using mseed2sac (~ cutter fillz)
 
 The following new tools/modules will be added for this version:
@@ -16,28 +18,25 @@ The following new tools/modules will be added for this version:
 |----------|-----------------|
 |add       |add value columns of two or more ascii data files|
 |shp2dat   |convert GIS shape files (point/polygon) to ascii data|
-|download  |seismic data acquisition module (Obspy and IRIS methods)|
-|sacproc   |sac files processing module|
-|plot      |plot module (gmt and matplotlib)|
+|seismic   |seismic data acquisition and processing module |
 |mag       |geomagnetic data processing and modeling module|
+|plot      |plot module (requires gmt)|
 
-- *download* module will include the following tools:
+- *seismic* module will include the following tools:
 
-  1. *init*: initialize current directory for seismic data acquisition i.e. create download.config
-  2. *events*: download list of events according to the list of datacenters (specified in download.config)
-  3. *stations*: download list of stations according to the list of datacenters (specified in download.config)
-  4. *metadata*: download station metadata (xml) according to stations.dat
-  5. *mseeds*: download mseed datafiles based
+  1. *download init*: initialize current directory for seismic data acquisition. It outputs a config file that is used by the 4 following tools.
+  2. *download events*: download list of events according to the list of datacenters (specified in download.config)
+  3. *download stations*: download list of stations according to the list of datacenters (specified in download.config)
+  4. *download metadata*: download station metadata (xml) according to stations.dat
+  5. *download mseeds*: download mseed datafiles based
+  6. *writehdr*: update sac headers using xml metadata (obspy method)
+  7. *remresp*: remove sac file instrument response using xml metadata (obspy method)
+  8. *decimate*: decimate/resample sac timeseries using obspy methodans 
+  9. *bandpass*: apply bandpass filter to sac files (sac method)
+  10. *cut*: cut sac timeseries (sac method)
+  11. *detrend*: detrend sac timeseries (obspy method)
+  12. *remchannel*: remove extra channels
 
-- *sacproc* module will include the following tools:
-
-  1. *writehdr*: update sac headers using xml metadata (obspy method)
-  2. *remresp*: remove instrument response using xml metadata (obspy method)
-  3. *decimate*: decimate/resample timeseries using obspy methodans 
-  4. *bandpass*: apply bandpass filter (sac method)
-  5. *cut*: cut seismograms (sac method)
-  6. *detrend*: detrend timeseries (obspy method)
-  8. *remchannel*: remove extra channels
 
 - *plot* module will include the following tools:
 
