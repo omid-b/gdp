@@ -6,7 +6,7 @@ import argparse
 import subprocess
 from time import time
 
-version = "0.1.1"
+version = "0.1.2b"
 about = """\
 gdp: Geophysical Data Processing
 \nContact information:
@@ -43,6 +43,8 @@ def parse_args(*args, **kwargs):
     parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
     parser._positionals.title = 'list of tools'
     subparsers = parser.add_subparsers(dest='module')
+    subsubparsers = subparsers.add_subparsers(dest='submodule')
+    subsubsubparsers = subsubparsers.add_subparsers(dest='subsubmodule')
     #===== Module: data =====#
     
     # gdp data cat
@@ -789,6 +791,44 @@ def parse_args(*args, **kwargs):
 
 
     #===== Module: convert =====#
+    # # gdp convert shp2dat
+    # gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
+    # description="Convert shape file to dat (ascii)")
+    
+    # gdp convert nc2dat
+    gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
+    description="Convert nc data to dat/ascii")
+    gdp_nc2dat.add_argument("input_file", type=str, action='store', nargs=1, help='input nc file')
+    gdp_nc2dat.add_argument(
+        '--metadata',
+        action='store_true',
+        help='only output metadata'
+    )
+    gdp_nc2dat.add_argument(
+    	'-v',
+        '--data',
+        nargs='*',
+        type=str,
+        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
+    )
+    gdp_nc2dat.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output data to file')
+    gdp_nc2dat.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    gdp_nc2dat.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
     
     # # gdp convert 1Dto2D
     # gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='1Dto2D',
@@ -870,44 +910,6 @@ def parse_args(*args, **kwargs):
         default=[999, 999],
         help='time range limit')
         
-    # # gdp convert shp2dat
-    # gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
-    # description="Convert shape file to dat (ascii)")
-    
-    # gdp convert nc2dat
-    gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
-    description="Convert nc data to dat/ascii")
-    gdp_nc2dat.add_argument("input_file", type=str, action='store', nargs=1, help='input nc file')
-    gdp_nc2dat.add_argument(
-        '--metadata',
-        action='store_true',
-        help='only output metadata'
-    )
-    gdp_nc2dat.add_argument(
-    	'-v',
-        '--data',
-        nargs='*',
-        type=str,
-        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
-    )
-    gdp_nc2dat.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output data to file')
-    gdp_nc2dat.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    gdp_nc2dat.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for positional and value columns respectively (default=[".4",".4"])')
     
     # return arguments
     return parser.parse_args()

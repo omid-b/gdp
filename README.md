@@ -8,7 +8,7 @@
 
 The following features might not still work. Please download Version 0.1.1 from https://pypi.org/project/gdp/.
 
-***NOTE**: In this version, *mseed2sac* and *sac2dat* will be moved into the *seismic* module
+**NOTE**: In this version, *mseed2sac* and *sac2dat* will be moved into the *seismic* module
 
 FIX: make sure data is not missing at the beginning or at the end of sac files when using mseed2sac (~ cutter fillz)
 
