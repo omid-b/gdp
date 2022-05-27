@@ -43,9 +43,8 @@ def parse_args(*args, **kwargs):
     parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
     parser._positionals.title = 'list of tools'
     subparsers = parser.add_subparsers(dest='module')
-    subsubparsers = subparsers.add_subparsers(dest='submodule')
-    subsubsubparsers = subsubparsers.add_subparsers(dest='subsubmodule')
-    #===== Module: data =====#
+    
+    #===== Modules =====#
     
     # gdp data cat
     gdp_cat = subparsers.add_parser('cat', help='concatenate and reformat input data files',
@@ -642,6 +641,69 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
+    # # gdp convert shp2dat
+    # gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
+    # description="Convert shape file to dat (ascii)")
+    
+    # gdp convert nc2dat
+    gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
+    description="Convert nc data to dat/ascii")
+    gdp_nc2dat.add_argument("input_file", type=str, action='store', nargs=1, help='input nc file')
+    gdp_nc2dat.add_argument(
+        '--metadata',
+        action='store_true',
+        help='only output metadata'
+    )
+    gdp_nc2dat.add_argument(
+    	'-v',
+        '--data',
+        nargs='*',
+        type=str,
+        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
+    )
+    gdp_nc2dat.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output data to file')
+    gdp_nc2dat.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    gdp_nc2dat.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
+    
+    # # gdp convert 1Dto2D
+    # gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='1Dto2D',
+    # description="1Dto2D")
+    
+    # # gdp convert 1Dto3D
+    # gdp_1Dto3D = subparsers.add_parser('1Dto3D', help='1Dto3D',
+    # description="1Dto3D")
+    
+    # # gdp convert 2Dto1D
+    # gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='2Dto1D',
+    # description="2Dto1D")
+    
+    # # gdp convert 2Dto3D
+    # gdp_2Dto3D = subparsers.add_parser('2Dto3D', help='2Dto3D',
+    # description="2Dto3D")
+    
+    # # gdp convert 3Dto1D
+    # gdp_3Dto1D = subparsers.add_parser('3Dto1D', help='3Dto1D',
+    # description="3Dto1D")
+    
+    # # gdp convert 3Dto2D
+    # gdp_3Dto2D = subparsers.add_parser('3Dto2D', help='3Dto2D',
+    # description="3Dto2D")
+
     # gdp data pip
     gdp_pip = subparsers.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
@@ -788,95 +850,61 @@ def parse_args(*args, **kwargs):
         help='polygon to run "points-in-polygon" process before outputing the results'
     )
 
+    #====gdp seismic=====#
+    seismic = subparsers.add_parser('seismic', help='seismic data acquisition and processing module',
+    description="seismic data acquisition and processing module")
+    seismic_subparsers = seismic.add_subparsers(dest='submodule')
+
+    # gdp seismic download
+    seismic_download = seismic_subparsers.add_parser('download', help='seismic data acquisition module',
+    description="seismic data acquisition module")
+    download_subparsers = seismic_download.add_subparsers(dest='subsubmodule')
+
+    # gdp seismic download config
+    download_config = download_subparsers.add_parser('config', help='create "download.config" file',
+    description='create "download.config" file')
+
+    # gdp seismic download events
+    download_events = download_subparsers.add_parser('events', help='download list of events',
+    description="download list of events")
+
+    # gdp seismic download stations
+    download_stations = download_subparsers.add_parser('stations', help='download list of stations',
+    description="download list of stations")
+
+    # gdp seismic download metadata
+    download_metadata = download_subparsers.add_parser('metadata', help='download station metadata',
+    description="download station metadata")
+
+    # gdp seismic download mseeds
+    download_mseeds = download_subparsers.add_parser('mseeds', help='download mseed files',
+    description="download mseed files")
 
 
-    #===== Module: convert =====#
-    # # gdp convert shp2dat
-    # gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
-    # description="Convert shape file to dat (ascii)")
-    
-    # gdp convert nc2dat
-    gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
-    description="Convert nc data to dat/ascii")
-    gdp_nc2dat.add_argument("input_file", type=str, action='store', nargs=1, help='input nc file')
-    gdp_nc2dat.add_argument(
-        '--metadata',
-        action='store_true',
-        help='only output metadata'
-    )
-    gdp_nc2dat.add_argument(
-    	'-v',
-        '--data',
-        nargs='*',
-        type=str,
-        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
-    )
-    gdp_nc2dat.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output data to file')
-    gdp_nc2dat.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    gdp_nc2dat.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for positional and value columns respectively (default=[".4",".4"])')
-    
-    # # gdp convert 1Dto2D
-    # gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='1Dto2D',
-    # description="1Dto2D")
-    
-    # # gdp convert 1Dto3D
-    # gdp_1Dto3D = subparsers.add_parser('1Dto3D', help='1Dto3D',
-    # description="1Dto3D")
-    
-    # # gdp convert 2Dto1D
-    # gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='2Dto1D',
-    # description="2Dto1D")
-    
-    # # gdp convert 2Dto3D
-    # gdp_2Dto3D = subparsers.add_parser('2Dto3D', help='2Dto3D',
-    # description="2Dto3D")
-    
-    # # gdp convert 3Dto1D
-    # gdp_3Dto1D = subparsers.add_parser('3Dto1D', help='3Dto1D',
-    # description="3Dto1D")
-    
-    # # gdp convert 3Dto2D
-    # gdp_3Dto2D = subparsers.add_parser('3Dto2D', help='3Dto2D',
-    # description="3Dto2D")
-    
-    # gdp convert mseed2sac
-    gdp_mseed2sac = subparsers.add_parser('mseed2sac', help='convert mseed to sac',
+    # gdp seismic mseed2sac
+
+    seismic_mseed2sac = seismic_subparsers.add_parser('mseed2sac', help='convert mseed to sac',
     description="Convert mseed to sac. This script also handles data fragmentation issue. ")
-    gdp_mseed2sac.add_argument("input_files", nargs='+')
-    gdp_mseed2sac.add_argument(
+    seismic_mseed2sac.add_argument("input_files", nargs='+')
+    seismic_mseed2sac.add_argument(
         '-o',
         '--outdir',
         type=str,
         required=True,
         help='REQUIRED: path to output directory'
     )
-    gdp_mseed2sac.add_argument(
+    seismic_mseed2sac.add_argument(
         '--reformat',
         action='store_true',
         help='reformat output sac files i.e. rename and output to related directories based on mseed start time, station & channel information'
     )
-    gdp_mseed2sac.add_argument(
+    seismic_mseed2sac.add_argument(
         '--offset',
         type=float,
         default=0,
         help='output filename start time offset in seconds (only if rename=True; default=0)'
     )
-    gdp_mseed2sac.add_argument(
+    seismic_mseed2sac.add_argument(
         '--resample',
         type=float,
         default=999,
@@ -884,31 +912,48 @@ def parse_args(*args, **kwargs):
     )
     
     
-    # gdp convert sac2dat
-    gdp_sac2dat = subparsers.add_parser('sac2dat', help='convert sac to dat (ascii)',
+    # gdp seismic sac2dat
+    seismic_sac2dat = seismic_subparsers.add_parser('sac2dat', help='convert sac to dat (ascii)',
     description="Convert sac to dat (ascii); output format: time, amplitude")
-    gdp_sac2dat.add_argument("input_files", nargs='+')
-    gdp_sac2dat.add_argument(
+    seismic_sac2dat.add_argument("input_files", nargs='+')
+    seismic_sac2dat.add_argument(
         '-o',
         '--outdir',
         type=str,
         required=True,
         help='REQUIRED: path to output directory'
     )
-    gdp_sac2dat.add_argument(
+    seismic_sac2dat.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".2",".2"],
         help='float format for time and value columns respectively (default=[".2",".2"])')
-    gdp_sac2dat.add_argument(
+    seismic_sac2dat.add_argument(
         '--timerange',
         nargs=2,
         type=float,
         action='store',
         default=[999, 999],
         help='time range limit')
+
+    #====mag submodules=====#
+    mag = subparsers.add_parser('mag', help='geomagnetic data processing and modeling module',
+    description="geomagnetic data processing and modeling module")
+    mag_subparsers = mag.add_subparsers(dest='submodule')
+
+    # gdp mag igrf
+    mag_igrf = mag_subparsers.add_parser('igrf', help='calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)',
+    description="calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)")
+
+    # gdp mag gem2dat
+    mag_gem2dat = mag_subparsers.add_parser('gem2dat', help='convert raw data format from a GEM proton magnetometer to ascii format',
+    description="convert raw data format from a GEM proton magnetometer to ascii format")
+
+    # gdp mag sphere
+    mag_sphere = mag_subparsers.add_parser('sphere', help='forward modeling of uniformly magnetized sphere(s) over a local grid',
+    description="forward modeling of uniformly magnetized sphere(s) over a local grid")
         
     
     # return arguments
@@ -923,10 +968,13 @@ def main(*args, **kwargs):
         print(f"{about}\n")
         exit(0)
         
-    #===== Module: data =====#
     from . import dat
     from . import nan
     from . import conv
+    from . import sacproc
+    from . import download
+    from . import mag
+
     if args.module == 'cat':
         from . import io
         out_lines = []
@@ -1049,18 +1097,75 @@ def main(*args, **kwargs):
     elif args.module == '3Dto2D':
         subprocess.call('gdp 3Dto2D -h', shell=True)
         under_dev()
-    elif args.module == 'sac2dat':
-        conv.sac2dat(args)
-        exit(0)
-    elif args.module == 'mseed2sac':
-        conv.mseed2sac(args)
-        exit(0)
     elif args.module == 'shp2dat':
         subprocess.call('gdp shp2dat -h', shell=True)
         under_dev()
     elif args.module == 'nc2dat':
         conv.nc2dat(args)
         exit(0)
+    elif args.module == 'seismic':
+
+        if args.submodule == 'download':
+            if args.subsubmodule == 'init':
+                download.init(args)
+                exit(0)
+            elif args.subsubmodule == 'events':
+                download.events(args)
+                exit(0)
+            elif args.subsubmodule == 'stations':
+                download.stations(args)
+                exit(0)
+            elif args.subsubmodule == 'metadata':
+                download.metadata(args)
+                exit(0)
+            elif args.subsubmodule == 'mseeds':
+                download.mseeds(args)
+                exit(0)
+            else:
+                subprocess.call('gdp seismic download -h', shell=True)
+
+        elif args.submodule == 'mseed2sac':
+            conv.mseed2sac(args)
+            exit(0)
+        elif args.submodule == 'sac2dat':
+            conv.sac2dat(args)
+            exit(0)
+        elif args.submodule == 'writehdr':
+            sacproc.writehdr(args)
+            exit(0)
+        elif args.submodule == 'remresp':
+            sacproc.remresp(args)
+            exit(0)
+        elif args.submodule == 'decimate':
+            sacproc.decimate(args)
+            exit(0)
+        elif args.submodule == 'bandpass':
+            sacproc.bandpass(args)
+            exit(0)
+        elif args.submodule == 'cut':
+            sacproc.cut(args)
+            exit(0)
+        elif args.submodule == 'detrend':
+            sacproc.detrend(args)
+            exit(0)
+        elif args.submodule == 'remchannel':
+            sacproc.remchannel(args)
+            exit(0)
+        else:
+            subprocess.call('gdp seismic -h', shell=True)
+
+    elif args.module == 'mag':
+        if args.submodule == 'igrf':
+            mag.igrf(args)
+            exit(0)
+        elif args.submodule == 'gem2dat':
+            mag.gem2dat(args)
+            exit(0)
+        elif args.submodule == 'sphere':
+            mag.sphere(args)
+            exit(0)
+        else:
+            subprocess.call('gdp mag -h', shell=True)
     else:
         subprocess.call('gdp -h', shell=True)
 
