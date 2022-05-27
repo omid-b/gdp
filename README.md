@@ -38,16 +38,17 @@ The following new tools/modules will be added for this version:
   12. *remchannel*: remove extra channels
 
 
+- *mag* module will include the following tools:
+
+  1. *igrf*: calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)
+  2. *gem2dat*: convert raw data format from a GEM proton magnetometer to ascii format
+  3. *sphere*: forward modeling of uniformly magnetized sphere(s) over a local grid
+
+
 - *plot* module will include the following tools:
 
   1. *stations*: plot stations list using gmt
   2. *events*: plot events list using gmt
-
-- *mag* module will include the following tools:
-
-  1. *igrf*: calculate igrf (TMI/Inc/Dec) at a point (or multiple points)
-  2. *gem2dat*: convert raw data format from a GEM proton magnetometer to ascii format
-  3. *sphere*: forward modeling of uniformly magnetized sphere(s) over a local grid
 
 
 ### Version 0.1.1

@@ -944,7 +944,7 @@ def parse_args(*args, **kwargs):
     mag_subparsers = mag.add_subparsers(dest='submodule')
 
     # gdp mag igrf
-    mag_igrf = mag_subparsers.add_parser('igrf', help='calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)',
+    mag_igrf = mag_subparsers.add_parser('igrf', help='calculate igrf',
     description="calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)")
 
     # gdp mag gem2dat
@@ -952,7 +952,7 @@ def parse_args(*args, **kwargs):
     description="convert raw data format from a GEM proton magnetometer to ascii format")
 
     # gdp mag sphere
-    mag_sphere = mag_subparsers.add_parser('sphere', help='forward modeling of uniformly magnetized sphere(s) over a local grid',
+    mag_sphere = mag_subparsers.add_parser('sphere', help='forward modeling of uniformly magnetized sphere(s)',
     description="forward modeling of uniformly magnetized sphere(s) over a local grid")
         
     
@@ -1106,8 +1106,8 @@ def main(*args, **kwargs):
     elif args.module == 'seismic':
 
         if args.submodule == 'download':
-            if args.subsubmodule == 'init':
-                download.init(args)
+            if args.subsubmodule == 'config':
+                download.config(args)
                 exit(0)
             elif args.subsubmodule == 'events':
                 download.events(args)
