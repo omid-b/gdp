@@ -12,9 +12,13 @@ with warnings.catch_warnings():
     warnings.simplefilter('ignore')
     try:
         from . import _funcs as funcs
+    except ImportError:
+        print("WARNING! Could not use cythonized module: funcs")
+        from . import funcs
+    try:
         from . import _geographic as geographic
     except ImportError:
-        from . import funcs
+        print("WARNING! Could not use cythonized module: geographic")
         from . import geographic
 
 

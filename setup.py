@@ -32,19 +32,24 @@ cmdclass['bdist_wheel'] = bdist_wheel
 cmdclass['build_ext'] = build_ext
 
 
-extensions = [
-    Extension("_funcs", ["src/gdp/_funcs.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
-    Extension("_geographic", ["src/gdp/_geographic.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
-]
+# extensions = [
+#     Extension("_funcs", ["src/gdp/_funcs.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
+#     Extension("_geographic", ["src/gdp/_geographic.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
+# ]
 
+# setup(
+#     cmdclass=cmdclass,
+#     setup_requires=['numpy','cython'],
+#     include_package_data=True,
+#     ext_modules=cythonize(extensions)
+# )
 
 setup(
-    cmdclass=cmdclass,
+	cmdclass=cmdclass,
     setup_requires=['numpy','cython'],
-    include_package_data=True,
-    ext_modules=cythonize(extensions)
+	include_package_data=True,
+    ext_modules=cythonize(["src/gdp/_funcs.pyx", "src/gdp/_geographic.pyx"])
 )
-
 
 
 
