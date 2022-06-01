@@ -8,21 +8,20 @@ from math import radians, degrees, sin, cos, atan2, acos
 
 from . import io
 
-with warnings.catch_warnings():
-    warnings.simplefilter('ignore')
-    try:
-        from . import _funcs as funcs
-    except ImportError:
-        print("WARNING! Could not use cythonized module: funcs")
-        from . import funcs
-    try:
-        from . import _geographic as geographic
-    except ImportError:
-        print("WARNING! Could not use cythonized module: geographic")
-        from . import geographic
-
 
 def gridder(args):
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        try:
+            from . import _funcs as funcs
+        except ImportError:
+            print("WARNING! Could not use cythonized module: funcs")
+            from . import funcs
+        try:
+            from . import _geographic as geographic
+        except ImportError:
+            print("WARNING! Could not use cythonized module: geographic")
+            from . import geographic
     outfile_orig = args.outfile
     skipnan_orig = args.skipnan
     args.nan = False
@@ -62,24 +61,24 @@ def gridder(args):
             from shapely.geometry import mapping
             try:
                 shp = gpd.read_file(polygon_file)
-                polygon_lon = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
-                polygon_lat = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
+                polygon_x = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
+                polygon_y = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
             except Exception as e:
                 print(f"Error reading shapefile! {e}")
                 exit(1)
         else:
             # else if polygon_file is not *.shp (ascii file)
             polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
-            polygon_lon = polygon_data[0][0]
-            polygon_lat = polygon_data[0][1]
-        polygon = geographic.Polygon(polygon_lon, polygon_lat)
+            polygon_x = polygon_data[0][0]
+            polygon_y = polygon_data[0][1]
+        polygon = geographic.Polygon(polygon_x, polygon_y)
 
     # start main process
     # d: data, g: gridded
     for idat, xy in enumerate(data_xy):
-        dlon = [row[0] for row in xy]
-        dlat = [row[1] for row in xy]
-        if len(dlon) == 0:
+        dataX = [row[0] for row in xy]
+        dataY = [row[1] for row in xy]
+        if len(dataX) == 0:
             print(f"\nError! No data for input value column; File: '{os.path.split(input_files[idat])[1]}'\n" +
                   f"value column number(s): {' '.join(np.array(args.v, dtype=str))}\n")
             continue
@@ -87,8 +86,8 @@ def gridder(args):
         if not outfile_orig and nof > 1:
             print(f"\nFile: '{os.path.split(input_files[idat])[1]}'")
 
-        reflon = (np.nanmin(dlon)+np.nanmax(dlon))/2
-        reflat = (np.nanmin(dlat)+np.nanmax(dlat))/2
+        reflon = (np.nanmin(dataX)+np.nanmax(dataX))/2
+        reflat = (np.nanmin(dataY)+np.nanmax(dataY))/2
         
         applat = reflat-90
         if applat < -90:
@@ -108,33 +107,33 @@ def gridder(args):
         earth_radius = geographic.calc_earth_radius(reflat)
         circ = radians(earth_radius)
 
-        if args.lonrange[1] == 0.999: # Auto
-            minLon = min(dlon)
-            maxLon = max(dlon)
+        if args.xrange[1] == 0.999: # Auto
+            minX = min(dataX)
+            maxX = max(dataX)
         else:
-            minLon = args.lonrange[0]
-            maxLon = args.lonrange[1]
+            minX = args.xrange[0]
+            maxX = args.xrange[1]
 
-        if args.latrange[1] == 0.999: # Auto
-            minLat = min(dlat)
-            maxLat = max(dlat)
+        if args.yrange[1] == 0.999: # Auto
+            minY = min(dataY)
+            maxY = max(dataY)
         else:
-            minLat = args.latrange[0]
-            maxLat = args.latrange[1]
+            minY = args.yrange[0]
+            maxY = args.yrange[1]
 
-        loninc = args.spacing[0]
-        latinc = args.spacing[1]
+        xinc = args.spacing[0]
+        yinc = args.spacing[1]
 
-        nx = int(((maxLon-minLon)/loninc)+1)
-        ny = int(((maxLat-minLat)/latinc)+1)
+        nx = int(((maxX-minX)/xinc)+1)
+        ny = int(((maxY-minY)/yinc)+1)
 
-        ndp = len(dlon) # number of data points
+        ndp = len(dataX) # number of data points
         ngp = nx * ny # number of grid points
 
         # input data relative coordinates: xnode & ynode
         xnode = [];  ynode = []
         for ip in range(ndp):
-            point = geographic.Point(dlon[ip], dlat[ip])
+            point = geographic.Point(dataX[ip], dataY[ip])
             line = geographic.Line(point_app, point)
 
             delta = line.calc_gcarc()
@@ -155,14 +154,14 @@ def gridder(args):
             ynode.append(circ * sin(radians(delta)) * tazdiff)
 
         # grid coordinates
-        gridlon = []; gridlat = []
-        xgrid = [];  ygrid = []
+        gridx = []; gridy = []
+        rxgrid = [];  rygrid = []
         for ix in range(nx):
-            lon = minLon + ix*loninc
+            x = minX + ix*xinc
             for iy in range(ny):
-                lat = minLat + iy*latinc
+                y = minY + iy*yinc
 
-                point = geographic.Point(lon, lat)
+                point = geographic.Point(x, y)
                 line = geographic.Line(point_app, point)
 
                 delta = line.calc_gcarc()
@@ -180,19 +179,19 @@ def gridder(args):
                 elif tazdiff < -180:
                     tazdiff += 360
                 
-                gridlon.append(lon)
-                gridlat.append(lat)
-                xgrid.append(circ * deltadiff)
-                ygrid.append(circ * sin(radians(delta)) * tazdiff)
+                gridx.append(x)
+                gridy.append(y)
+                rxgrid.append(circ * deltadiff)
+                rygrid.append(circ * sin(radians(delta)) * tazdiff)
 
         # gridding 
         out_lines = []
         gval = [np.zeros(ngp).tolist() for x in range(nvals)]
         for igp in range(ngp):
-            line = f"%{fmt[0]}f %{fmt[0]}f" %(gridlon[igp], gridlat[igp])
+            line = f"%{fmt[0]}f %{fmt[0]}f" %(gridx[igp], gridy[igp])
             xnode = np.array(xnode)
             ynode = np.array(ynode)
-            wgt = funcs.calc_wgt(xgrid[igp], ygrid[igp], xnode, ynode, args.smoothing)
+            wgt = funcs.calc_wgt(rxgrid[igp], rygrid[igp], xnode, ynode, args.smoothing)
             wgtsum = np.sum(wgt)
 
             for iv in range(nvals):
@@ -333,33 +332,77 @@ def difference(args):
         io.output_lines(difference, args)
 
 
+def convex_hull(args):
+    from scipy.spatial import ConvexHull
+    args.sort = False
+    args.uniq = False
+    args.offset = 0 # CHANGE LATER!
+
+    data = io.read_numerical_data(args.points_file, args.header, args.footer, [".10",".10"], args.x, [])
+    data_points = np.vstack((data[0][0], data[0][1])).T
+
+    chull = ConvexHull(data_points)
+    chull_points = np.vstack((data_points[chull.vertices,0], data_points[chull.vertices,1])).T.tolist()
+    chull_points.append(chull_points[0])
+    # reformat chull_points for offset >> to be developed in later versions
+    chull_points_orig = chull_points
+    chull_points = ()
+    for p in chull_points_orig:
+        chull_points += ((p[0], p[1]),)
+
+    if args.offset != 0:
+        import pyclipper
+        try:
+            pco = pyclipper.PyclipperOffset()
+            test = ((180, 200), (260, 200), (260, 150), (180, 150))
+            pco.AddPath(chull_points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
+            pco_solution = pco.Execute(args.offset)
+            chull_points = pco_solution[0]
+        except Exception as e:
+            print("WARNING! Could not apply offset to convex hull!")
+
+    if args.smooth != 0:
+        from . import funcs
+        chull_points = funcs.evaluate_bezier(np.array(chull_points_orig, dtype=float), args.smooth)
+
+
+    outlines = []
+    for ip in chull_points:
+        outlines.append(f"%{args.fmt}f %{args.fmt}f" %(ip[0], ip[1]))
+    io.output_lines(outlines, args)
+
+    
+
+
+
+
+
+
+
 def points_in_polygon(args):
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        try:
+            from . import _geographic as geographic
+        except ImportError:
+            print("WARNING! Could not use cythonized module: geographic")
+            from . import geographic
+
     outfile_orig = args.outfile
 
     # build polygon class
-    polygon_lon = []
-    polygon_lat = []
-    if args.lonrange != [-0.999, 0.999] and args.latrange != [-0.999, 0.999]:
-        if args.lonrange[0] >= args.lonrange[1]:
-            print(f"Error! Argument 'lonrange' should be entered in [minlon, maxlon] format.")
+    polygon_x = []
+    polygon_y = []
+    if args.xrange != [-0.999, 0.999] and args.yrange != [-0.999, 0.999]:
+        if args.xrange[0] >= args.xrange[1]:
+            print(f"Error! Argument 'xrange' should be entered in [minX/minLon, maxX/maxLon] format.")
             exit(1)
-        elif args.latrange[0] >= args.latrange[1]:
-            print(f"Error! Argument 'latrange' should be entered in [minlat, maxlat] format.")
+        elif args.yrange[0] >= args.yrange[1]:
+            print(f"Error! Argument 'yrange' should be entered in [minY/minLat, maxY/maxLat] format.")
             exit(1)
-        elif args.lonrange[0] < -180:
-            print(f"Error! minimum longitude is less than -180.")
-            exit(1)
-        elif args.lonrange[1] > 180:
-            print(f"Error! maximum longitude is greater than 180.")
-            exit(1)
-        elif args.latrange[0] < -90:
-            print(f"Error! minimum latitude is less than -90.")
-            exit(1)
-        elif args.latrange[1] > 90:
-            print(f"Error! maximum latitude is greater than 90.")
-            exit(1)
-        polygon_lon = [args.lonrange[0], args.lonrange[1], args.lonrange[1], args.lonrange[0], args.lonrange[0]]
-        polygon_lat = [args.latrange[0], args.latrange[0], args.latrange[1], args.latrange[1], args.latrange[0]]
+
+        polygon_x = [args.xrange[0], args.xrange[1], args.xrange[1], args.xrange[0], args.xrange[0]]
+        polygon_y = [args.yrange[0], args.yrange[0], args.yrange[1], args.yrange[1], args.yrange[0]]
     elif args.polygon:
         polygon_file = args.polygon
         if os.path.splitext(polygon_file)[1] == ".shp":
@@ -368,21 +411,21 @@ def points_in_polygon(args):
             from shapely.geometry import mapping
             try:
                 shp = gpd.read_file(polygon_file)
-                polygon_lon = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
-                polygon_lat = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
+                polygon_x = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
+                polygon_y = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
             except Exception as e:
                 print(f"Error reading shapefile! {e}")
                 exit(1)
         else:
             # else if polygon_file is not *.shp (ascii file)
             polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], args.x, [])
-            polygon_lon = polygon_data[0][0]
-            polygon_lat = polygon_data[0][1]
+            polygon_x = polygon_data[0][0]
+            polygon_y = polygon_data[0][1]
     
-    if len(polygon_lon): 
-        polygon = geographic.Polygon(polygon_lon, polygon_lat)
+    if len(polygon_x): 
+        polygon = geographic.Polygon(polygon_x, polygon_y)
     else:
-        print(f"Error: polygon is not specified. Please use either '--lonrange & --latrange' or '--polygon'.")
+        print(f"Error: polygon is not specified. Please use either '--xrange & --yrange' or '--polygon'.")
         exit(1)
 
     # main process

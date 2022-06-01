@@ -8,7 +8,10 @@
 
 The following features might not still work. Please download Version 0.1.1 from https://pypi.org/project/gdp/.
 
-**NOTE**: In this version, *mseed2sac* and *sac2dat* will be moved into the *seismic* module
+**Following changes will be applied**:
+- *mseed2sac* and *sac2dat* will be moved into the *seismic* module
+- *--lonrange* >> *--xrange* (generalization for utm/cartesian case)
+- *--latrange* >> *--yrange* (generalization for utm/cartesian case)
 
 FIX: make sure data is not missing at the beginning or at the end of sac files when using mseed2sac (~ cutter fillz)
 
@@ -16,6 +19,7 @@ The following new tools/modules will be added for this version:
 
 | **Tool/Module** | **Description** |
 |----------|-----------------|
+|chull     |convex-hull / minimum bounding polygon for a set of points|
 |add       |add value columns of two or more ascii data files|
 |shp2dat   |convert GIS shape files (point/polygon) to ascii data|
 |seismic   |seismic data acquisition and processing module |
