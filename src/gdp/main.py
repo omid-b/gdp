@@ -641,120 +641,6 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
-    # # gdp convert shp2dat
-    # gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
-    # description="Convert shape file to dat (ascii)")
-    
-    # gdp convert nc2dat
-    gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
-    description="Convert nc data to dat/ascii")
-    gdp_nc2dat.add_argument("input_file", type=str, action='store', nargs=1, help='input nc file')
-    gdp_nc2dat.add_argument(
-        '--metadata',
-        action='store_true',
-        help='only output metadata'
-    )
-    gdp_nc2dat.add_argument(
-    	'-v',
-        '--data',
-        nargs='*',
-        type=str,
-        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
-    )
-    gdp_nc2dat.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output data to file')
-    gdp_nc2dat.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    gdp_nc2dat.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for positional and value columns respectively (default=[".4",".4"])')
-    
-    # # gdp convert 1Dto2D
-    # gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='1Dto2D',
-    # description="1Dto2D")
-    
-    # # gdp convert 1Dto3D
-    # gdp_1Dto3D = subparsers.add_parser('1Dto3D', help='1Dto3D',
-    # description="1Dto3D")
-    
-    # # gdp convert 2Dto1D
-    # gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='2Dto1D',
-    # description="2Dto1D")
-    
-    # # gdp convert 2Dto3D
-    # gdp_2Dto3D = subparsers.add_parser('2Dto3D', help='2Dto3D',
-    # description="2Dto3D")
-    
-    # # gdp convert 3Dto1D
-    # gdp_3Dto1D = subparsers.add_parser('3Dto1D', help='3Dto1D',
-    # description="3Dto1D")
-    
-    # # gdp convert 3Dto2D
-    # gdp_3Dto2D = subparsers.add_parser('3Dto2D', help='3Dto2D',
-    # description="3Dto2D")
-
-    # gdp data chull
-    gdp_chull = subparsers.add_parser('chull', help='convex-hull / minimum bounding polygon',
-    description="convex-hull / minimum bounding polygon for a set of points")
-    gdp_chull._positionals.title = 'required arguments'
-    gdp_chull.add_argument("points_file", type=str, help="path to points_file")
-    gdp_chull.add_argument(
-        '-x',
-        nargs=2,
-        type=int,
-        action='store',
-        default=[1, 2],
-        help='[x/lon, y/lat] column number(s) (default=[1, 2])')
-    gdp_chull.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_chull.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    gdp_chull.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file/folder')
-    gdp_chull.add_argument(
-        '--smooth',
-        type=int,
-        action='store',
-        default=0,
-        help='number of Bezier points to smooth the output convex-hull polygon')
-    # gdp_chull.add_argument(
-    #     '--offset',
-    #     type=float,
-    #     action='store',
-    #     default=0,
-    #     help='inflate (positive float) or deflate (negative float) the output convex-hull polygon')
-
-    gdp_chull.add_argument(
-        '--fmt',
-        type=str,
-        action='store',
-        default=".4",
-        help='float format for output convex-hull (default=".4")'
-    )
-
     # gdp data pip
     gdp_pip = subparsers.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
@@ -904,6 +790,175 @@ def parse_args(*args, **kwargs):
         action='store',
         help='polygon to run "points-in-polygon" process before outputing the results'
     )
+
+
+    # gdp data chull
+    gdp_chull = subparsers.add_parser('chull', help='convex-hull/minimum bounding polygon',
+    description="convex-hull / minimum bounding polygon for a set of points")
+    gdp_chull._positionals.title = 'required arguments'
+    gdp_chull.add_argument("points_file", type=str, help="path to points_file")
+    gdp_chull.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='[x/lon, y/lat] column number(s) (default=[1, 2])')
+    gdp_chull.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    gdp_chull.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    gdp_chull.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file/folder')
+    gdp_chull.add_argument(
+        '--smooth',
+        type=int,
+        action='store',
+        default=0,
+        help='number of Bezier points to smooth the output convex-hull polygon')
+    # gdp_chull.add_argument(
+    #     '--offset',
+    #     type=float,
+    #     action='store',
+    #     default=0,
+    #     help='inflate (positive float) or deflate (negative float) the output convex-hull polygon')
+
+    gdp_chull.add_argument(
+        '--fmt',
+        type=str,
+        action='store',
+        default=".4",
+        help='float format for output convex-hull (default=".4")'
+    )
+
+    # # gdp convert shp2dat
+    # gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
+    # description="Convert shape file to dat (ascii)")
+    
+    # gdp convert nc2dat
+    gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
+    description="Convert nc data to dat/ascii")
+    gdp_nc2dat.add_argument("input_file", type=str, action='store', nargs=1, help='input nc file')
+    gdp_nc2dat.add_argument(
+        '--metadata',
+        action='store_true',
+        help='only output metadata'
+    )
+    gdp_nc2dat.add_argument(
+    	'-v',
+        '--data',
+        nargs='*',
+        type=str,
+        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
+    )
+    gdp_nc2dat.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output data to file')
+    gdp_nc2dat.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    gdp_nc2dat.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
+
+    # gdp convert dat2nc
+    gdp_dat2nc = subparsers.add_parser('dat2nc', help='convert dat/ascii (gridded) to nc format',
+    description="Convert dat/ascii (must be gridded) to nc format")
+    gdp_dat2nc._positionals.title = 'required arguments'
+    gdp_dat2nc.add_argument("input_file", type=str, action='store', help='input ascii file')
+    gdp_dat2nc.add_argument(
+        'output_file',
+        type=str,
+        action='store',
+        help='output nc file')
+    gdp_dat2nc.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='[x, y] column number(s) (default=[1, 2])')
+    gdp_dat2nc.add_argument(
+        '-v',
+        '--data',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[3],
+        help="data/value column (default=3)"
+    )
+    gdp_dat2nc.add_argument(
+        '--polygon',
+        type=str,
+        action='store',
+        help='polygon to apply points-in-polygon')
+    gdp_dat2nc.add_argument(
+        '--xrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='grid x/longitude range: [minX/minlon, minY/maxlon] (default=Auto)')
+    gdp_dat2nc.add_argument(
+        '--yrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='grid y/latitude range: [minY/minlat, minY/maxlat] (default=Auto)')
+    gdp_dat2nc.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format (to store) for positional and value columns respectively (default=[".4",".4"])')
+    
+    # # gdp convert 1Dto2D
+    # gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='1Dto2D',
+    # description="1Dto2D")
+    
+    # # gdp convert 1Dto3D
+    # gdp_1Dto3D = subparsers.add_parser('1Dto3D', help='1Dto3D',
+    # description="1Dto3D")
+    
+    # # gdp convert 2Dto1D
+    # gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='2Dto1D',
+    # description="2Dto1D")
+    
+    # # gdp convert 2Dto3D
+    # gdp_2Dto3D = subparsers.add_parser('2Dto3D', help='2Dto3D',
+    # description="2Dto3D")
+    
+    # # gdp convert 3Dto1D
+    # gdp_3Dto1D = subparsers.add_parser('3Dto1D', help='3Dto1D',
+    # description="3Dto1D")
+    
+    # # gdp convert 3Dto2D
+    # gdp_3Dto2D = subparsers.add_parser('3Dto2D', help='3Dto2D',
+    # description="3Dto2D")
+
 
     #====gdp seismic=====#
     seismic = subparsers.add_parser('seismic', help='seismic data acquisition and processing module',
@@ -1160,6 +1215,9 @@ def main(*args, **kwargs):
         under_dev()
     elif args.module == 'nc2dat':
         conv.nc2dat(args)
+        exit(0)
+    elif args.module == 'dat2nc':
+        conv.dat2nc(args)
         exit(0)
     elif args.module == 'seismic':
 
