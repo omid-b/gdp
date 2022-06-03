@@ -31,6 +31,42 @@ def gridder(args):
         fmt = [args.fmt[0], args.fmt[0]]
     else:
         fmt = args.fmt
+
+    if len(args.spacing) == 1:
+        args.spacing = [args.spacing[0], args.spacing[0]]
+
+    if args.spacing[0] <= 0 or args.spacing[1] <= 0:
+        print(f"Error! 'spacing' should be positive.")
+        exit(1)
+
+    if args.smoothing <= 0:
+        print(f"Error! 'smoothing' should be positive.")
+        exit(1)
+
+    if args.xrange[0] >= args.xrange[1]:
+        print(f"Error! Argument 'xrange' should be entered in [min_x, max_x] format.")
+        exit(1)
+
+    if args.yrange[0] >= args.yrange[1]:
+        print(f"Error! Argument 'yrange' should be entered in [min_y, max_y] format.")
+        exit(1)
+
+    if args.xrange[0] < -180:
+        print(f"Error! minimum longitude is less than -180.")
+        exit(1)
+
+    if args.xrange[1] > 180:
+        print(f"Error! maximum longitude is greater than 180.")
+        exit(1)
+
+    if args.yrange[0] < -90:
+        print(f"Error! minimum latitude is less than -90.")
+        exit(1)
+
+    if args.yrange[1] > 90:
+        print(f"Error! maximum latitude is greater than 90.")
+        exit(1)
+
     nof = len(args.input_files)
     input_files = args.input_files
     datlines = [[] for i in range(nof)]
