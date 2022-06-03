@@ -5,9 +5,9 @@ import warnings
 import shutil
 import numpy as np
 from math import radians, degrees, sin, cos, atan2, acos
-
 from . import io
 
+#####################################################################
 
 def gridder(args):
     with warnings.catch_warnings():
@@ -144,15 +144,15 @@ def gridder(args):
         circ = radians(earth_radius)
 
         if args.xrange[1] == 0.999: # Auto
-            minX = min(dataX)
-            maxX = max(dataX)
+            minX = np.nanmin(dataX)
+            maxX = np.nanmax(dataX)
         else:
             minX = args.xrange[0]
             maxX = args.xrange[1]
 
         if args.yrange[1] == 0.999: # Auto
-            minY = min(dataY)
-            maxY = max(dataY)
+            minY = np.nanmin(dataY)
+            maxY = np.nanmax(dataY)
         else:
             minY = args.yrange[0]
             maxY = args.yrange[1]
@@ -268,7 +268,200 @@ def gridder(args):
 
         io.output_lines(out_lines, args)
 
+#####################################################################
 
+def gridder_utm(args):
+    with warnings.catch_warnings():
+        warnings.simplefilter('ignore')
+        try:
+            from . import _funcs as funcs
+        except ImportError:
+            print("WARNING! Could not use cythonized module: funcs")
+            from . import funcs
+        try:
+            from . import _geographic as geographic
+        except ImportError:
+            print("WARNING! Could not use cythonized module: geographic")
+            from . import geographic
+
+    outfile_orig = args.outfile
+    skipnan_orig = args.skipnan
+    args.nan = False
+    args.skipnan = True
+    args.noextra = True
+    if len(args.fmt) == 1:
+        fmt = [args.fmt[0], args.fmt[0]]
+    else:
+        fmt = args.fmt
+
+    if len(args.spacing) == 1:
+        args.spacing = [args.spacing[0], args.spacing[0]]
+
+    if args.spacing[0] <= 0 or args.spacing[1] <= 0:
+        print(f"Error! 'spacing' should be positive.")
+        exit(1)
+
+    if args.smoothing <= 0:
+        print(f"Error! 'smoothing' should be positive.")
+        exit(1)
+
+    if args.xrange[0] >= args.xrange[1]:
+        print(f"Error! Argument 'xrange' should be entered in [min_x, max_x] format.")
+        exit(1)
+
+    if args.yrange[0] >= args.yrange[1]:
+        print(f"Error! Argument 'yrange' should be entered in [min_y, max_y] format.")
+        exit(1)
+
+    nof = len(args.input_files)
+    input_files = args.input_files
+    datlines = [[] for i in range(nof)]
+    data_xy = [[] for i in range(nof)]
+    data_val = [[] for i in range(nof)]
+    nvals = len(args.v)
+    for i in range(nof):
+        data_val[i] = [[] for iv in range(nvals)]
+
+    # preprocessing: read data and omit NaNs
+    for i in range(nof):
+        datlines[i] = io.data_lines(input_files[i], args)
+        for line in datlines[i]:
+            xy = line.split()[0:len(args.x)]
+            vals = line.split()[len(args.x):len(args.x)+len(args.v)]
+            if 'nan' not in xy and 'nan' not in vals:
+                xy = np.array(xy, dtype=float).tolist()
+                data_xy[i].append(xy)
+                vals = np.array(vals, dtype=float).tolist()
+                for iv in range(nvals):
+                    data_val[i][iv].append(vals[iv])
+
+    # point in polygon? If so, read polygon data & instantiate polygon object
+    if args.polygon:
+        polygon_file = args.polygon
+        if os.path.splitext(polygon_file)[1] == ".shp":
+            # if polygon_file is *.shp
+            import geopandas as gpd
+            from shapely.geometry import mapping
+            try:
+                shp = gpd.read_file(polygon_file)
+                polygon_x = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
+                polygon_y = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
+            except Exception as e:
+                print(f"Error reading shapefile! {e}")
+                exit(1)
+        else:
+            # else if polygon_file is not *.shp (ascii file)
+            polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
+            polygon_x = polygon_data[0][0]
+            polygon_y = polygon_data[0][1]
+        polygon = geographic.Polygon(polygon_x, polygon_y)
+
+    # start main process
+    # d: data, g: gridded
+    for idat, xy in enumerate(data_xy):
+        dataX = [row[0] for row in xy]
+        dataY = [row[1] for row in xy]
+        if len(dataX) == 0:
+            print(f"\nError! No data for input value column; File: '{os.path.split(input_files[idat])[1]}'\n" +
+                  f"value column number(s): {' '.join(np.array(args.v, dtype=str))}\n")
+            continue
+
+        if not outfile_orig and nof > 1:
+            print(f"\nFile: '{os.path.split(input_files[idat])[1]}'")
+
+        refX = (np.nanmin(dataX)+np.nanmax(dataX))/2
+        refY = (np.nanmin(dataY)+np.nanmax(dataY))/2
+
+        if args.xrange[1] == 0.999: # Auto
+            minX = np.nanmin(dataX)
+            maxX = np.nanmax(dataX)
+        else:
+            minX = args.xrange[0]
+            maxX = args.xrange[1]
+
+        if args.yrange[1] == 0.999: # Auto
+            minY = np.nanmin(dataY)
+            maxY = np.nanmax(dataY)
+        else:
+            minY = args.yrange[0]
+            maxY = args.yrange[1]
+
+        xinc = args.spacing[0]
+        yinc = args.spacing[1]
+
+        nx = int(((maxX-minX)/xinc)+1)
+        ny = int(((maxY-minY)/yinc)+1)
+
+        ndp = len(dataX) # number of data points
+        ngp = nx * ny # number of grid points
+
+        # input data relative coordinates: xnode & ynode
+        xnode = [];  ynode = []
+        for ip in range(ndp):
+            xnode.append(dataX[ip] - refX)
+            ynode.append(dataY[ip] - refY)
+
+        # grid coordinates
+        gridx = []; gridy = []
+        rxgrid = [];  rygrid = []
+        for ix in range(nx):
+            x = minX + ix*xinc
+            for iy in range(ny):
+                y = minY + iy*yinc
+                gridx.append(x)
+                gridy.append(y)
+                rxgrid.append(x - refX)
+                rygrid.append(y - refY)
+
+        # gridding 
+        out_lines = []
+        gval = [np.zeros(ngp).tolist() for x in range(nvals)]
+        for igp in range(ngp):
+            line = f"%{fmt[0]}f %{fmt[0]}f" %(gridx[igp], gridy[igp])
+            xnode = np.array(xnode)
+            ynode = np.array(ynode)
+            wgt = funcs.calc_wgt(rxgrid[igp], rygrid[igp], xnode, ynode, args.smoothing)
+            wgtsum = np.sum(wgt)
+
+            for iv in range(nvals):
+
+                with warnings.catch_warnings():
+                    warnings.simplefilter('ignore')
+                    gval[iv][igp] += np.sum(wgt * np.array(data_val[idat][iv])) / wgtsum
+
+                line = f"{line} %{fmt[1]}f" %(gval[iv][igp])
+
+            point = geographic.Point(float(line.split()[0]), float(line.split()[1]))
+
+            if skipnan_orig:
+                if 'nan' not in line.split():
+                    if args.polygon:
+                        if polygon.is_point_in(point):
+                            out_lines.append(line)
+                    else:
+                        out_lines.append(line)
+            else:
+                if args.polygon:
+                    if polygon.is_point_in(point):
+                        out_lines.append(line)
+                else:
+                    out_lines.append(line)
+
+        # output results
+        args.append = False
+        args.sort = True
+        args.uniq = False
+
+        if nof > 1 and outfile_orig:
+            if not os.path.isdir(outfile_orig):
+                os.mkdir(outfile_orig)
+            args.outfile = os.path.join(outfile_orig, os.path.split(input_files[idat])[1])
+        else:
+            args.outfile = outfile_orig
+
+        io.output_lines(out_lines, args)
+
+#####################################################################
 
 def union(args):
     nof = len(args.input_files)
@@ -301,6 +494,7 @@ def union(args):
     else:
         io.output_lines(union, args)
 
+#####################################################################
 
 def intersect(args):
     nof = len(args.input_files)
@@ -334,6 +528,7 @@ def intersect(args):
     else:
         io.output_lines(intersect, args)
 
+#####################################################################
 
 def difference(args):
     nof = len(args.input_files)
@@ -367,6 +562,7 @@ def difference(args):
     else:
         io.output_lines(difference, args)
 
+#####################################################################
 
 def convex_hull(args):
     from scipy.spatial import ConvexHull
@@ -412,12 +608,8 @@ def convex_hull(args):
     outlines.append(outlines[0])
     io.output_lines(outlines, args)
 
-    
 
-
-
-
-
+#####################################################################
 
 
 def points_in_polygon(args):
@@ -513,6 +705,9 @@ def points_in_polygon(args):
             print("Warning! No points in polygon.")
 
 
+#####################################################################
+
+
 def calc_min(args):
     from numpy import nanmin
     outdata_lines = []
@@ -525,6 +720,9 @@ def calc_min(args):
     args.sort = False
     args.uniq = False
     io.output_lines(outdata_lines, args)
+
+
+#####################################################################
 
 
 def calc_max(args):
@@ -541,6 +739,9 @@ def calc_max(args):
     io.output_lines(outdata_lines, args)
 
 
+#####################################################################
+
+
 def calc_sum(args):
     from numpy import nansum
     outdata_lines = []
@@ -554,6 +755,7 @@ def calc_sum(args):
     args.uniq = False
     io.output_lines(outdata_lines, args)
 
+#####################################################################
 
 def calc_mean(args):
     from numpy import nanmean
@@ -567,6 +769,8 @@ def calc_mean(args):
     args.sort = False
     args.uniq = False
     io.output_lines(outdata_lines, args)
+
+#####################################################################
 
 
 def calc_median(args):
@@ -582,6 +786,7 @@ def calc_median(args):
     args.uniq = False
     io.output_lines(outdata_lines, args)
 
+#####################################################################
 
 def calc_std(args):
     from numpy import nanstd
