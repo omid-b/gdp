@@ -397,14 +397,19 @@ def convex_hull(args):
         except Exception as e:
             print("WARNING! Could not apply offset to convex hull!")
 
-    if args.smooth != 0:
+    if args.smooth > 2:
         from . import funcs
         chull_points = funcs.evaluate_bezier(np.array(chull_points_orig, dtype=float), args.smooth)
 
+    if args.smooth in [1, 2]:
+        print("WARNING! Smooth is not performed.\nNumber of Bezier points must be larger than 2!")
 
     outlines = []
     for ip in chull_points:
-        outlines.append(f"%{args.fmt}f %{args.fmt}f" %(ip[0], ip[1]))
+        line = f"%{args.fmt}f %{args.fmt}f" %(ip[0], ip[1])
+        if line not in outlines:
+            outlines.append(line)
+    outlines.append(outlines[0])
     io.output_lines(outlines, args)
 
     
