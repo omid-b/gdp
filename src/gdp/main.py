@@ -973,6 +973,12 @@ def parse_args(*args, **kwargs):
     # gdp seismic download config
     download_config = download_subparsers.add_parser('config', help='create "download.config" file',
     description='create "download.config" file')
+    download_config.add_argument(
+        '--maindir',
+        type=str,
+        default='./download.config',
+        help="path to directory containing 'download.config' (default='./')"
+    )
 
     # gdp seismic download events
     download_events = download_subparsers.add_parser('events', help='download list of events',
@@ -1200,7 +1206,7 @@ def main(*args, **kwargs):
 
         if args.submodule == 'download':
             if args.subsubmodule == 'config':
-                download.config(args)
+                download.write_config(args)
                 exit(0)
             elif args.subsubmodule == 'events':
                 download.events(args)

@@ -1,7 +1,15 @@
+import os
+
+def read_config(args):
+	print(f"Hello from read config!")
+	exit(0)
 
 
-def config(args):
-	print(f"Hello from config!")
+def write_config(args):
+	print(f"Hello from write config!")
+	maindir = os.path.abspath(args.maindir)
+	if not os.path.exists(maindir):
+	    os.makedirs(maindir)
 	exit(0)
 
 
