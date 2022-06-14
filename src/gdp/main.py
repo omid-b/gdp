@@ -976,25 +976,49 @@ def parse_args(*args, **kwargs):
     download_config.add_argument(
         '--maindir',
         type=str,
-        default='./download.config',
+        default='./',
         help="path to directory containing 'download.config' (default='./')"
     )
 
     # gdp seismic download events
     download_events = download_subparsers.add_parser('events', help='download list of events',
     description="download list of events")
+    download_events.add_argument(
+        '--maindir',
+        type=str,
+        default='./',
+        help="path to directory containing 'download.config' (default='./')"
+    )
 
     # gdp seismic download stations
     download_stations = download_subparsers.add_parser('stations', help='download list of stations',
     description="download list of stations")
+    download_stations.add_argument(
+        '--maindir',
+        type=str,
+        default='./',
+        help="path to directory containing 'download.config' (default='./')"
+    )
 
     # gdp seismic download metadata
     download_metadata = download_subparsers.add_parser('metadata', help='download station metadata',
     description="download station metadata")
+    download_metadata.add_argument(
+        '--maindir',
+        type=str,
+        default='./',
+        help="path to directory containing 'download.config' (default='./')"
+    )
 
     # gdp seismic download mseeds
     download_mseeds = download_subparsers.add_parser('mseeds', help='download mseed files',
     description="download mseed files")
+    download_mseeds.add_argument(
+        '--maindir',
+        type=str,
+        default='./',
+        help="path to directory containing 'download.config' (default='./')"
+    )
 
 
     # gdp seismic mseed2sac
@@ -1206,7 +1230,7 @@ def main(*args, **kwargs):
 
         if args.submodule == 'download':
             if args.subsubmodule == 'config':
-                download.write_config(args)
+                download.write_download_config(args)
                 exit(0)
             elif args.subsubmodule == 'events':
                 download.events(args)
