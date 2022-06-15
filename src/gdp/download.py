@@ -1,6 +1,25 @@
 import os
+import re
 import subprocess
 import configparser
+
+
+def isdate(text): # is a date value: 'YYYY-MM-DD'
+    rexpr = re.compile("^[1-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$")
+    if rexpr.match(text):
+        return True
+    else:
+        return False
+
+
+def isfloat(text): # is a float
+    try:
+        val = float(text)
+        return True
+    except ValueError:
+        return False
+
+
 
 def find_perl_path():
     p = subprocess.run( [ 'which', 'perl' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
@@ -82,34 +101,33 @@ event_maxlat = 90.0
 
 [datacenters]
 
-AUSPASS = False
-BGR = False
-ETH = False
-GEOFON = False
-ICGC = False
-INGV = False
-IRIS = True
-IRISPH5 = True
-KOERI = False
-LMU = False
-NCEDC = False
-NIEP = False
-NOA = False
-ODC = False
-ORFEUS = False
-RASPISHAKE = False
-RESIF = False
-RESIFPH5 = False
-SCEDC = False
-TEXNET = False
-USP = False
+auspass = False
+bgr = False
+eth = False
+geofon = False
+icgc = False
+ingv = False
+iris = True
+irisph5 = True
+koeri = False
+lmu = False
+ncedc = False
+niep = False
+noa = False
+odc = False
+orfeus = False
+raspishake = False
+resif = False
+resifph5 = False
+scedc = False
+texnet = False
+usp = False
 
 [dependencies]
 
 perl = %s
 sac = %s
-gmt = %s
-    """ %(
+gmt = %s \n""" %(
         station_list,
         event_list,
         find_perl_path(),
@@ -130,16 +148,18 @@ def read_download_config(args):
         exit(1)
 
     sections = ["download_setting", "station_setting", "event_setting", "datacenters", "dependencies"]
-    download_setting = ["obspy_mdl_script", "iris_fetch_script", "startdate", "enddate"]
-    station_setting = ["station_list", "station_channels", "station_location_codes",
-                       "station_maxlat", "station_maxlon", "station_minlat", "station_minlon"]
-    event_setting = ["event_list", "event_min_mag",
-                     "event_minlon", "event_maxlon", "event_minlat", "event_maxlat"]
-    datacenters = ["AUSPASS", "BGR", "ETH", "GEOFON", "ICGC", "INGV",
-                   "IRIS", "IRISPH5", "KOERI", "LMU", "NCEDC", "NIEP",
-                   "NOA", "ODC", "ORFEUS", "RASPISHAKE", "RESIF",
-                   "RESIFPH5", "SCEDC", "TEXNET", "USP"]    
-    dependencies = ["perl", "sac", "gmt"]
+    download_setting_params = ["obspy_mdl_script", "iris_fetch_script", "startdate", "enddate"]
+    station_setting_params = ["station_list", "station_channels", "station_location_codes",
+                              "station_maxlat", "station_maxlon", "station_minlat", "station_minlon"]
+    event_setting_params = ["event_list", "event_min_mag",
+                            "event_minlon", "event_maxlon", "event_minlat", "event_maxlat"]
+    datacenters_params = ["auspass", "bgr", "eth", "geofon", "icgc", "ingv",
+                          "iris", "irisph5", "koeri", "lmu", "ncedc", "niep",
+                          "noa", "odc", "orfeus", "raspishake", "resif",
+                          "resifph5", "scedc", "texnet", "usp"]    
+    dependencies_params = ["perl", "sac", "gmt"]
+    float_params = ["station_maxlat", "station_maxlon", "station_minlat", "station_minlon"
+                    "event_min_mag", "event_minlon", "event_maxlon", "event_minlat", "event_maxlat"]
 
     # read config file
     try:
@@ -147,20 +167,106 @@ def read_download_config(args):
         config.read(config_file)
     except Exception as e:
         print(f"Error reading config file!\n{e}\n")
+        exit(1)
 
     # all sections available?
     for section in sections:
         if section not in config.sections():
             print(f"Error in read_download_config(): Config section was not available: '{section}'")
+            exit(1)
 
     # download_setting
     download_setting = {}
-    for param in setting_params:
-        if param not in config.options('setting'):
-            print(f"read_config(): Config parameter not available in [setting]: '{param}'")
-            return False
+    for param in download_setting_params:
+        if param not in config.options('download_setting'):
+            print(f"Error in read_download_config(): Config parameter not available in [download_setting]: '{param}'")
+            exit(1)
+        val = config.get('download_setting',f"{param}")
+        if len(val):
+            if param in ["obspy_mdl_script", "iris_fetch_script"]:
+                if val.lower() == 'true':
+                    download_setting[f"{param}"] = True
+                elif val.lower() == 'false':
+                    download_setting[f"{param}"] = False
+                else:
+                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be a boolean (True/False)")
+                    exit(1)
+
+            if param in ["startdate", "enddate"] and not isdate(val):
+                print(f"Error in read_download_config()\nValue of parameter '{param}' must be in 'YYYY-MM-DD' format.")
+                exit(1)
+        else:
+            download_setting[f"{param}"] = val
 
 
+    # station_setting
+    station_setting = {}
+    for param in station_setting_params:
+        if param not in config.options('station_setting'):
+            print(f"Error in read_download_config(): Config parameter not available in [station_setting]: '{param}'")
+            exit(1)
+        val = config.get('station_setting',f"{param}")
+        if len(val):
+            if param in ["station_channels", "station_location_codes"]:
+                station_setting[f"{param}"] = val.split()
+            if param in float_params:
+                if isfloat(val):
+                    station_setting[f"{param}"] = val
+                else:
+                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be a float.")
+                    exit(1)
+        else:
+            if param in ["station_channels", "station_location_codes"]:
+                station_setting[f"{param}"] = []
+            else:
+                station_setting[f"{param}"] = val
+
+    # event_setting
+    event_setting = {}
+    for param in event_setting_params:
+        if param not in config.options('event_setting'):
+            print(f"Error in read_download_config(): Config parameter not available in [event_setting]: '{param}'")
+            exit(1)
+        val = config.get('event_setting',f"{param}")
+        if len(val):
+            pass
+
+    # datacenters
+    datacenters = {}
+    for param in datacenters_params:
+        if param not in config.options('datacenters'):
+            print(f"Error in read_download_config(): Config parameter not available in [datacenters]: '{param}'")
+            exit(1)
+        val = config.get('datacenters',f"{param}")
+        if len(val):
+            if val.lower() == 'true':
+                datacenters[f"{param}"] = True
+            elif val.lower() == 'false':
+                datacenters[f"{param}"] = False
+            else:
+                print(f"Error in read_download_config()\nValue of parameter '{param}' must be a boolean (True/False)")
+                exit(1)
+
+
+    # dependencies
+    dependencies = {}
+    for param in dependencies_params:
+        if param not in config.options('dependencies'):
+            print(f"Error in read_download_config(): Config parameter not available in [dependencies]: '{param}'")
+            exit(1)
+        val = config.get('dependencies',f"{param}")
+        if len(val) and not os.path.isfile(val):
+            print(f"Error in read_download_config(): Could not find executable for {param.upper()}:\n{val}")
+            exit(1)
+        dependencies[f"{param}"] = val
+
+    download_config = {}
+    download_config["download_setting"] = download_setting
+    download_config["station_setting"] = station_setting
+    download_config["event_setting"] = event_setting
+    download_config["datacenters"] = datacenters
+    download_config["dependencies"] = dependencies
+    print(download_config)
     return download_config
     
 
