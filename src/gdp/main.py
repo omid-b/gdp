@@ -1009,6 +1009,12 @@ def parse_args(*args, **kwargs):
         default='./',
         help="path to directory containing 'download.config' (default='./')"
     )
+    download_metadata.add_argument(
+        '--metadata',
+        type=str,
+        default='./metadata',
+        help="path to output metadata directory' (default='./metadata')"
+    )
 
     # gdp seismic download mseeds
     download_mseeds = download_subparsers.add_parser('mseeds', help='download mseed files',
@@ -1233,16 +1239,16 @@ def main(*args, **kwargs):
                 download.write_download_config(args)
                 exit(0)
             elif args.subsubmodule == 'events':
-                download.events(args)
+                download.download_events(args)
                 exit(0)
             elif args.subsubmodule == 'stations':
-                download.stations(args)
+                download.download_stations(args)
                 exit(0)
             elif args.subsubmodule == 'metadata':
-                download.metadata(args)
+                download.download_metadata(args)
                 exit(0)
             elif args.subsubmodule == 'mseeds':
-                download.mseeds(args)
+                download.download_mseeds(args)
                 exit(0)
             else:
                 subprocess.call('gdp seismic download -h', shell=True)

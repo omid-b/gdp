@@ -1,7 +1,12 @@
+# module: gdp seismic download 
+
 import os
 import re
 import subprocess
 import configparser
+
+from . import events
+from . import stations
 
 
 def isdate(text): # is a date value: 'YYYY-MM-DD'
@@ -16,6 +21,28 @@ def isfloat(text): # is a float
     try:
         val = float(text)
         return True
+    except ValueError:
+        return False
+
+
+def islat(text): # is a latitude value
+    try:
+        val = float(text)
+        if val >= -90 and val <= 90:
+            return True
+        else:
+            return False
+    except ValueError:
+        return False
+
+
+def islon(text): # is a longitude value
+    try:
+        val = float(text)
+        if val >= -180 and val <= 180:
+            return True
+        else:
+            return False
     except ValueError:
         return False
 
@@ -78,22 +105,24 @@ def write_download_config(args):
 obspy_mdl_script = True
 iris_fetch_script = True
 startdate = 
-enddate =
+enddate = 
 
 [station_setting]
 
 station_list = %s
 station_channels = BHZ HHZ
 station_location_codes = 00 10
-station_maxlat =
-station_maxlon =
-station_minlat =
-station_minlon =
+station_minlon = 
+station_maxlon = 
+station_minlat = 
+station_maxlat = 
 
 [event_setting]
 
 event_list = %s
 event_min_mag = 
+event_min_gcarc = 0
+event_max_gcarc = 180
 event_minlon = -180.0
 event_maxlon = 180.0
 event_minlat = -90.0
@@ -108,7 +137,7 @@ geofon = False
 icgc = False
 ingv = False
 iris = True
-irisph5 = True
+irisph5 = False
 koeri = False
 lmu = False
 ncedc = False
@@ -140,6 +169,7 @@ gmt = %s \n""" %(
     print(f"'download.config' was created successfully!\n\nPlease set all parameters in file:\n{config_file}\n")
 
 
+
 def read_download_config(args):
     maindir = os.path.abspath(args.maindir)
     config_file = os.path.join(maindir, 'download.config')
@@ -151,15 +181,17 @@ def read_download_config(args):
     download_setting_params = ["obspy_mdl_script", "iris_fetch_script", "startdate", "enddate"]
     station_setting_params = ["station_list", "station_channels", "station_location_codes",
                               "station_maxlat", "station_maxlon", "station_minlat", "station_minlon"]
-    event_setting_params = ["event_list", "event_min_mag",
+    event_setting_params = ["event_list", "event_min_mag", "event_min_gcarc", "event_max_gcarc",
                             "event_minlon", "event_maxlon", "event_minlat", "event_maxlat"]
     datacenters_params = ["auspass", "bgr", "eth", "geofon", "icgc", "ingv",
                           "iris", "irisph5", "koeri", "lmu", "ncedc", "niep",
                           "noa", "odc", "orfeus", "raspishake", "resif",
                           "resifph5", "scedc", "texnet", "usp"]    
     dependencies_params = ["perl", "sac", "gmt"]
-    float_params = ["station_maxlat", "station_maxlon", "station_minlat", "station_minlon"
-                    "event_min_mag", "event_minlon", "event_maxlon", "event_minlat", "event_maxlat"]
+    list_params = ["station_channels", "station_location_codes"]
+    float_params = ["event_min_mag", "event_min_gcarc", "event_max_gcarc"]
+    lat_params = ["station_maxlat", "station_minlat", "event_minlat", "event_maxlat"]
+    lon_params = ["station_maxlon", "station_minlon", "event_minlon", "event_maxlon"]
 
     # read config file
     try:
@@ -184,19 +216,24 @@ def read_download_config(args):
         val = config.get('download_setting',f"{param}")
         if len(val):
             if param in ["obspy_mdl_script", "iris_fetch_script"]:
-                if val.lower() == 'true':
+                if val.lower().split()[0] in ['true', 't', 'y', 'yes']:
                     download_setting[f"{param}"] = True
-                elif val.lower() == 'false':
+                elif val.lower().split()[0] in ['flase', 'f', 'n', 'no']:
                     download_setting[f"{param}"] = False
                 else:
-                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be a boolean (True/False)")
+                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be a boolean (True/False or Yes/No)")
                     exit(1)
 
             if param in ["startdate", "enddate"] and not isdate(val):
                 print(f"Error in read_download_config()\nValue of parameter '{param}' must be in 'YYYY-MM-DD' format.")
                 exit(1)
+            else:
+                download_setting[f"{param}"] = val
         else:
-            download_setting[f"{param}"] = val
+            if param in list_params:
+                download_setting[f"{param}"] = []
+            else:
+                download_setting[f"{param}"] = ""
 
 
     # station_setting
@@ -207,19 +244,38 @@ def read_download_config(args):
             exit(1)
         val = config.get('station_setting',f"{param}")
         if len(val):
-            if param in ["station_channels", "station_location_codes"]:
+            if param in list_params:
                 station_setting[f"{param}"] = val.split()
-            if param in float_params:
-                if isfloat(val):
-                    station_setting[f"{param}"] = val
+            elif param in lat_params:
+                if islat(val):
+                    station_setting[f"{param}"] = float(val)
                 else:
-                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be a float.")
+                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be in [-90, 90] range.")
                     exit(1)
-        else:
-            if param in ["station_channels", "station_location_codes"]:
-                station_setting[f"{param}"] = []
+            elif param in lon_params:
+                if islon(val):
+                    station_setting[f"{param}"] = float(val)
+                else:
+                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be in [-180, 180] range.")
+                    exit(1)
             else:
                 station_setting[f"{param}"] = val
+        else:
+            if param in list_params:
+                station_setting[f"{param}"] = []
+            else:
+                station_setting[f"{param}"] = ""
+
+    if len(str(station_setting["station_minlon"])) and len(str(station_setting["station_maxlon"])):
+        if station_setting["station_minlon"] >= station_setting["station_maxlon"]:
+            print(f"Error in read_download_config()\n'station_maxlon' must be larger than 'station_minlon'")
+            exit(1)
+
+    if len(str(station_setting["station_minlat"])) and len(str(station_setting["station_maxlat"])):
+        if station_setting["station_minlat"] >= station_setting["station_maxlat"]:
+            print(f"Error in read_download_config()\n'station_maxlat' must be larger than 'station_minlat'")
+            exit(1)
+
 
     # event_setting
     event_setting = {}
@@ -229,7 +285,43 @@ def read_download_config(args):
             exit(1)
         val = config.get('event_setting',f"{param}")
         if len(val):
-            pass
+
+            if param in float_params:
+                if isfloat(val):
+                    event_setting[f"{param}"] = float(val)
+                else:
+                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be a float.")
+                    exit(1)
+            elif param in lat_params:
+                if islat(val):
+                    event_setting[f"{param}"] = float(val)
+                else:
+                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be in [-90, 90] range.")
+                    exit(1)
+            elif param in lon_params:
+                if islon(val):
+                    event_setting[f"{param}"] = float(val)
+                else:
+                    print(f"Error in read_download_config()\nValue of parameter '{param}' must be in [-180, 180] range.")
+                    exit(1)
+            else:
+                event_setting[f"{param}"] = val
+        else:
+            if param in list_params:
+                event_setting[f"{param}"] = []
+            else:
+                event_setting[f"{param}"] = ""
+
+    if len(str(event_setting["event_minlon"])) and len(str(event_setting["event_maxlon"])):
+        if event_setting["event_minlon"] >= event_setting["event_maxlon"]:
+            print(f"Error in read_download_config()\n'event_maxlon' must be larger than 'event_minlon'")
+            exit(1)
+
+    if len(str(event_setting["event_minlat"])) and len(str(event_setting["event_maxlat"])):
+        if event_setting["event_minlat"] >= event_setting["event_maxlat"]:
+            print(f"Error in read_download_config()\n'event_maxlat' must be larger than 'event_minlat'")
+            exit(1)
+
 
     # datacenters
     datacenters = {}
@@ -239,12 +331,12 @@ def read_download_config(args):
             exit(1)
         val = config.get('datacenters',f"{param}")
         if len(val):
-            if val.lower() == 'true':
+            if val.lower().split()[0] in ['true', 't', 'y', 'yes']:
                 datacenters[f"{param}"] = True
-            elif val.lower() == 'false':
+            elif val.lower().split()[0] in ['false', 'f', 'n', 'no']:
                 datacenters[f"{param}"] = False
             else:
-                print(f"Error in read_download_config()\nValue of parameter '{param}' must be a boolean (True/False)")
+                print(f"Error in read_download_config()\nValue of parameter '{param}' must be a boolean (True/False or Yes/No)")
                 exit(1)
 
 
@@ -266,27 +358,44 @@ def read_download_config(args):
     download_config["event_setting"] = event_setting
     download_config["datacenters"] = datacenters
     download_config["dependencies"] = dependencies
-    print(download_config)
+    # print(download_config) # just for test!
     return download_config
-    
+  
 
 
-def events(args):
+
+def download_events(args):
     config = read_download_config(args)
+    events_obj = events.EVENTS(config)
+    event_request = events_obj.request_events()
+    print('\nnumber of events found:',len(event_request['date']))
+    events_obj.write_events(event_request)
+    print(f"event list created: {config['event_setting']['event_list']}\n")
     
 
 
-def stations(args):
-    print(f"Hello from stations!")
+def download_stations(args):
+    config = read_download_config(args)
+    stations_obj = stations.STATIONS(config)
+    station_request = stations_obj.request_stalist()
+    nsta = len(station_request['sta'])
+    print('\nnumber of stations found:',len(station_request['sta']))
+    stations_obj.write_stalist(station_request)
+    print(f"station list created: {config['station_setting']['station_list']}\n")
     
 
 
-def metadata(args):
-    print(f"Hello from metadata!")
+def download_metadata(args):
+    config = read_download_config(args)
+    stations_obj = stations.STATIONS(config)
+    stations_obj.download_xml_files(args.metadata)
     
 
 
-def mseeds(args):
+def download_mseeds(args):
     print(f"Hello from mseeds!")
+    config = read_download_config(args)
+    events_obj = events.EVENTS(config)
+
     
 

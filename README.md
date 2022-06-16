@@ -2,6 +2,21 @@
 
 *gdp* provides a set of tools that are available through command-line-interface (CLI) to process and/or convert common geophysical data types.
 
+## Requirements
+
+Ubintu/Debian:
+
+```bash
+sudo apt-get install libbz2-dev
+```
+
+Fedora:
+
+```bash
+sudo yum install bzip2-devel
+```
+
+
 ## Release notes
 
 ### Version 0.1.2 (work in progress roadmap)
