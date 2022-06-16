@@ -240,8 +240,8 @@ class STATIONS:
                 print(f"    metadata {j+1} of {len(download_list[i])}:  {net}.{sta}.{chn}")
                 subprocess.call(bash_cmd, shell=True)
                 ndl += 1
-        print(f"\nnumber of downloaded metadata: {ndl}\n")
-
+        print(f"\nnumber of downloaded metadata: {ndl}")
+        print(f"output metadata directory: {metadatadir}\n")
 
 
     def gen_download_list(self, stalist):
@@ -269,6 +269,9 @@ class STATIONS:
                             if net in stalist['net'] and sta in stalist['sta']:
                                 download_list[k].append(f"{net}.{sta}")
                 except Exception:
-                    if os.path.isfile(stations_xml):
+                    pass
+                if os.path.isfile(stations_xml):
                         os.remove(stations_xml)
         return download_list
+
+

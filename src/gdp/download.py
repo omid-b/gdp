@@ -2,11 +2,13 @@
 
 import os
 import re
+import obspy
 import subprocess
 import configparser
 
 from . import events
 from . import stations
+from . import mseeds
 
 
 def isdate(text): # is a date value: 'YYYY-MM-DD'
@@ -235,6 +237,13 @@ def read_download_config(args):
             else:
                 download_setting[f"{param}"] = ""
 
+    if len(download_setting['startdate']) and len(download_setting['enddate']):
+        starttime = obspy.UTCDateTime(f"{download_setting['startdate']}T00:00:00")
+        endtime = obspy.UTCDateTime(f"{download_setting['enddate']}T23:59:59")
+        if endtime < starttime:
+            print(f"Error! 'startdate' must be earlier than (or equal) to 'enddate'")
+            exit(1)
+
 
     # station_setting
     station_setting = {}
@@ -393,9 +402,9 @@ def download_metadata(args):
 
 
 def download_mseeds(args):
-    print(f"Hello from mseeds!")
     config = read_download_config(args)
-    events_obj = events.EVENTS(config)
+    mseeds_obj = mseeds.MSEEDS(config, args)
+    mseeds_obj.download_all()
 
     
 

@@ -1025,6 +1025,29 @@ def parse_args(*args, **kwargs):
         default='./',
         help="path to directory containing 'download.config' (default='./')"
     )
+    download_mseeds.add_argument(
+        '--duration',
+        type=int,
+        required=True,
+        help="REQUIRED: timeseries length/duration in seconds."
+    )
+    download_mseeds.add_argument(
+        '--offset',
+        type=int,
+        default=0,
+        help="Timeseries starttime offset (relative to events) in seconds (default=0)."
+    )
+    download_mseeds.add_argument(
+        '--mseeds',
+        type=str,
+        default='./mseeds',
+        help="Path to output mseeds directory (default=./mseeds)."
+    )
+    download_mseeds.add_argument(
+        '--ant',
+        action='store_true',
+        help='download for ambient-noise-tomography; do not read events list (default=False)'
+    )
 
 
     # gdp seismic mseed2sac
