@@ -1065,19 +1065,24 @@ def parse_args(*args, **kwargs):
     seismic_mseed2sac.add_argument(
         '--reformat',
         action='store_true',
-        help='reformat output sac files i.e. rename and output to related directories based on mseed start time, station & channel information'
+        help='reformat output sac files: rename and output to related directories based on mseed start time, station & channel information'
     )
     seismic_mseed2sac.add_argument(
         '--offset',
         type=float,
         default=0,
-        help='output filename start time offset in seconds (only if rename=True; default=0)'
+        help='output filename start time offset in seconds (only if "reformat" is enabled; default=0)'
     )
     seismic_mseed2sac.add_argument(
         '--resample',
         type=float,
         default=999,
         help='output sac files sampling frequency'
+    )
+    seismic_mseed2sac.add_argument(
+        '--noprocess',
+        action='store_true',
+        help='by default, detrend(spline degree 4) and taper(percentage=0.005) are applied; enabling this option will skip these processes (not recommended!)'
     )
     
     
@@ -1106,6 +1111,18 @@ def parse_args(*args, **kwargs):
         action='store',
         default=[999, 999],
         help='time range limit')
+
+
+    # gdp seismic writehdr
+    seismic_writehdr = seismic_subparsers.add_parser('writehdr', help='write sac headers using xml metadata',
+    description="Write sac headers using xml metadata")
+    seismic_writehdr.add_argument("input_files", nargs='+')
+    seismic_writehdr.add_argument(
+        '--metadata',
+        type=str,
+        default='./metadata',
+        help="path to xml (metadata) dataset directory (default='./metadata')"
+    )
 
     #====mag submodules=====#
     mag = subparsers.add_parser('mag', help='geomagnetic data processing and modeling module',
@@ -1288,17 +1305,14 @@ def main(*args, **kwargs):
         elif args.submodule == 'remresp':
             sacproc.remresp(args)
             exit(0)
-        elif args.submodule == 'decimate':
-            sacproc.decimate(args)
+        elif args.submodule == 'resample':
+            sacproc.resample(args)
             exit(0)
         elif args.submodule == 'bandpass':
             sacproc.bandpass(args)
             exit(0)
         elif args.submodule == 'cut':
             sacproc.cut(args)
-            exit(0)
-        elif args.submodule == 'detrend':
-            sacproc.detrend(args)
             exit(0)
         elif args.submodule == 'remchannel':
             sacproc.remchannel(args)

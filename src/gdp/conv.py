@@ -1,7 +1,10 @@
 
 import os
 import shutil
+import subprocess
+
 from . import io
+from . import dependency
 
 
 
@@ -331,31 +334,81 @@ def mseed2sac(args):
         print(f"'{mseed_fname}' >> '{outfile}'")
         try:
             st = obspy.read(mseed)
-            st.detrend('demean')
-            st.taper(0.005)
+
+            data_starttime = obspy.UTCDateTime(st[0].stats.starttime)
+            data_endtime = obspy.UTCDateTime(st[-1].stats.endtime)
+            data_length = int(data_endtime - data_starttime)
+            begin_data = int(data_starttime.hour*3600 +
+                         data_starttime.minute*60 +
+                         data_starttime.second)
+            if regex_mseeds.match(mseed_fname):
+                request_starttime = obspy.UTCDateTime(os.path.split(mseed)[1].split('_')[2]) # obspy.UTCDateTime()
+                request_endtime = obspy.UTCDateTime(os.path.split(mseed)[1].split('_')[4].split('.')[0]) # obspy.UTCDateTime()
+                request_length = int(request_endtime - request_starttime)
+                begin_request = int(request_starttime.hour*3600 +
+                            request_starttime.minute*60 +
+                            request_starttime.second)
+
+            # apply detrend and taper
+            if not args.noprocess:
+                try:
+                    st.detrend('spline', order=4, dspline=int(data_length * 10))
+                except:
+                    st.detrend('demean')
+                st.taper(0.005)
+
             if len(st) > 1:# fix data fragmentation issue
                 st.sort(['starttime'])
                 st.merge(method=1, fill_value=0)
 
             # modify some sac headers and write to file
             st[0].stats.sac = obspy.core.AttribDict()
+            st[0].stats.sac.b = begin_data
             st[0].stats.sac.iztype = 9
             st[0].stats.sac.lovrok = True
             st[0].stats.sac.lcalda = True
+
             # resample?
             if args.resample != 999:
                 st.resample(float(args.resample))
+
             st[0].write(os.path.join(outdir, outfile), format='SAC')
+
         except Exception as e:
             print(f"  Error: {e}")
+
+        # make sure timeseries length is correct (sac cutter fillz)
+        SAC = dependency.find_sac_path()
+        if len(SAC):
+            if regex_mseeds.match(mseed_fname):
+                # cut to correct b to e and fill with zeros
+                shell_cmd = ["export SAC_DISPLAY_COPYRIGHT=0", f"{SAC}<<EOF"]
+                shell_cmd.append(f"cuterr fillz")
+                shell_cmd.append(f"cut {begin_request} {begin_request + request_length}")
+                shell_cmd.append(f"r {os.path.join(outdir, outfile)}")
+                shell_cmd.append(f"w over")
+                shell_cmd.append(f"q")
+                shell_cmd.append('EOF')
+                shell_cmd = '\n'.join(shell_cmd)
+                subprocess.call(shell_cmd, shell=True)
+
+                # reload sac file, set sac begin time to zero, correct sac kztime, and write to file
+                st = obspy.read(os.path.join(outdir, outfile), format='SAC')
+                st[0].stats.sac = obspy.core.AttribDict()
+                st[0].stats.sac.b = 0
+                st[0].stats.starttime = request_starttime
+                st[0].write(os.path.join(outdir, outfile), format='SAC')
+        else:
+            print("WARNING! SAC was not found in current terminal environment. 'cutter fillz' cannot be aplied to the output sac files.")
         ########################
 
         if len(os.listdir(outdir)) == 0:
             shutil.rmtree(outdir)
 
     # if zero outputs
-    if len(os.listdir(outdir_orig)) == 0:
-        shutil.rmtree(outdir_orig)
+    if os.path.isdir(outdir_orig):
+        if len(os.listdir(outdir_orig)) == 0:
+            shutil.rmtree(outdir_orig)
 
 
 

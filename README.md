@@ -50,11 +50,10 @@ The following new tools/modules will be added for this version:
   5. *download mseeds*: download mseed datafiles based
   6. *writehdr*: update sac headers using xml metadata (obspy method)
   7. *remresp*: remove sac file instrument response using xml metadata (obspy method)
-  8. *decimate*: decimate/resample sac timeseries using obspy methodans 
+  8. *resample*: resample sac timeseries using obspy methodans 
   9. *bandpass*: apply bandpass filter to sac files (sac method)
   10. *cut*: cut sac timeseries (sac method)
-  11. *detrend*: detrend sac timeseries (obspy method)
-  12. *remchannel*: remove extra channels
+  11. *remchannel*: remove extra channels
 
 
 - *mag* module will include the following tools:

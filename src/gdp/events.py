@@ -3,7 +3,6 @@ import os
 import re
 import shutil
 import subprocess
-import pandas as pd
 from math import floor
 from urllib import request
 import obspy
@@ -11,6 +10,8 @@ from obspy.clients.fdsn.client import Client
 from obspy.clients.fdsn.mass_downloader import RectangularDomain
 from obspy.clients.fdsn.mass_downloader import Restrictions
 from obspy.clients.fdsn.mass_downloader import MassDownloader
+
+from . import io
 
 import warnings
 with warnings.catch_warnings():
@@ -267,26 +268,18 @@ class EVENTS:
         return events
 
 
-    def write_events(self,events,sortby='date'):
+    def write_events(self,events):
+        header_lines = ["#Datacenters:"]
+        main_lines = []
         datacenters = self.get_datacenters()
-        fopen = open(self.event_list,'w')
-        fopen.write("#Datacenters:\n")
-        for dc in datacenters:
-            fopen.write(f"#{dc}\n")
 
-        fopen.write(f"\n#Date  Time  Latitude  Longitude  Depth(km)  Mag  Mag_type  JulDay  BAZ  GCARC\n")
-        events = pd.DataFrame(events)
-        if sortby == 'date':
-            events.sort_values(['date','time'],inplace=True)
-        elif sortby == 'mag':
-            events.sort_values('mag',inplace=True)
-        elif sortby == 'baz':
-            events.sort_values('baz',inplace=True)
-        elif sortby == 'gcarc':
-            events.sort_values('gcarc',inplace=True)
-        events.reset_index(inplace=True)
-        for i in range(len(events)):
-            fopen.write("%s %s %8.4f %9.4f %6s %3.1f %s %3d %3.0f %6.2f\n" %(\
+        for dc in datacenters:
+            header_lines.append(f"#{dc}")
+        header_lines.append("")
+        header_lines.append("#Date, Time, Latitude, Longitude, Depth(km), Mag, Mag_type, Julday, BAZ, GCARC")
+
+        for i in range(len(events['date'])):
+            main_lines.append("%s %s %8.4f %9.4f %6s %3.1f %s %3d %3.0f %6.2f" %(\
                 events['date'][i],
                 events['time'][i],
                 events['lat'][i],
@@ -298,7 +291,13 @@ class EVENTS:
                 events['baz'][i],
                 events['gcarc'][i]
             ))
-        fopen.close()
+        main_lines = sorted(main_lines)
+
+        outlines = header_lines + main_lines
+        
+        args = ARGS(False, False, False, self.event_list)
+        io.output_lines(outlines, args)
+        
 
 
     def read_events(self):
@@ -336,3 +335,9 @@ class EVENTS:
         return events
 
 
+class ARGS:
+    def __init__(self, uniq, sort, append, outfile):
+        self.uniq = uniq
+        self.sort = sort
+        self.append = append
+        self.outfile = outfile

@@ -150,6 +150,9 @@ class MSEEDS:
 
     def check_IRIS_availability(self,net,sta,chn,loc,iris_times):
         PERL = self.config['dependencies']['perl']
+        if not len(PERL):
+            print("Error! Perl executable is not set in 'download.config'")
+            exit(1)
         # a trick to find out if data is available: If metafile is created, data is available!
         metafile = os.path.join(self.maindir, 'check_iris.tmp')
         if os.path.isfile(metafile):
@@ -168,6 +171,9 @@ class MSEEDS:
 
     def download_mseed_IRIS(self,net,sta,chn,loc,iris_times,download_dir):
         PERL = self.config['dependencies']['perl']
+        if not len(PERL):
+            print("Error! Perl executable is not set in 'download.config'")
+            exit(1)
         utc_starttime = obspy.UTCDateTime(f"{'T'.join(iris_times[0].split(','))}Z")
         utc_endtime = obspy.UTCDateTime(f"{'T'.join(iris_times[1].split(','))}Z")
         utc_times = [utc_starttime, utc_endtime]
@@ -211,7 +217,7 @@ class MSEEDS:
                 except:
                     pass
                 if os.path.isfile(xml_file):
-                    os.remove(xml_file) # not useful for response removal in most cases!
+                    os.remove(xml_file) # not useful
 
 
     def download_all(self):

@@ -9,7 +9,7 @@ import configparser
 from . import events
 from . import stations
 from . import mseeds
-
+from . import dependency
 
 def isdate(text): # is a date value: 'YYYY-MM-DD'
     rexpr = re.compile("^[1-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$")
@@ -48,49 +48,6 @@ def islon(text): # is a longitude value
     except ValueError:
         return False
 
-
-
-def find_perl_path():
-    p = subprocess.run( [ 'which', 'perl' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-    if p.returncode == 0:
-        PERL = p.stdout.decode().split('\n')[0]
-    else:
-        PERL = ""
-    return PERL
-
-
-def find_sac_path():
-    if os.path.isfile("/usr/local/sac/bin/sac"):
-        SAC = "/usr/local/sac/bin/sac"
-    elif os.path.isfile("/usr/local/bin/sac"):
-        SAC = "/usr/local/bin/sac"
-    elif os.path.isfile("/usr/bin/sac"):
-        SAC = "/usr/bin/sac"
-    else:
-        p = subprocess.run( [ 'which', 'sac' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-        if p.returncode == 0:
-            SAC = p.stdout.decode().split('\n')[0]
-        else:
-            SAC = ""
-    return SAC
-
-
-def find_gmt_path():
-    if os.path.isfile("/usr/local/gmt/bin/gmt"):
-        GMT = "/usr/local/gmt/bin/gmt"
-    elif os.path.isfile("/usr/local/bin/gmt"):
-        GMT = "/usr/local/bin/gmt"
-    elif os.path.isfile("/usr/bin/gmt"):
-        GMT = "/usr/bin/gmt"
-    elif os.path.isfile("/home/marco/Documents/GMT/bin/gmt"):
-        GMT = "/home/marco/Documents/GMT/bin/gmt"
-    else:
-        p = subprocess.run( [ 'which', 'gmt' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-        if p.returncode == 0:
-            GMT = p.stdout.decode().split('\n')[0]
-        else:
-            GMT = ""
-    return GMT
 
 
 
@@ -161,9 +118,9 @@ sac = %s
 gmt = %s \n""" %(
         station_list,
         event_list,
-        find_perl_path(),
-        find_sac_path(),
-        find_gmt_path()
+        dependency.find_perl_path(),
+        dependency.find_sac_path(),
+        dependency.find_gmt_path()
     )
     fopen = open(config_file, 'w')
     fopen.write(config_text)
@@ -405,6 +362,7 @@ def download_mseeds(args):
     config = read_download_config(args)
     mseeds_obj = mseeds.MSEEDS(config, args)
     mseeds_obj.download_all()
+    print("\ndownload finished!\n")
 
     
 
