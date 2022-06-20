@@ -298,6 +298,7 @@ def sac2dat(args):
 def mseed2sac(args):
     import re
     import obspy
+    args.offset = -1 * args.offset
     datetime = '[1-2][0-9][0-9][0-9][0-1][0-9][0-3][0-9]T[0-2][0-9][0-5][0-9][0-5][0-9]Z'
     mseeds = f'^.*{datetime}\_\_{datetime}.*$'
     regex_mseeds = re.compile(mseeds)

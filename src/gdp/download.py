@@ -177,13 +177,12 @@ def read_download_config(args):
             if param in ["obspy_mdl_script", "iris_fetch_script"]:
                 if val.lower().split()[0] in ['true', 't', 'y', 'yes']:
                     download_setting[f"{param}"] = True
-                elif val.lower().split()[0] in ['flase', 'f', 'n', 'no']:
+                elif val.lower().split()[0] in ['false', 'f', 'n', 'no']:
                     download_setting[f"{param}"] = False
                 else:
                     print(f"Error in read_download_config()\nValue of parameter '{param}' must be a boolean (True/False or Yes/No)")
                     exit(1)
-
-            if param in ["startdate", "enddate"] and not isdate(val):
+            elif param in ["startdate", "enddate"] and not isdate(val):
                 print(f"Error in read_download_config()\nValue of parameter '{param}' must be in 'YYYY-MM-DD' format.")
                 exit(1)
             else:

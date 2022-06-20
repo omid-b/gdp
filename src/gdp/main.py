@@ -1071,7 +1071,7 @@ def parse_args(*args, **kwargs):
         '--offset',
         type=float,
         default=0,
-        help='output filename start time offset in seconds (only if "reformat" is enabled; default=0)'
+        help='output event starttime offset in seconds (only if "reformat" is enabled; default=0); same offset value that was used for data acquisition'
     )
     seismic_mseed2sac.add_argument(
         '--resample',
@@ -1122,6 +1122,17 @@ def parse_args(*args, **kwargs):
         type=str,
         default='./metadata',
         help="path to xml (metadata) dataset directory (default='./metadata')"
+    )
+    seismic_writehdr.add_argument(
+        '--maindir',
+        type=str,
+        default='./',
+        help="path to directory containing 'download.config' (default='./')"
+    )
+    seismic_writehdr.add_argument(
+        '--ant',
+        action='store_true',
+        help='ambient noise tomography dataset: do not update events information (default=False)'
     )
 
     #====mag submodules=====#

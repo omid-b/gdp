@@ -40,6 +40,12 @@ class MSEEDS:
             print("Error! Station channels to download are not specified.\n")
             exit(1)
 
+        if self.config['download_setting']['iris_fetch_script'] == False and  \
+            self.config['download_setting']['obspy_mdl_script'] == False:
+            print("Error! Both 'iris_fetch_script' and 'obspy_mdl_script' are disabled.")
+            print("Check section 'download_setting' in 'download.config'.\n")
+            exit(1)
+
 
     def get_datacenters(self):
         datacenters = []
@@ -238,10 +244,10 @@ class MSEEDS:
             for loc in self.locations:
                 for chn in self.channels:
                     for k in range(len(sta)):
-                        if "IRIS" in self.get_datacenters() and self.config['download_setting']['iris_fetch_script']:
-                            self.download_mseed_IRIS(net[k],sta[k],chn,loc,iris_times[i],download_dir)
                         if len(self.get_datacenters()) and self.config['download_setting']['obspy_mdl_script']:
                             self.download_mseed_FDSN(net[k],sta[k],chn,loc,utc_times[i],download_dir)
+                        if "IRIS" in self.get_datacenters() and self.config['download_setting']['iris_fetch_script']:
+                            self.download_mseed_IRIS(net[k],sta[k],chn,loc,iris_times[i],download_dir)
             ###############
             if not len(os.listdir(download_dir)):
                 shutil.rmtree(download_dir)
