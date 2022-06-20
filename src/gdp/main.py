@@ -1116,7 +1116,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic writehdr
     seismic_writehdr = seismic_subparsers.add_parser('writehdr', help='write sac headers using xml metadata',
     description="Write sac headers using xml metadata")
-    seismic_writehdr.add_argument("input_files", nargs='+')
+    seismic_writehdr.add_argument("input_files", nargs='+', help='input sac files')
     seismic_writehdr.add_argument(
         '--metadata',
         type=str,
@@ -1134,6 +1134,138 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='ambient noise tomography dataset: do not update events information (default=False)'
     )
+    seismic_writehdr.add_argument(
+        '--sac',
+        type=str,
+        default='auto',
+        help='path to sac software executable (default=auto)'
+    )
+
+    # gdp seismic remresp
+    seismic_remresp = seismic_subparsers.add_parser('remresp', help='remove sac instrument response using xml metadata',
+    description="Remove instrument response of sacfiles using xml metadata (see obspy documentation for 'unit' and 'prefilter' information)")
+    seismic_remresp.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_remresp.add_argument(
+        '--metadata',
+        type=str,
+        default='./metadata',
+        help="path to xml (metadata) dataset directory (default='./metadata')"
+    )
+    seismic_remresp.add_argument(
+        '--unit',
+        type=str,
+        choices=['DISP','VEL','ACC'],
+        default='VEL',
+        help="output unit; (default='VEL')"
+    )
+    seismic_remresp.add_argument(
+        '--prefilter',
+        type=float,
+        nargs=4,
+        default=(0.005, 0.006, 30.0, 35.0),
+        help="prefilter; default=(0.005, 0.006, 30.0, 35.0); enter 4 zeros to disable"
+    )
+
+
+    # gdp seismic resample
+    seismic_resample = seismic_subparsers.add_parser('resample', help='resample sac files',
+    description="Resample sac files using obspy")
+    seismic_resample.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_resample.add_argument(
+        '--sf',
+        type=int,
+        required=True,
+        help='REQUIRED: output sampling frequency (Hz)'
+    )
+    seismic_resample.add_argument(
+        '--sac',
+        type=str,
+        default='auto',
+        help='path to sac software executable (default=auto)'
+    )
+
+
+    # gdp seismic bandpass
+    seismic_bandpass = seismic_subparsers.add_parser('bandpass', help='apply bandpass filter to sac files',
+    description="Apply bandpass filter to sac files")
+    seismic_bandpass.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_bandpass.add_argument(
+        '--cp1',
+        type=float,
+        required=True,
+        help='REQUIRED: corner period 1 (s)'
+    )
+    seismic_bandpass.add_argument(
+        '--cp2',
+        type=float,
+        required=True,
+        help='REQUIRED: corner period 2 (s)'
+    )
+    seismic_bandpass.add_argument(
+        '-n',
+        '--n',
+        type=int,
+        default=3,
+        help='number of poles (default: n=3)'
+    )
+    seismic_bandpass.add_argument(
+        '-p',
+        '--p',
+        type=int,
+        default=3,
+        help='number of passes (default: p=2)'
+    )
+    seismic_bandpass.add_argument(
+        '--sac',
+        type=str,
+        default='auto',
+        help='path to sac software executable (default=auto)'
+    )
+
+    # gdp seismic cut
+    seismic_cut = seismic_subparsers.add_parser('cut', help='cut sac files (also applies cutter fillz)',
+    description="Cut sac files (also applies cutter fillz)")
+    seismic_cut.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_cut.add_argument(
+        '--begin',
+        type=float,
+        required=True,
+        help='REQUIRED: cut begin time (s)'
+    )
+    seismic_cut.add_argument(
+        '--end',
+        type=float,
+        required=True,
+        help='REQUIRED: cut end time (s)'
+    )
+    seismic_cut.add_argument(
+        '--sac',
+        type=str,
+        default='auto',
+        help='path to sac software executable (default=auto)'
+    )
+
+
+    # gdp seismic remchannel
+    seismic_remchannel = seismic_subparsers.add_parser('remchannel', help='remove extra/similar channels from event directories',
+    description="remove extra/similar channels from event directories")
+    seismic_remchannel.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_remchannel.add_argument(
+        '--channels',
+        type=str,
+        required=True,
+        nargs='+',
+        help='REQUIRED: list of similar channels'
+    )
+    seismic_remchannel.add_argument(
+        '--onlykeep',
+        type=str,
+        required=True,
+        nargs='+',
+        help='REQUIRED: if all similar channels are available, only keep these channels'
+    )
+
+
 
     #====mag submodules=====#
     mag = subparsers.add_parser('mag', help='geomagnetic data processing and modeling module',

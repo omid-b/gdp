@@ -249,7 +249,7 @@ class EVENTS:
                     # GCARC and BAZ
                     point1 = geographic.Point(self.region_lon, self.region_lat)
                     point2 = geographic.Point(float(lon), float(lat))
-                    gcline = geographic.Line(point1, point2)
+                    gcline = geographic.Line(point2, point1)
                     baz = gcline.calc_baz()
                     gcarc = gcline.calc_gcarc()
                     # append data to output dictionary
