@@ -2,3 +2,5 @@ global-exclude *.py[cod]
 global-exclude .DS_Store
 global-exclude __pycache__
 global-include *.pyx
+include src/gdp/data/*
+include src/gdp/data/tectonics/*

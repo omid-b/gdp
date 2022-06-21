@@ -13,9 +13,13 @@ fetch_data_script = os.path.join(pkg_dir, "FetchData-2018.337")
 
 class STATIONS:
 
-    def __init__(self,config):
-        self.config = config
-        self.stalist_file = config['station_setting']['station_list']
+    def __init__(self,config,stalist_input=False):
+        if stalist_input:
+            self.stalist_file = config
+        else:
+            self.config = config
+            self.stalist_file = config['station_setting']['station_list']
+        
         self.stalist_fname = os.path.split(self.stalist_file)[1]
         self.maindir = os.path.abspath(os.path.split(self.stalist_file)[0])
 

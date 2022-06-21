@@ -1203,14 +1203,12 @@ def parse_args(*args, **kwargs):
     )
     seismic_bandpass.add_argument(
         '-n',
-        '--n',
         type=int,
         default=3,
         help='number of poles (default: n=3)'
     )
     seismic_bandpass.add_argument(
         '-p',
-        '--p',
         type=int,
         default=2,
         help='number of passes (default: p=2)'
@@ -1285,6 +1283,118 @@ def parse_args(*args, **kwargs):
     description="forward modeling of uniformly magnetized sphere(s) over a local grid")
         
     
+
+    #====plot submodules=====#
+    plot = subparsers.add_parser('plot', help='plot module (requires GMT)',
+    description="Plot module (requires GMT)")
+    plot_subparsers = plot.add_subparsers(dest='submodule')
+
+    # gdp plot stations
+    plot_stations = plot_subparsers.add_parser('stations', help='plot seismic stations on a map',
+    description="Plot seismic stations on a map")
+    plot_stations.add_argument("stalist", type=str, help='input station list file')
+    plot_stations.add_argument(
+        '--labels',
+        action='store_true',
+        help='print station labels on the output map')
+    plot_stations.add_argument(
+        '--gmt',
+        type=str,
+        default='auto',
+        help='path to GMT software executable (default=auto)'
+    )
+
+    # gdp plot events
+    plot_events = plot_subparsers.add_parser('events', help='plot seismic events on a map',
+    description="Plot seismic events on a map")
+    plot_events.add_argument("eventlist", type=str, help='input event list file')
+    plot_events.add_argument(
+        '--lon',
+        type=float,
+        required=True,
+        help='REQUIRED: study region longitude')
+    plot_events.add_argument(
+        '--lat',
+        type=float,
+        required=True,
+        help='REQUIRED: study region latitude')
+    plot_events.add_argument(
+        '--gmt',
+        type=str,
+        default='auto',
+        help='path to GMT software executable (default=auto)'
+    )
+
+    # gdp plot hist
+    plot_hist = plot_subparsers.add_parser('hist', help='generate histogram plots',
+    description="Generate histogram plots")
+    plot_hist.add_argument(
+        "input_files",
+        type=str,
+        nargs='+',
+        help='input data files'
+    )
+    plot_hist.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[1],
+        help='value/data column number(s) (default=[1])')
+    plot_hist.add_argument(
+        '-n',
+        '-nbins',
+        type=int,
+        default=999,
+        help='number of bins (default=auto)')
+    plot_hist.add_argument(
+        '--legend',
+        type=str,
+        nargs='+',
+        action='store',
+        default=[],
+        help='legend text; number of elements must be equal to input data items (note: use underline for space)')
+    plot_hist.add_argument(
+        '--xlabel',
+        type=str,
+        nargs='+',
+        action='store',
+        default=['Values'],
+        help='x-axis label')
+    plot_hist.add_argument(
+        '--ylabel',
+        type=str,
+        nargs='+',
+        action='store',
+        default=['Count'],
+        help='y-axis label')
+    plot_hist.add_argument(
+        '--title',
+        type=str,
+        nargs='+',
+        action='store',
+        default=[],
+        help='plot title')
+    plot_hist.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4"],
+        help='float format for positional and value columns respectively (default=0.4)')
+    plot_hist.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    plot_hist.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    
     # return arguments
     return parser.parse_args()
 
@@ -1303,6 +1413,7 @@ def main(*args, **kwargs):
     from . import sacproc
     from . import download
     from . import mag
+    from . import plot
 
     if args.module == 'cat':
         from . import io
@@ -1475,6 +1586,18 @@ def main(*args, **kwargs):
             exit(0)
         else:
             subprocess.call('gdp mag -h', shell=True)
+    elif args.module == 'plot':
+        if args.submodule == 'stations':
+            plot.plot_stations(args.stalist, args.labels, GMT=args.gmt)
+            exit(0)
+        elif args.submodule == 'events':
+            plot.plot_events(args.eventlist, args.lon, args.lat, GMT=args.gmt)
+            exit(0)
+        elif args.submodule == 'hist':
+            plot.plot_hist(args)
+            exit(0)
+        else:
+            subprocess.call('gdp plot -h', shell=True)
     else:
         subprocess.call('gdp -h', shell=True)
 

@@ -24,98 +24,101 @@ with warnings.catch_warnings():
 
 class EVENTS:
 
-    def __init__(self, config):
-        self.config = config
-
-        event_list = config['event_setting']['event_list']
-        starttime = config['download_setting']['startdate']
-        endtime = config['download_setting']['enddate']
-        min_mag = config['event_setting']['event_min_mag']
-        min_gcarc = config['event_setting']['event_min_gcarc']
-        max_gcarc = config['event_setting']['event_max_gcarc']
-        minlon = config['event_setting']['event_minlon']
-        maxlon = config['event_setting']['event_maxlon']
-        minlat = config['event_setting']['event_minlat']
-        maxlat = config['event_setting']['event_maxlat']
-
-        if len(event_list):
-            self.event_list = event_list
+    def __init__(self, config, eventlist_input=False):
+        if eventlist_input:
+            self.event_list = config
         else:
-            print("Error! Parameter 'event_list' is not specified in 'download.config'.")
-            exit(1)
+            self.config = config
 
-        if len(starttime):
-            self.starttime = obspy.UTCDateTime(f"{starttime}T00:00:00")
-        else:
-            print(f"Error! Parameter 'startdate' is not specified in 'download.config'")
-            exit(1)
+            event_list = config['event_setting']['event_list']
+            starttime = config['download_setting']['startdate']
+            endtime = config['download_setting']['enddate']
+            min_mag = config['event_setting']['event_min_mag']
+            min_gcarc = config['event_setting']['event_min_gcarc']
+            max_gcarc = config['event_setting']['event_max_gcarc']
+            minlon = config['event_setting']['event_minlon']
+            maxlon = config['event_setting']['event_maxlon']
+            minlat = config['event_setting']['event_minlat']
+            maxlat = config['event_setting']['event_maxlat']
 
-        if len(endtime):
-            self.endtime = obspy.UTCDateTime(f"{endtime}T00:00:00")
-        else:
-            print(f"Error! Parameter 'enddate' is not specified in 'download.config'")
-            exit(1)
-
-        if len(str(min_mag)):
-            self.min_mag = str(min_mag)
-        else:
-            print(f"Error! Parameter 'event_min_mag' is not specified in 'download.config'")
-            exit(1)
-
-        if len(str(minlon)):
-            self.minlon = float(minlon)
-        else:
-            print(f"Error! Parameter 'event_minlon' is not specified in 'download.config'")
-            exit(1)
-
-        if len(str(maxlon)):
-            self.maxlon = float(maxlon)
-        else:
-            print(f"Error! Parameter 'event_maxlon' is not specified in 'download.config'")
-            exit(1)
-
-        if len(str(minlat)):
-            self.minlat = float(minlat)
-        else:
-            print(f"Error! Parameter 'event_minlat' is not specified in 'download.config'")
-            exit(1)
-
-        if len(str(maxlat)):
-            self.maxlat = float(maxlat)
-        else:
-            print(f"Error! Parameter 'event_maxlat' is not specified in 'download.config'")
-            exit(1)
-
-        if len(str(min_gcarc)):
-            self.min_gcarc = float(min_gcarc)
-        else:
-            print(f"Error! Parameter 'event_min_gcarc' is not specified in 'download.config'")
-            exit(1)
-
-        if len(str(max_gcarc)):
-            self.max_gcarc = float(max_gcarc)
-        else:
-            print(f"Error! Parameter 'event_max_gcarc' is not specified in 'download.config'")
-            exit(1)
-
-        for param in ['event_minlon','event_maxlon','event_minlat','event_maxlat']:
-            if len(str(config['event_setting'][param])) == 0:
-                print(f"Error! Parameter '{param}' is not specified in 'download.config'")
+            if len(event_list):
+                self.event_list = event_list
+            else:
+                print("Error! Parameter 'event_list' is not specified in 'download.config'.")
                 exit(1)
 
-        calc_baz_gcarc = True
-        for param in ['station_minlon','station_maxlon','station_minlat','station_maxlat']:
-            if len(str(config['station_setting'][param])) == 0:
-                calc_baz_gcarc = False
+            if len(starttime):
+                self.starttime = obspy.UTCDateTime(f"{starttime}T00:00:00")
+            else:
+                print(f"Error! Parameter 'startdate' is not specified in 'download.config'")
+                exit(1)
 
-        if calc_baz_gcarc:
-            self.region_lat = (config['station_setting']['station_minlat'] + config['station_setting']['station_maxlat']) / 2
-            self.region_lon = (config['station_setting']['station_minlon'] + config['station_setting']['station_maxlon']) / 2
-        else:
-            print("Error! Study area coordinates are not specified.")
-            print("This information is required to calculate BAZ and GCARC values.")
-            print("Check section 'station_setting' in 'download.config'.")
-            exit(1)
+            if len(endtime):
+                self.endtime = obspy.UTCDateTime(f"{endtime}T00:00:00")
+            else:
+                print(f"Error! Parameter 'enddate' is not specified in 'download.config'")
+                exit(1)
+
+            if len(str(min_mag)):
+                self.min_mag = str(min_mag)
+            else:
+                print(f"Error! Parameter 'event_min_mag' is not specified in 'download.config'")
+                exit(1)
+
+            if len(str(minlon)):
+                self.minlon = float(minlon)
+            else:
+                print(f"Error! Parameter 'event_minlon' is not specified in 'download.config'")
+                exit(1)
+
+            if len(str(maxlon)):
+                self.maxlon = float(maxlon)
+            else:
+                print(f"Error! Parameter 'event_maxlon' is not specified in 'download.config'")
+                exit(1)
+
+            if len(str(minlat)):
+                self.minlat = float(minlat)
+            else:
+                print(f"Error! Parameter 'event_minlat' is not specified in 'download.config'")
+                exit(1)
+
+            if len(str(maxlat)):
+                self.maxlat = float(maxlat)
+            else:
+                print(f"Error! Parameter 'event_maxlat' is not specified in 'download.config'")
+                exit(1)
+
+            if len(str(min_gcarc)):
+                self.min_gcarc = float(min_gcarc)
+            else:
+                print(f"Error! Parameter 'event_min_gcarc' is not specified in 'download.config'")
+                exit(1)
+
+            if len(str(max_gcarc)):
+                self.max_gcarc = float(max_gcarc)
+            else:
+                print(f"Error! Parameter 'event_max_gcarc' is not specified in 'download.config'")
+                exit(1)
+
+            for param in ['event_minlon','event_maxlon','event_minlat','event_maxlat']:
+                if len(str(config['event_setting'][param])) == 0:
+                    print(f"Error! Parameter '{param}' is not specified in 'download.config'")
+                    exit(1)
+
+            calc_baz_gcarc = True
+            for param in ['station_minlon','station_maxlon','station_minlat','station_maxlat']:
+                if len(str(config['station_setting'][param])) == 0:
+                    calc_baz_gcarc = False
+
+            if calc_baz_gcarc:
+                self.region_lat = (config['station_setting']['station_minlat'] + config['station_setting']['station_maxlat']) / 2
+                self.region_lon = (config['station_setting']['station_minlon'] + config['station_setting']['station_maxlon']) / 2
+            else:
+                print("Error! Study area coordinates are not specified.")
+                print("This information is required to calculate BAZ and GCARC values.")
+                print("Check section 'station_setting' in 'download.config'.")
+                exit(1)
 
 
     def get_datacenters(self):
@@ -321,17 +324,21 @@ class EVENTS:
         }
         for line in flines:
             line = line.strip()
-            if len(line) and line[0] != '#':
-                events['date'].append(str(line.split()[0]))
-                events['time'].append(str(line.split()[1]))
-                events['lat'].append(float(line.split()[2]))
-                events['lon'].append(float(line.split()[3]))
-                events['dep'].append(str(line.split()[4]))
-                events['mag'].append(float(line.split()[5]))
-                events['mag_type'].append(str(line.split()[6]))
-                events['julday'].append(int(line.split()[7]))
-                events['baz'].append(float(line.split()[8]))
-                events['gcarc'].append(float(line.split()[9]))
+            try:
+                if len(line) and line[0] != '#':
+                    events['date'].append(str(line.split()[0]))
+                    events['time'].append(str(line.split()[1]))
+                    events['lat'].append(float(line.split()[2]))
+                    events['lon'].append(float(line.split()[3]))
+                    events['dep'].append(str(line.split()[4]))
+                    events['mag'].append(float(line.split()[5]))
+                    events['mag_type'].append(str(line.split()[6]))
+                    events['julday'].append(int(line.split()[7]))
+                    events['baz'].append(float(line.split()[8]))
+                    events['gcarc'].append(float(line.split()[9]))
+            except Exception:
+                print(f"Read event list format Error!")
+                exit(1)
         return events
 
 
