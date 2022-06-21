@@ -1212,7 +1212,7 @@ def parse_args(*args, **kwargs):
         '-p',
         '--p',
         type=int,
-        default=3,
+        default=2,
         help='number of passes (default: p=2)'
     )
     seismic_bandpass.add_argument(
@@ -1246,18 +1246,18 @@ def parse_args(*args, **kwargs):
     )
 
 
-    # gdp seismic remchannel
-    seismic_remchannel = seismic_subparsers.add_parser('remchannel', help='remove extra/similar channels from event directories',
-    description="remove extra/similar channels from event directories")
-    seismic_remchannel.add_argument("input_files", nargs='+', help='input sac files')
-    seismic_remchannel.add_argument(
+    # gdp seismic remchan
+    seismic_remchan = seismic_subparsers.add_parser('remchan', help='remove extra channels from event directories',
+    description="remove extra channels from event directories")
+    seismic_remchan.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_remchan.add_argument(
         '--channels',
         type=str,
         required=True,
         nargs='+',
         help='REQUIRED: list of similar channels'
     )
-    seismic_remchannel.add_argument(
+    seismic_remchan.add_argument(
         '--onlykeep',
         type=str,
         required=True,
@@ -1457,8 +1457,8 @@ def main(*args, **kwargs):
         elif args.submodule == 'cut':
             sacproc.cut(args)
             exit(0)
-        elif args.submodule == 'remchannel':
-            sacproc.remchannel(args)
+        elif args.submodule == 'remchan':
+            sacproc.remchan(args)
             exit(0)
         else:
             subprocess.call('gdp seismic -h', shell=True)

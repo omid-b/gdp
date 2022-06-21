@@ -1,6 +1,7 @@
 **.DS_Store
 **_geographic.c
 **_funcs.c
+test/
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

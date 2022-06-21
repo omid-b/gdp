@@ -67,7 +67,7 @@ The following new tools/modules will be added for this version:
 
   1. *stations*: plot stations list using gmt
   2. *events*: plot events list using gmt
-
+  3. *hist*: plot histogram(s)
 
 ### Version 0.1.1
 

@@ -132,8 +132,8 @@ def writehdr(args):
     else:
         SAC = args.sac
     if not len(SAC):
-        print("Error! Could not find SAC executable! Use flag 'sac' to fix this issue.")
-        print("This operation requires SAC to be installed.")
+        print("Error! Could not find SAC executable! This operation requires SAC to be installed.")
+        print("Use flag 'sac' to fix this issue.")
         exit(1)
 
     metadata_dir = os.path.abspath(args.metadata)
@@ -273,29 +273,215 @@ def remresp(args):
 
 
     
-def decimate(args):
-    print("Hello from decimate!")
-    exit(0)
+def resample(args):
+    if args.sac == 'auto':
+        SAC = dependency.find_sac_path()
+    else:
+        SAC = args.sac
+    if not len(SAC):
+        print("Error! Could not find SAC executable! This operation requires SAC to be installed.")
+        print("Use flag 'sac' to fix this issue.")
+        exit(1)
+
+    sacfiles_info = get_sacfiles_info(args.input_files)
+    sacfiles = list(sacfiles_info.keys())
+
+    # start resample process
+    nerr = 0
+    errors = []
+    for sacfile in sacfiles:
+        print(f"resample: '{sacfile}' ... ", end="\r")
+        resample_success = obspy_decimate(sacfile, sacfile, args.sf, SAC=SAC)
+
+        if resample_success:
+            print(f"resample: '{sacfile}' ... OK")
+        else:
+            nerr += 1
+            errors.append(sacfile)
+            print(f"resample: '{sacfile}' ... Failed")
+
+    if nerr == 0:
+        print("\nall successful!\n")
+    else:
+        print("\nnumber of errors: {nerr}\nsee 'resample_errors.txt'")
+        fopen = open('resample_errors.txt', 'a')
+        for err in errors:
+            fopen.write(f"{err}\n")
+        fopen.close()
 
     
 def bandpass(args):
-    print("Hello from bandpass!")
-    exit(0)
+    if args.sac == 'auto':
+        SAC = dependency.find_sac_path()
+    else:
+        SAC = args.sac
+    if not len(SAC):
+        print("Error! Could not find SAC executable! This operation requires SAC to be installed.")
+        print("Use flag 'sac' to fix this issue.")
+        exit(1)
+
+    if args.cp1 > args.cp2:
+        print(f"Error! 'cp2' must be larger than 'cp1'.\n")
+        exit(1)
+
+    if args.n not in range(1,11):
+        print(f"Error! Number of poles ('n') must be in 1-10 range.\n")
+        exit(1)
+
+    if args.p not in [1, 2]:
+        print(f"Error! Number of passes ('p') must be in [1, 2].\n")
+        exit(1)
+
+    sacfiles_info = get_sacfiles_info(args.input_files)
+    sacfiles = list(sacfiles_info.keys())
+
+    # start bandpass filtering process
+    nerr = 0
+    errors = []
+    for sacfile in sacfiles:
+        print(f"bandpass: '{sacfile}' ... ", end="\r")
+
+        bandpass_success = sac_bandpass_filter(sacfile, sacfile,
+                           args.cp1, args.cp2, n=args.n, p=args.p, SAC=SAC)
+
+        if bandpass_success:
+            print(f"bandpass: '{sacfile}' ... OK")
+        else:
+            nerr += 1
+            errors.append(sacfile)
+            print(f"bandpass: '{sacfile}' ... Failed")
+
+    if nerr == 0:
+        print("\nall successful!\n")
+    else:
+        print("\nnumber of errors: {nerr}\nsee 'bandpass_errors.txt'")
+        fopen = open('bandpass_errors.txt', 'a')
+        for err in errors:
+            fopen.write(f"{err}\n")
+        fopen.close()
 
     
 def cut(args):
-    print("Hello from cut!")
-    exit(0)
+    if args.sac == 'auto':
+        SAC = dependency.find_sac_path()
+    else:
+        SAC = args.sac
+    if not len(SAC):
+        print("Error! Could not find SAC executable! This operation requires SAC to be installed.")
+        print("Use flag 'sac' to fix this issue.")
+        exit(1)
+
+    if args.begin > args.end:
+        print(f"Error! 'end' must be larger than 'begin'.\n")
+        exit(1)
+
+    sacfiles_info = get_sacfiles_info(args.input_files)
+    sacfiles = list(sacfiles_info.keys())
+
+    # start cut process
+    nerr = 0
+    errors = []
+    for sacfile in sacfiles:
+        print(f"cut: '{sacfile}' ... ", end="\r")
+
+        cut_success = sac_cut_fillz(sacfile, sacfile,
+                      args.begin, args.end, SAC=SAC)
+
+        if cut_success:
+            print(f"cut: '{sacfile}' ... OK")
+        else:
+            nerr += 1
+            errors.append(sacfile)
+            print(f"cut: '{sacfile}' ... Failed")
+
+    if nerr == 0:
+        print("\nall successful!\n")
+    else:
+        print("\nnumber of errors: {nerr}\nsee 'cut_errors.txt'")
+        fopen = open('cut_errors.txt', 'a')
+        for err in errors:
+            fopen.write(f"{err}\n")
+        fopen.close()
+
 
     
-def detrend(args):
-    print("Hello from detrend!")
-    exit(0)
-
     
-def remchannel(args):
-    print("Hello from remchannel!")
-    exit(0)
+def remchan(args):
+    for channel in args.onlykeep:
+        if channel not in args.channels:
+            print(f"Error for channel '{channel}'! Channels listed in 'onlykeep' must be all in 'channels'.")
+            exit(1)
+
+    sacfiles_info = get_sacfiles_info(args.input_files)
+    sacfiles = list(sacfiles_info.keys())
+
+    # store events_sacs
+    events_sacs = {}
+    for sacfile in sacfiles:
+        tag = sacfiles_info[sacfile]['tag']
+        event = sacfiles_info[sacfile]['event']
+        event_path = os.path.split(sacfile)[0]
+        if event_path not in events_sacs.keys():
+            events_sacs[f"{event_path}"] = []
+        events_sacs[f"{event_path}"].append(sacfile)
+    
+    # start sac_remove_extra_channels process
+    removed = []
+    for event_dir in events_sacs.keys():
+        print(f"remchan: '{event_dir}'")
+        sacfiles = events_sacs[event_dir]
+        removed += remove_extra_channels(sacfiles, sacfiles_info,
+                                             args.channels, args.onlykeep)
+
+    print(f"\nnumber of removed files: {len(removed)}\n")
+    if len(removed) != 0:
+        print("list of removed files are appended to 'remchan_removed.txt'\n")
+        fopen = open('remchan_removed.txt', 'a')
+        for f in removed:
+            fopen.write(f"{f}\n")
+        fopen.close()
+
+
+
+def remove_extra_channels(sacfiles, sacfiles_info, channels, onlykeep):
+    removed = []
+    netsta_uniq = []
+    for sacfile in sacfiles:
+        tag = sacfiles_info[sacfile]['tag']
+        netsta = '.'.join(tag.split('.')[0:2])
+        if netsta not in netsta_uniq:
+            netsta_uniq.append(netsta)
+    netsta_uniq = sorted(netsta_uniq)
+
+    for netsta in netsta_uniq:
+
+        # tags of interest for this netsta
+        tags_of_interest = []
+        for channel in channels:
+            tags_of_interest.append(f"{netsta}.{channel}")
+        
+        # available tags for this netsta
+        tags_available = []
+        for sacfile in sacfiles:
+            tag = sacfiles_info[sacfile]['tag']
+            if netsta in tag and tag not in tags_available:
+                tags_available.append(tag)
+
+        # check if all channels of interest are available for this netsta
+        all_tags_available = True
+        for tag in tags_of_interest:
+            if tag not in tags_available:
+                all_tags_available = False
+
+        # start remove extra channels
+        if all_tags_available:
+            for sacfile in sacfiles:
+                tag = sacfiles_info[sacfile]['tag']
+                chn = tag.split('.')[-1]
+                if tag in tags_of_interest and chn not in onlykeep:
+                    os.remove(sacfile)
+                    removed.append(sacfile)
+    return removed
 
 
 
