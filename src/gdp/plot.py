@@ -4,7 +4,6 @@ import numpy as np
 import subprocess
 import shutil
 import re
-import matplotlib.pyplot as plt
 
 from . import io
 from . import stations
@@ -13,18 +12,90 @@ from . import dependency
 
 pkg_dir, _ = os.path.split(__file__)
 
-
 def plot_hist(args):
-    print("hello from plot hist!")
+    import random
+    import matplotlib.pyplot as plt
+    import seaborn as sns
     datasets = []
+    datasets_all = []
     for input_file in args.input_files:
         data = io.read_numerical_data(input_file, args.header, args.footer,
                                       args.fmt, [], args.v, skipnan=True)
         for v in data[1]:
-            datasets.append(v)
-    
-    print(datasets)
-    print(len(datasets))
+            if len(v):
+                datasets.append(v)
+                datasets_all += v
+            else:
+                print("Error reading data column!\nHint: check argument 'v'")
+                exit(1)
+    nod = len(datasets)
+    print(f"number of datasets: {nod}\n\n  generating histogram plot ...\n")
+    # nbins
+    if args.nbins == 999: # auto
+        nbins = []
+        for dataset in datasets:
+            nbins.append(np.sqrt(len(dataset)))
+        nbins = int(np.nanmin(nbins))
+        if nbins > 20:
+            nbins = 20
+    else:
+        nbins = args.nbins
+    # legend
+    if len(args.legend) == 0: #auto
+        legend = []
+        for i in range(nod):
+            legend.append(f"data_{i+1}")
+    else:
+        legend = args.legend
+    if len(legend) != nod:
+        print(f"Error! Number of 'legend' items does not match the number of datasets.")
+        print(f"Hint: Use underline instead of space for each legend item.")
+        exit(1)
+    # xlabel & ylabel & title
+    xlabel = ' '.join(args.xlabel)
+    ylabel = ' '.join(args.ylabel)
+    title = ' '.join(args.title)
+    # start plot
+    bins = np.linspace(np.min(datasets_all), np.max(datasets_all), num=nbins+1).tolist()
+    sns.set_style("ticks")
+    sns.set_context("notebook")
+    fig = plt.figure(figsize=(8,6))
+    ax = plt.subplot(1,1,1)
+    colors = [(0.12,0.48,0.419,0.80),
+              (0.11,0.23,0.48,0.75),
+              (0.47,0.15,0.15,0.70)]
+    for i in range(nod):
+        if i < len(colors):
+            color = colors[i]
+        else:
+            color = (random.randint(0,500)/1000,
+                       random.randint(0,500)/1000,
+                       random.randint(0,500)/1000,
+                       0.75)
+            colors.append(color)
+        ax.hist(datasets[i], label=legend[i].replace('_',' '), color=colors[i], bins=bins)
+    max_y = ax.get_ylim()[1]*1.1
+    if args.mean:
+        for i in range(nod):
+            plt.plot((np.nanmean(datasets[i]),np.nanmean(datasets[i])),(0,max_y),ls="dashed",lw=4,color=colors[i][0:3])
+    if args.median:
+        for i in range(nod):
+            plt.plot((np.nanmedian(datasets[i]),np.nanmedian(datasets[i])),(0,max_y),ls="dashed",lw=4,color=colors[i][0:3])
+    if len(title):
+        plt.title(title)
+    if len(xlabel):
+        plt.xlabel(xlabel)
+    if len(ylabel):
+        plt.ylabel(ylabel)
+    ax.legend(loc=2)
+    plt.ylim((0,max_y))
+    # save plot
+    outfile = os.path.abspath(args.o)
+    if os.path.splitext(outfile)[1] != '.pdf':
+        outfile = f"{outfile}.pdf"
+    plt.savefig(outfile, format="PDF", transparent=True)
+    plt.close()
+    print(f"output: {outfile}\n\nDone!\n")
 
 
 
@@ -103,6 +174,8 @@ def plot_stations(input_stalist, labels=False, GMT='auto'):
 
 
 def plot_events(input_eventlist, region_lon, region_lat, GMT='auto'):
+    import matplotlib.pyplot as plt
+    import seaborn as sns
     # adjustable parameters
     baz_bin_size = 15
 
@@ -131,7 +204,6 @@ def plot_events(input_eventlist, region_lon, region_lat, GMT='auto'):
     events_list['baz'] = np.array(events_list['baz'], dtype=float)
     events_list['gcarc'] = np.array(events_list['gcarc'], dtype=float)
 
-    region_centre = [region_lon, region_lat]
     outfiles = []
     if len(events_list['lon']) == 0:
         print(f"\nError! No event is listed in the events file!\n")
@@ -153,7 +225,7 @@ def plot_events(input_eventlist, region_lon, region_lat, GMT='auto'):
             gmt_script += [f"cat {os.path.join(pkg_dir,'data','tectonics',x)}|gmt psxy -R -J -O -P -K -Wthick,azure3 >> {fname}.ps"]
     gmt_script += [\
     f"{GMT} grdmath -Vq -Rg -I120m {region_lon} {region_lat} SDIST KM2DEG = {fname}.tmp",
-    f"{GMT} grdcontour {fname}.tmp -A60 -L0/180 -C20 -J -P -O -K >> {fname}.ps"]
+    f"{GMT} grdcontour {fname}.tmp -A60 -L0/170 -C20 -J -P -O -K >> {fname}.ps"]
     # tectonics
     fopen = open(f"{fname}.dat",'w')
     for i in range(len(events_list['lon'])):

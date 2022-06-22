@@ -1335,6 +1335,11 @@ def parse_args(*args, **kwargs):
         help='input data files'
     )
     plot_hist.add_argument(
+        '-o',
+        type=str,
+        required=True,
+        help='output file name')
+    plot_hist.add_argument(
         '-v',
         nargs='+',
         type=int,
@@ -1343,7 +1348,7 @@ def parse_args(*args, **kwargs):
         help='value/data column number(s) (default=[1])')
     plot_hist.add_argument(
         '-n',
-        '-nbins',
+        '--nbins',
         type=int,
         default=999,
         help='number of bins (default=auto)')
@@ -1357,21 +1362,21 @@ def parse_args(*args, **kwargs):
     plot_hist.add_argument(
         '--xlabel',
         type=str,
-        nargs='+',
+        nargs='*',
         action='store',
         default=['Values'],
         help='x-axis label')
     plot_hist.add_argument(
         '--ylabel',
         type=str,
-        nargs='+',
+        nargs='*',
         action='store',
         default=['Count'],
         help='y-axis label')
     plot_hist.add_argument(
         '--title',
         type=str,
-        nargs='+',
+        nargs='*',
         action='store',
         default=[],
         help='plot title')
@@ -1382,6 +1387,14 @@ def parse_args(*args, **kwargs):
         action='store',
         default=[".4"],
         help='float format for positional and value columns respectively (default=0.4)')
+    plot_hist.add_argument(
+        '--mean',
+        action='store_true',
+        help='enable plotting distribution mean (dashed line)')
+    plot_hist.add_argument(
+        '--median',
+        action='store_true',
+        help='enable plotting distribution median (dashed line)')
     plot_hist.add_argument(
         '--header',
         type=int,
