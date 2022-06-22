@@ -1,9 +1,8 @@
-
+ 
 import os
 import obspy
 import subprocess
 from urllib import request
-
 
 
 pkg_dir, _ = os.path.split(__file__)

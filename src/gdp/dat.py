@@ -93,21 +93,11 @@ def gridder(args):
         polygon_file = args.polygon
         if os.path.splitext(polygon_file)[1] == ".shp":
             # if polygon_file is *.shp
-            import geopandas as gpd
-            from shapely.geometry import mapping
-            try:
-                shp = gpd.read_file(polygon_file)
-                polygon_x = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
-                polygon_y = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
-            except Exception as e:
-                print(f"Error reading shapefile! {e}")
-                exit(1)
+            polygons = io.read_polygon_shp(polygon_file)
         else:
             # else if polygon_file is not *.shp (ascii file)
             polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], [1,2], [])
-            polygon_x = polygon_data[0][0]
-            polygon_y = polygon_data[0][1]
-        polygon = geographic.Polygon(polygon_x, polygon_y)
+            polygons = [[polygon_data[0][0], polygon_data[0][1]]]
 
     # start main process
     # d: data, g: gridded
@@ -243,14 +233,18 @@ def gridder(args):
             if skipnan_orig:
                 if 'nan' not in line.split():
                     if args.polygon:
-                        if polygon.is_point_in(point):
-                            out_lines.append(line)
+                        for iply in range(len(polygons)):
+                            polygon = geographic.Polygon(polygons[iply][0], polygons[iply][1])
+                            if polygon.is_point_in(point):
+                                out_lines.append(line)
                     else:
                         out_lines.append(line)
             else:
                 if args.polygon:
-                    if polygon.is_point_in(point):
-                        out_lines.append(line)
+                    for iply in range(len(polygons)):
+                        polygon = geographic.Polygon(polygons[iply][0], polygons[iply][1])
+                        if polygon.is_point_in(point):
+                            out_lines.append(line)
                 else:
                     out_lines.append(line)
 
@@ -624,8 +618,7 @@ def points_in_polygon(args):
     outfile_orig = args.outfile
 
     # build polygon class
-    polygon_x = []
-    polygon_y = []
+    polygons = []
     if args.xrange != [-0.999, 0.999] and args.yrange != [-0.999, 0.999]:
         if args.xrange[0] >= args.xrange[1]:
             print(f"Error! Argument 'xrange' should be entered in [minX/minLon, maxX/maxLon] format.")
@@ -636,42 +629,44 @@ def points_in_polygon(args):
 
         polygon_x = [args.xrange[0], args.xrange[1], args.xrange[1], args.xrange[0], args.xrange[0]]
         polygon_y = [args.yrange[0], args.yrange[0], args.yrange[1], args.yrange[1], args.yrange[0]]
+        polygons = [[polygon_x, polygon_y]]
     elif args.polygon:
         polygon_file = args.polygon
         if os.path.splitext(polygon_file)[1] == ".shp":
             # if polygon_file is *.shp
-            import geopandas as gpd
-            from shapely.geometry import mapping
-            try:
-                shp = gpd.read_file(polygon_file)
-                polygon_x = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
-                polygon_y = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
-            except Exception as e:
-                print(f"Error reading shapefile! {e}")
-                exit(1)
+            polygons = io.read_polygon_shp(polygon_file)
         else:
             # else if polygon_file is not *.shp (ascii file)
             polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], args.x, [])
             polygon_x = polygon_data[0][0]
             polygon_y = polygon_data[0][1]
+            polygons = [[polygon_x, polygon_y]]
     
-    if len(polygon_x): 
-        polygon = geographic.Polygon(polygon_x, polygon_y)
-    else:
+    if not len(polygons):
         print(f"Error: polygon is not specified. Please use either '--xrange & --yrange' or '--polygon'.")
         exit(1)
 
     # main process
-    for points_file in args.points_file:
-        points_data = io.read_numerical_data(points_file, args.header, args.footer,  [".10",".10"], args.x, [])
-        nop = len(points_data[0][0]) # number of points
+    if len(polygons) > 1 and args.inverse:
+        print("Error! 'inverse' cannot be enabled if two or more polygons are given!")
+        exit(1)
+
+    for points_file in args.point:
+        if os.path.splitext(points_file)[1] == ".shp":
+            print("In this version of gdp and this tool, shape files are not accepted for points. Use ascii instead!")
+            exit()
+        else:
+            points_data = io.read_numerical_data(points_file, args.header, args.footer,  [".10",".10"], args.x, [])
+            nop = len(points_data[0][0]) # number of points
         if nop:
             outdata_lines = []
             for ip in range(nop):
                 point = geographic.Point(points_data[0][0][ip], points_data[0][1][ip])
-                if polygon.is_point_in(point,args.inverse):
-                    outdata_lines.append(f"%f %f %s" %(point.lon, point.lat, points_data[2][ip]))
-            if len(args.points_file) > 1:
+                for iply in range(len(polygons)):
+                    polygon = geographic.Polygon(polygons[iply][0], polygons[iply][1])
+                    if polygon.is_point_in(point, args.inverse):
+                        outdata_lines.append(f"%f %f %s" %(point.lon, point.lat, points_data[2][ip]))
+            if len(args.point) > 1:
                 if args.outfile:
                     if not os.path.isdir(outfile_orig):
                         os.mkdir(outfile_orig)
@@ -679,10 +674,11 @@ def points_in_polygon(args):
             elif outfile_orig:
                 args.outfile = os.path.join(outfile_orig)
 
-            args.uniq = False
-            args.sort = False
+            args.uniq = True
+            args.sort = True
+
             if len(outdata_lines):
-                if not outfile_orig and len(args.points_file) > 1:
+                if not outfile_orig and len(args.point) > 1:
                     print(f"\nFile: '{os.path.split(points_file)[1]}'")
                 io.output_lines(outdata_lines, args)
             elif not outfile_orig:

@@ -140,6 +140,7 @@ def calc_earth_radius(lat):
     return earth_radius
 
 
+
 if __name__ == "__main__":
     print("geographic module - classes: Point, Line, Polygon")
     exit(0)

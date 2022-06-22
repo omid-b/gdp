@@ -6,6 +6,45 @@ import subprocess
 from . import io
 from . import dependency
 
+def shp2dat(args):
+    if not os.path.isdir(args.outdir):
+        os.mkdir(args.outdir)
+
+    if args.point != None:
+        for ptfile in args.point:
+            points = io.read_point_shp(ptfile)
+            nop = len(points[0])
+            points_lines = []
+            for ip in range(nop):
+                points_lines.append(f"%{args.fmt}f %{args.fmt}f" %(points[0][ip], points[1][ip]))
+
+            args.outfile = os.path.join(args.outdir, f"{os.path.splitext(os.path.split(ptfile)[1])[0]}.dat")
+            args.sort = False
+            args.uniq = False
+            args.append = False
+            io.output_lines(points_lines, args)
+            print(f"shp2dat: '{ptfile}' >> '{args.outfile}'")
+
+    if args.polygon != None:
+        for plyfile in args.polygon:
+            polygons = io.read_polygon_shp(plyfile)
+            nply = len(polygons)
+            for iply in range(nply):
+                polygon = polygons[iply]
+                nop = len(polygon[0])
+                polygon_lines = []
+                for ip in range(nop):
+                    polygon_lines.append(f"%{args.fmt}f %{args.fmt}f" %(polygon[0][ip], polygon[1][ip]))
+                
+                if nply == 1:
+                    args.outfile = os.path.join(args.outdir, f"{os.path.splitext(os.path.split(plyfile)[1])[0]}.dat")
+                else:
+                    args.outfile = os.path.join(args.outdir, f"{os.path.splitext(os.path.split(plyfile)[1])[0]}_{iply+1}.dat")
+                args.sort = False
+                args.uniq = False
+                args.append = False
+                io.output_lines(polygon_lines, args)
+                print(f"shp2dat: '{plyfile}' >> '{args.outfile}'")
 
 
 def dat2nc(args):
@@ -30,24 +69,13 @@ def dat2nc(args):
         polygon_file = args.polygon
         if os.path.splitext(polygon_file)[1] == ".shp":
             # if polygon_file is *.shp
-            import geopandas as gpd
-            from shapely.geometry import mapping
-            try:
-                shp = gpd.read_file(polygon_file)
-                polygon_x = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[0::2]
-                polygon_y = np.array(mapping(shp)['features'][0]['geometry']['coordinates'][0]).flatten()[1::2]
-            except Exception as e:
-                print(f"Error reading shapefile! {e}")
-                exit(1)
+            polygons = io.read_polygon_shp(polygon_file)
         else:
             # else if polygon_file is not *.shp (ascii file)
             polygon_data = io.read_numerical_data(polygon_file, 0, 0, [".10",".10"], args.x, [])
-            polygon_x = polygon_data[0][0]
-            polygon_y = polygon_data[0][1]
+            polygons = [[polygon_data[0][0], polygon_data[0][1]]]
 
-        if len(polygon_x): 
-            polygon = geographic.Polygon(polygon_x, polygon_y)
-        else:
+        if not len(polygons):
             print(f"Error: polygon is not specified. Please check polygon file.")
             exit(1)
 
@@ -64,8 +92,10 @@ def dat2nc(args):
         key = f"%{args.fmt[0]}f_%{args.fmt[0]}f" %(point.lon, point.lat)
         val = f"%{args.fmt[1]}f" %(read_data_values[ip])
         if args.polygon:
-            if polygon.is_point_in(point):
-                data[f"{key}"] = val
+            for iply in range(len(polygons)):
+                polygon = geographic.Polygon(polygons[iply][0], polygons[iply][1])
+                if polygon.is_point_in(point):
+                    data[f"{key}"] = val
         else:
             data[f"{key}"] = val
 
@@ -126,12 +156,6 @@ def dat2nc(args):
     z[:,:] = nc_z
 
     ncfile.close()
-
-
-
-
-
-
 
 
 
@@ -349,6 +373,13 @@ def mseed2sac(args):
                 begin_request = int(request_starttime.hour*3600 +
                             request_starttime.minute*60 +
                             request_starttime.second)
+                event_time = request_starttime + args.offset
+                event_origin = f"gmt %4.0f %03.0f %02.0f %02.0f %02.0f 000" %(
+                                float(event_time.year),
+                                float(event_time.julday),
+                                float(event_time.hour),
+                                float(event_time.minute),
+                                float(event_time.second))
 
             # apply detrend and taper
             if not args.noprocess:
@@ -397,6 +428,7 @@ def mseed2sac(args):
                 st = obspy.read(os.path.join(outdir, outfile), format='SAC')
                 st[0].stats.sac = obspy.core.AttribDict()
                 st[0].stats.sac.b = 0
+                st[0].stats.sac.o = args.offset
                 st[0].stats.starttime = request_starttime
                 st[0].write(os.path.join(outdir, outfile), format='SAC')
         else:
@@ -410,7 +442,6 @@ def mseed2sac(args):
     if os.path.isdir(outdir_orig):
         if len(os.listdir(outdir_orig)) == 0:
             shutil.rmtree(outdir_orig)
-
 
 
 def get_event_name(mseed_file, time_offset):

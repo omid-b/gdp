@@ -38,7 +38,10 @@ def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx, skipn
         for ix in range(len(pos_indx)):
             # positional arguments
             try:
-                pos[ix].append(float(datalines[i].split()[pos_indx[ix]]))
+                if datalines[i].split()[pos_indx[ix]] == 'nan':
+                    pos[ix].append(npnan)
+                else:
+                    pos[ix].append(float(datalines[i].split()[pos_indx[ix]]))
             except:
                 pos[ix].append(npnan)
     # process lines: val & extra
@@ -47,7 +50,10 @@ def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx, skipn
         for iv in range(len(val_indx)):
             # value arguments
             try:
-                val[iv].append(float(datalines[i].split()[val_indx[iv]]))
+                if datalines[i].split()[val_indx[iv]] == 'nan':
+                    val[iv].append(npnan)
+                else:
+                    val[iv].append(float(datalines[i].split()[val_indx[iv]]))
             except:
                 val[iv].append(npnan)
         # extra
@@ -152,5 +158,55 @@ def output_lines(lines, args):
     else:
         for x in lines_out:
             print(f"{x}")
+
+
+
+def read_polygon_shp(polygon_file):
+    import numpy as np
+    import geopandas as gpd
+    from shapely.geometry import mapping
+    polygons = []
+    try:
+        shp = gpd.read_file(polygon_file)
+        nply = len(mapping(shp)['features'])
+    except Exception as e:
+        print(f"Error! Could not read shape file: '{polygon_file}'\n{e}\n")
+        exit(1)
+    for i in range(nply):
+        polygons.append([])
+        try:
+            polygon_x = np.array(mapping(shp)['features'][i]['geometry']['coordinates'][0]).flatten()[0::2].tolist()
+            polygon_y = np.array(mapping(shp)['features'][i]['geometry']['coordinates'][0]).flatten()[1::2].tolist()
+        except Exception as e:
+            print(f"Error! Could not read shape file item '{i+1}': '{polygon_file}'\n{e}\n")
+            exit(1)
+        polygons[i] = [polygon_x, polygon_y]
+    
+    return polygons
+
+
+
+def read_point_shp(point_file):
+    import numpy as np
+    import geopandas as gpd
+    from shapely.geometry import mapping
+    points = [[],[]]
+    try:
+        shp = gpd.read_file(point_file)
+        npts = len(mapping(shp)['features'])
+    except Exception as e:
+        print(f"Error! Could not read shape file: '{point_file}'\n{e}\n")
+        exit(1)
+    for i in range(npts):
+        try:
+            point_x = np.array(mapping(shp)['features'][i]['geometry']['coordinates'][0]).tolist()
+            point_y = np.array(mapping(shp)['features'][i]['geometry']['coordinates'][1]).tolist()
+        except Exception as e:
+            print(f"Error! Could not read shape file item '{i+1}': '{point_file}'\n{e}\n")
+            exit(1)
+        points[0].append(point_x)
+        points[1].append(point_y)
+
+    return points
 
 

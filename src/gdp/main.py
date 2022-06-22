@@ -643,19 +643,25 @@ def parse_args(*args, **kwargs):
 
     # gdp data pip
     gdp_pip = subparsers.add_parser('pip', help='points-in-polygon',
-    description="Points-in-polygon (ray tracing method). usage: gdp data pip <points_file> <polygon_file>")
-    gdp_pip._positionals.title = 'required arguments'
-    gdp_pip._optionals.title = 'optional arguments/settings for points_file'
-    gdp_pip.add_argument("points_file", nargs='+', type=str, help="path to points_file(s)")
-    gdp_pip.add_argument("polygon_file", nargs='*', type=str,
-        help="path to polygon_file; '*.shp' is also accepted (first polygon is read); if ascii: file content column format must be [lon, lat]")
+    description="Points-in-polygon (ray tracing method).")
+    gdp_pip.add_argument(
+        '--point',
+        type=str,
+        nargs='+',
+        action='store',
+        help='path to points file (single or multiple allowed)')
+    gdp_pip.add_argument(
+        '--polygon',
+        type=str,
+        action='store',
+        help='path to polygon file (only single allowed)')
     gdp_pip.add_argument(
         '-x',
         nargs=2,
         type=int,
         action='store',
         default=[1, 2],
-        help='positional column number(s) (default=[1, 2])')
+        help='positional column number(s) (default=[1, 2]); does not apply to ascii polygon')
     gdp_pip.add_argument(
         '--header',
         type=int,
@@ -672,12 +678,7 @@ def parse_args(*args, **kwargs):
         '-i',
         '--inverse',
         action='store_true',
-        help='inverse operation: points outside polygon')
-    gdp_pip.add_argument(
-        '--polygon',
-        type=str,
-        action='store',
-        help='path to polygon file.')
+        help='inverse operation: points outside polygon (only if one polygon is given)')
     gdp_pip.add_argument(
         '--xrange',
         nargs=2,
@@ -843,14 +844,45 @@ def parse_args(*args, **kwargs):
         help='float format for output convex-hull (default=".4")'
     )
 
-    # # gdp convert shp2dat
-    # gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
-    # description="Convert shape file to dat (ascii)")
+    # gdp convert shp2dat
+    gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
+    description="Convert shape file to dat (ascii)")
+    gdp_shp2dat.add_argument(
+        '--point',
+        type=str,
+        nargs='*',
+        action='store',
+        help='point(s): shape file(s)')
+    gdp_shp2dat.add_argument(
+        '--polygon',
+        type=str,
+        nargs='*',
+        action='store',
+        help='polygon(s): shape file(s)')
+    gdp_shp2dat.add_argument(
+        '-o',
+        '--outdir',
+        type=str,
+        required=True,
+        action='store',
+        help='output directory')
+    gdp_shp2dat.add_argument(
+        '--fmt',
+        type=str,
+        action='store',
+        default=".4",
+        help='float format for output convex-hull (default=".4")'
+    )
     
     # gdp convert nc2dat
     gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
     description="Convert nc data to dat/ascii")
-    gdp_nc2dat.add_argument("input_file", type=str, action='store', nargs=1, help='input nc file')
+    gdp_nc2dat.add_argument(
+        "input_file",
+        type=str,
+        action='store',
+        nargs=1,
+        help='input nc file')
     gdp_nc2dat.add_argument(
         '--metadata',
         action='store_true',
@@ -970,10 +1002,10 @@ def parse_args(*args, **kwargs):
     description="seismic data acquisition module")
     download_subparsers = seismic_download.add_subparsers(dest='subsubmodule')
 
-    # gdp seismic download config
-    download_config = download_subparsers.add_parser('config', help='create "download.config" file',
-    description='create "download.config" file')
-    download_config.add_argument(
+    # gdp seismic download init
+    download_init = download_subparsers.add_parser('init', help='initialize download project',
+    description='initialize download project and create "download.config" file')
+    download_init.add_argument(
         '--maindir',
         type=str,
         default='./',
@@ -1266,21 +1298,21 @@ def parse_args(*args, **kwargs):
 
 
     #====mag submodules=====#
-    mag = subparsers.add_parser('mag', help='geomagnetic data processing and modeling module',
-    description="geomagnetic data processing and modeling module")
-    mag_subparsers = mag.add_subparsers(dest='submodule')
+    # mag = subparsers.add_parser('mag', help='geomagnetic data processing and modeling module',
+    # description="geomagnetic data processing and modeling module")
+    # mag_subparsers = mag.add_subparsers(dest='submodule')
 
-    # gdp mag igrf
-    mag_igrf = mag_subparsers.add_parser('igrf', help='calculate igrf',
-    description="calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)")
+    # # gdp mag igrf
+    # mag_igrf = mag_subparsers.add_parser('igrf', help='calculate igrf',
+    # description="calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)")
 
-    # gdp mag gem2dat
-    mag_gem2dat = mag_subparsers.add_parser('gem2dat', help='convert raw data format from a GEM proton magnetometer to ascii format',
-    description="convert raw data format from a GEM proton magnetometer to ascii format")
+    # # gdp mag gem2dat
+    # mag_gem2dat = mag_subparsers.add_parser('gem2dat', help='convert raw data format from a GEM proton magnetometer to ascii format',
+    # description="convert raw data format from a GEM proton magnetometer to ascii format")
 
-    # gdp mag sphere
-    mag_sphere = mag_subparsers.add_parser('sphere', help='forward modeling of uniformly magnetized sphere(s)',
-    description="forward modeling of uniformly magnetized sphere(s) over a local grid")
+    # # gdp mag sphere
+    # mag_sphere = mag_subparsers.add_parser('sphere', help='forward modeling of uniformly magnetized sphere(s)',
+    # description="forward modeling of uniformly magnetized sphere(s) over a local grid")
         
     
 
@@ -1337,7 +1369,6 @@ def parse_args(*args, **kwargs):
     plot_hist.add_argument(
         '-o',
         type=str,
-        required=True,
         help='output file name')
     plot_hist.add_argument(
         '-v',
@@ -1407,6 +1438,22 @@ def parse_args(*args, **kwargs):
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
+
+    # gdp plot features
+    # plot_features = plot_subparsers.add_parser('features', help='plot geographical features (e.g., points, polygons)',
+    # description="Plot geographical features (e.g., points, polygons)")
+    # plot_features.add_argument(
+    #     '--point',
+    #     type=str,
+    #     nargs='*',
+    #     action='store',
+    #     help='point(s): ascii or shape file(s)')
+    # plot_features.add_argument(
+    #     '--polygon',
+    #     type=str,
+    #     nargs='*',
+    #     action='store',
+    #     help='polygon(s): ascii or shape file(s)')
     
     # return arguments
     return parser.parse_args()
@@ -1531,8 +1578,11 @@ def main(*args, **kwargs):
         subprocess.call('gdp 3Dto2D -h', shell=True)
         under_dev()
     elif args.module == 'shp2dat':
-        subprocess.call('gdp shp2dat -h', shell=True)
-        under_dev()
+        if args.point == None and args.polygon == None:
+            print("Error! At least one shape file must be given")
+            exit(1)
+        conv.shp2dat(args)
+        exit(0)
     elif args.module == 'nc2dat':
         conv.nc2dat(args)
         exit(0)
@@ -1542,7 +1592,7 @@ def main(*args, **kwargs):
     elif args.module == 'seismic':
 
         if args.submodule == 'download':
-            if args.subsubmodule == 'config':
+            if args.subsubmodule == 'init':
                 download.write_download_config(args)
                 exit(0)
             elif args.subsubmodule == 'events':
@@ -1608,6 +1658,12 @@ def main(*args, **kwargs):
             exit(0)
         elif args.submodule == 'hist':
             plot.plot_hist(args)
+            exit(0)
+        elif args.submodule == 'features':
+            if args.point == None and args.polygon == None:
+               print("Error! At least one input feature is required!")
+               exit(1)
+            plot.plot_features(args)
             exit(0)
         else:
             subprocess.call('gdp plot -h', shell=True)

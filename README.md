@@ -43,7 +43,7 @@ The following new tools/modules will be added for this version:
 
 - *seismic* module will include the following tools:
 
-  1. *download config*: initialize current directory for seismic data acquisition. It outputs a config file that is used by the 4 following tools.
+  1. *download init*: initialize current directory for seismic data acquisition. It outputs a config file (i.e. 'download.config') that is used by the 4 following tools.
   2. *download events*: download list of events according to the list of datacenters (specified in download.config)
   3. *download stations*: download list of stations according to the list of datacenters (specified in download.config)
   4. *download metadata*: download station metadata (xml) according to stations.dat
@@ -144,8 +144,8 @@ gdp std  *.xyz -v 1 2 3
 
 
 ```bash
-gdp pip  *.xyz  --polygon polygon.dat
-gdp pip  *.xyz  --polygon polygon.dat -i
+gdp pip  --point *.xyz  --polygon polygon.dat
+gdp pip  --point *.xyz  --polygon polygon.dat -i
 ```
 > **Description:** Only output points inside or outside ('-i') of the given polygon. Alternatively '--lonrange' and '--latrange' flags could be used to define the polygon.
 

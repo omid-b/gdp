@@ -12,6 +12,21 @@ from . import dependency
 
 pkg_dir, _ = os.path.split(__file__)
 
+def plot_features(args):
+    print("Hello from plot_features!")
+    from . import io
+    points = []
+    polygons = []
+
+    if args.point != None:
+        for point in args.point:
+            io.read_point_shp(point)
+
+    if args.polygon != None:
+        for polygon in args.polygon:
+            io.read_polygon_shp(polygon)
+
+
 def plot_hist(args):
     import random
     import matplotlib.pyplot as plt
@@ -89,13 +104,17 @@ def plot_hist(args):
         plt.ylabel(ylabel)
     ax.legend(loc=2)
     plt.ylim((0,max_y))
-    # save plot
-    outfile = os.path.abspath(args.o)
-    if os.path.splitext(outfile)[1] != '.pdf':
-        outfile = f"{outfile}.pdf"
-    plt.savefig(outfile, format="PDF", transparent=True)
-    plt.close()
-    print(f"output: {outfile}\n\nDone!\n")
+    # save or show the plot
+    if args.o:
+        outfile = os.path.abspath(args.o)
+        if os.path.splitext(outfile)[1] != '.pdf':
+            outfile = f"{outfile}.pdf"
+        plt.savefig(outfile, format="PDF", transparent=True)
+        plt.close()
+        print(f"output: {outfile}\n\nDone!\n")
+    else:
+        plt.show()
+
 
 
 
