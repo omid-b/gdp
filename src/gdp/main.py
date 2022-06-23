@@ -919,7 +919,7 @@ def parse_args(*args, **kwargs):
         type=str,
         required=True,
         action='store',
-        help='output directory')
+        help='REQUIRED: output directory')
     gdp_shp2dat.add_argument(
         '--fmt',
         nargs='+',
@@ -1034,7 +1034,7 @@ def parse_args(*args, **kwargs):
         type=str,
         action='store',
         required=True,
-        help='output directory')
+        help='REQUIRED: output directory')
     gdp_1Dto2D.add_argument(
         '-x',
         nargs=1,
@@ -1108,21 +1108,21 @@ def parse_args(*args, **kwargs):
         type=str,
         action='store',
         required=True,
-        help='output directory')
+        help='REQUIRED: output directory')
     gdp_2Dto1D.add_argument(
         '-x',
-        nargs=1,
+        nargs=2,
         type=int,
         action='store',
-        default=[1],
-        help='positional column number in 1D data files (default=1)')
+        default=[1,2],
+        help='positional column number in 1D data files (default=[1,2])')
     gdp_2Dto1D.add_argument(
         '-v',
         nargs='+',
         type=int,
         action='store',
-        default=[2],
-        help="value column(s) in 1D data files (default=[2])"
+        default=[3],
+        help="value column(s) in 1D data files (default=[3])"
     )
     gdp_2Dto1D.add_argument(
         '--skipnan',
@@ -1147,6 +1147,12 @@ def parse_args(*args, **kwargs):
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
+    gdp_2Dto1D.add_argument(
+        '--ext',
+        type=str,
+        action='store',
+        default = 'dat',
+        help='output file extension (default="dat")')
     
     # # gdp convert 2Dto3D
     # gdp_2Dto3D = subparsers.add_parser('2Dto3D', help='2Dto3D',

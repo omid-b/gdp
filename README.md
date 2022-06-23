@@ -37,8 +37,9 @@ The following new tools/modules will be added for this version:
 |chull     |convex-hull / minimum bounding polygon for a set of points|
 |add       |add value columns of two or more ascii data files|
 |shp2dat   |convert GIS shape files (point/polygon) to ascii data|
+|1Dto2D    |Combine/convert 1D datasets into 2D datasets. Example use cases: (1) building phase velocity map datasets from point/1D dispersion curve datasets, (2) building shear velocity map datasets from 1D shear velocity profiles.|
+|2Dto1D    |Extract/convert 2D datasets into 1D datasets. Example use cases: (1) extracting point dispersion curves from phase velocity maps, (2) extracing 1D shear velocity profiles from shear velocity map datasets|
 |seismic   |seismic data acquisition and processing module |
-|mag       |geomagnetic data processing and modeling module|
 |plot      |plot module (requires gmt)|
 
 - *seismic* module will include the following tools:
@@ -55,12 +56,6 @@ The following new tools/modules will be added for this version:
   10. *cut*: cut sac timeseries (sac method)
   11. *remchannel*: remove extra channels
 
-
-- *mag* module will include the following tools:
-
-  1. *igrf*: calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)
-  2. *gem2dat*: convert raw data format from a GEM proton magnetometer to ascii format
-  3. *sphere*: forward modeling of uniformly magnetized sphere(s) over a local grid
 
 
 - *plot* module will include the following tools:
