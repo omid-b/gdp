@@ -190,6 +190,8 @@ def writehdr(args):
             headers['evdp'] = events_info[f"{event_name}"]['evdp']
             headers['mag'] = events_info[f"{event_name}"]['mag']
             headers['imagtyp'] = events_info[f"{event_name}"]['imagtyp']
+        else:
+            headers['o'] = ""
 
         print(f"writing sac header: '{sacfile}' ... ", end="\r")
         wh_success = write_sac_headers(sacfile, headers, SAC=SAC)
@@ -237,12 +239,12 @@ def remresp(args):
         print("  checking metadata information ... OK")
 
     # start writting sac headers
-    args.prefilter = (args.prefilter[0],
-                      args.prefilter[1],
-                      args.prefilter[2],
-                      args.prefilter[3])
-    if args.prefilter == (0., 0., 0., 0.):
-        args.prefilter = None
+    args.pre_filt = (args.pre_filt[0],
+                      args.pre_filt[1],
+                      args.pre_filt[2],
+                      args.pre_filt[3])
+    if args.pre_filt == (0., 0., 0., 0.):
+        args.pre_filt = None
     print("")
     nerr = 0
     errors = []
@@ -252,7 +254,8 @@ def remresp(args):
         print(f"remresp: '{sacfile}' ... ", end="\r")
         remresp_success = sac_remove_response(sacfile, sacfile, xml,
                                               unit=args.unit,
-                                              prefilter=args.prefilter,
+                                              pre_filt=args.pre_filt,
+                                              water_level=args.water_level,
                                               update_headers=False)
         if remresp_success:
             print(f"remresp: '{sacfile}' ... OK")
@@ -578,11 +581,11 @@ def write_sac_headers(sacfile, headers, SAC='/usr/local/sac/bin/sac'):
 
 
 def sac_remove_response(input_sacfile, output_sacfile, xml_file,
-    unit='VEL', prefilter=(0.005, 0.006, 30.0, 35.0), SAC='/usr/local/sac/bin/sac', update_headers=True):
+    unit='VEL', pre_filt=(0.005, 0.006, 30.0, 35.0), water_level=60, SAC='/usr/local/sac/bin/sac', update_headers=True):
     try:
         inv = obspy.read_inventory(xml_file)
         st = obspy.read(input_sacfile)
-        st.remove_response(inventory=inv, output=unit, pre_filt=prefilter)
+        st.remove_response(inventory=inv, output=unit, pre_filt=pre_filt, water_level=water_level)
         st.write(output_sacfile, format='SAC')
         # update sac headers
         if update_headers:

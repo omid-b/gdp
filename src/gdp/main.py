@@ -1086,7 +1086,7 @@ def parse_args(*args, **kwargs):
 
     seismic_mseed2sac = seismic_subparsers.add_parser('mseed2sac', help='convert mseed to sac',
     description="Convert mseed to sac. This script also handles data fragmentation issue. ")
-    seismic_mseed2sac.add_argument("input_files", nargs='+')
+    seismic_mseed2sac.add_argument("input_files", nargs='+', help='input mseed files')
     seismic_mseed2sac.add_argument(
         '-o',
         '--outdir',
@@ -1175,7 +1175,7 @@ def parse_args(*args, **kwargs):
 
     # gdp seismic remresp
     seismic_remresp = seismic_subparsers.add_parser('remresp', help='remove sac instrument response using xml metadata',
-    description="Remove instrument response of sacfiles using xml metadata (see obspy documentation for 'unit' and 'prefilter' information)")
+    description="Remove instrument response of sacfiles using xml metadata (see obspy documentation for 'unit' (output), 'pre_filt', and 'water_level' information)")
     seismic_remresp.add_argument("input_files", nargs='+', help='input sac files')
     seismic_remresp.add_argument(
         '--metadata',
@@ -1191,11 +1191,17 @@ def parse_args(*args, **kwargs):
         help="output unit; (default='VEL')"
     )
     seismic_remresp.add_argument(
-        '--prefilter',
+        '--pre_filt',
         type=float,
         nargs=4,
         default=(0.005, 0.006, 30.0, 35.0),
-        help="prefilter; default=(0.005, 0.006, 30.0, 35.0); enter 4 zeros to disable"
+        help="deconvolution prefilter;  default=(0.005, 0.006, 30.0, 35.0); enter 4 zeros for 'pre_filt=None'"
+    )
+    seismic_remresp.add_argument(
+        '--water_level',
+        type=int,
+        default=60,
+        help="deconvolution water level; default=60"
     )
 
 

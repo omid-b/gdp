@@ -114,13 +114,11 @@ usp = False
 [dependencies]
 
 perl = %s
-sac = %s
-gmt = %s \n""" %(
+sac = %s """ %(
         station_list,
         event_list,
         dependency.find_perl_path(),
-        dependency.find_sac_path(),
-        dependency.find_gmt_path()
+        dependency.find_sac_path()
     )
     fopen = open(config_file, 'w')
     fopen.write(config_text)
@@ -146,7 +144,7 @@ def read_download_config(args):
                           "iris", "irisph5", "koeri", "lmu", "ncedc", "niep",
                           "noa", "odc", "orfeus", "raspishake", "resif",
                           "resifph5", "scedc", "texnet", "usp"]    
-    dependencies_params = ["perl", "sac", "gmt"]
+    dependencies_params = ["perl", "sac"]
     list_params = ["station_channels", "station_location_codes"]
     float_params = ["event_min_mag", "event_min_gcarc", "event_max_gcarc"]
     lat_params = ["station_maxlat", "station_minlat", "event_minlat", "event_maxlat"]
