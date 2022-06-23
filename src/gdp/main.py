@@ -641,6 +641,59 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
+    # gdp data add
+    gdp_add = subparsers.add_parser('add', help='add value comumn(s) of input data files',
+    description="Add value comumn(s) of input data files")
+    gdp_add.add_argument("input_files", nargs='+', help='input numerical data files')
+    gdp_add.add_argument(
+        '-x',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='positional column number(s) (default=[1, 2]; [] is also accepted)')
+    gdp_add.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3]; [] is also accepted)')
+    gdp_add.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"]); the first value is specially important')
+    gdp_add.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    gdp_add.add_argument(
+        '--sort',
+        action='store_true',
+        help='sort output lines')
+    gdp_add.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
+    gdp_add.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    gdp_add.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+
+
     # gdp data pip
     gdp_pip = subparsers.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method).")
@@ -838,9 +891,10 @@ def parse_args(*args, **kwargs):
 
     gdp_chull.add_argument(
         '--fmt',
+        nargs='+',
         type=str,
         action='store',
-        default=".4",
+        default=[".4",".4"],
         help='float format for output convex-hull (default=".4")'
     )
 
@@ -868,9 +922,10 @@ def parse_args(*args, **kwargs):
         help='output directory')
     gdp_shp2dat.add_argument(
         '--fmt',
+        nargs='+',
         type=str,
         action='store',
-        default=".4",
+        default=[".4",".4"],
         help='float format for output convex-hull (default=".4")'
     )
     
@@ -1422,7 +1477,7 @@ def parse_args(*args, **kwargs):
         nargs='+',
         type=str,
         action='store',
-        default=[".4"],
+        default=[".4",".4"],
         help='float format for positional and value columns respectively (default=0.4)')
     plot_hist.add_argument(
         '--mean',
@@ -1564,6 +1619,9 @@ def main(*args, **kwargs):
         exit(0)
     elif args.module == 'std':
         dat.calc_std(args)
+        exit(0)
+    elif args.module == 'add':
+        dat.add_intersect_values(args)
         exit(0)
     elif args.module == '1Dto2D':
         subprocess.call('gdp 1Dto2D -h', shell=True)

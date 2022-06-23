@@ -9,6 +9,49 @@ from . import io
 
 #####################################################################
 
+
+def add_intersect_values(args):
+    args.nan = False
+    args.noextra = True
+    if len(args.fmt) == 1:
+        fmt = [args.fmt[0], args.fmt[0]]
+    else:
+        fmt = args.fmt
+    nof = len(args.input_files)
+    input_files = args.input_files
+    datlines = [[] for i in range(nof)]
+    datlines_pos = [[] for i in range(nof)]
+    datlines_vals = [[] for i in range(nof)]
+    if nof < 2:
+        print("Error! Number of input_files should be larger than 2 for this operation.")
+        exit(1)
+    for i in range(nof):
+        datlines[i] = io.data_lines(input_files[i], args)
+        for line in datlines[i]:
+            datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
+            datlines_vals[i].append(' '.join(line.split()[len(args.x):]))
+    intersect = []
+    intersect_pos = []
+    intersect_add_vals = []
+    nol = len(datlines[0])
+    for j in range(nol):
+        if all(datlines_pos[0][j] in l for l in datlines_pos[1:])\
+        and datlines_pos[i][j] not in intersect_pos:
+            added_vals = [0 for ivc in range(len(args.v))]
+            for ivc in range(len(args.v)):
+                for idc in range(nof):
+                    added_vals[ivc] += float(datlines_vals[idc][j].split()[ivc])
+                added_vals[ivc] = f"%{fmt[1]}f" %(added_vals[ivc])
+            intersect_pos.append(datlines_pos[0][j])
+            intersect_add_vals.append(' '.join(added_vals))
+            intersect.append(f"{intersect_pos[-1]} {intersect_add_vals[-1]}")
+
+    args.uniq = False # it's already uniq!
+    io.output_lines(intersect, args)
+
+
+
+
 def gridder(args):
     with warnings.catch_warnings():
         warnings.simplefilter('ignore')
@@ -596,7 +639,7 @@ def convex_hull(args):
 
     outlines = []
     for ip in chull_points:
-        line = f"%{args.fmt}f %{args.fmt}f" %(ip[0], ip[1])
+        line = f"%{args.fmt[0]}f %{args.fmt[0]}f" %(ip[0], ip[1])
         if line not in outlines:
             outlines.append(line)
     outlines.append(outlines[0])

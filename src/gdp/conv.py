@@ -16,7 +16,7 @@ def shp2dat(args):
             nop = len(points[0])
             points_lines = []
             for ip in range(nop):
-                points_lines.append(f"%{args.fmt}f %{args.fmt}f" %(points[0][ip], points[1][ip]))
+                points_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f" %(points[0][ip], points[1][ip]))
 
             args.outfile = os.path.join(args.outdir, f"{os.path.splitext(os.path.split(ptfile)[1])[0]}.dat")
             args.sort = False
@@ -34,7 +34,7 @@ def shp2dat(args):
                 nop = len(polygon[0])
                 polygon_lines = []
                 for ip in range(nop):
-                    polygon_lines.append(f"%{args.fmt}f %{args.fmt}f" %(polygon[0][ip], polygon[1][ip]))
+                    polygon_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f" %(polygon[0][ip], polygon[1][ip]))
                 
                 if nply == 1:
                     args.outfile = os.path.join(args.outdir, f"{os.path.splitext(os.path.split(plyfile)[1])[0]}.dat")
