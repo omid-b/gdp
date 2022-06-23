@@ -76,19 +76,15 @@ def plot_hist(args):
     sns.set_context("notebook")
     fig = plt.figure(figsize=(8,6))
     ax = plt.subplot(1,1,1)
-    colors = [(0.12,0.48,0.419,0.80),
-              (0.11,0.23,0.48,0.75),
-              (0.47,0.15,0.15,0.70)]
+    colors = []
+    palette = sns.color_palette("Set1", nod)
     for i in range(nod):
-        if i < len(colors):
-            color = colors[i]
-        else:
-            color = (random.randint(0,500)/1000,
-                       random.randint(0,500)/1000,
-                       random.randint(0,500)/1000,
-                       0.75)
-            colors.append(color)
+        colors.append((palette[i][0],
+                      palette[i][1],
+                      palette[i][2],
+                      0.75))
         ax.hist(datasets[i], label=legend[i].replace('_',' '), color=colors[i], bins=bins)
+
     max_y = ax.get_ylim()[1]*1.1
     if args.mean:
         for i in range(nod):
