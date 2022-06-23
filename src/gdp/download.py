@@ -114,7 +114,8 @@ usp = False
 [dependencies]
 
 perl = %s
-sac = %s """ %(
+sac = %s 
+""" %(
         station_list,
         event_list,
         dependency.find_perl_path(),

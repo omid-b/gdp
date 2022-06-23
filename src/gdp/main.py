@@ -1022,17 +1022,131 @@ def parse_args(*args, **kwargs):
         default=[".4",".4"],
         help='float format (to store) for positional and value columns respectively (default=[".4",".4"])')
     
-    # # gdp convert 1Dto2D
-    # gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='1Dto2D',
-    # description="1Dto2D")
+    # gdp convert 1Dto2D
+    gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='combine/convert 1D datasets into 2D datasets',
+    description="Combine/convert 1D datasets into 2D datasets. Example use cases:\
+     (1) building phase velocity map datasets from point/1D dispersion curve datasets,\
+     (2) building shear velocity map datasets from 1D shear velocity profiles.")
+    gdp_1Dto2D.add_argument("datalist", type=str, action='store', help='1D dataset datalist')
+    gdp_1Dto2D.add_argument(
+        '-o',
+        '--outdir',
+        type=str,
+        action='store',
+        required=True,
+        help='output directory')
+    gdp_1Dto2D.add_argument(
+        '-x',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[1],
+        help='positional column number in 1D data files (default=1)')
+    gdp_1Dto2D.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[2],
+        help="value column(s) in 1D data files (default=[2])"
+    )
+    gdp_1Dto2D.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
+    gdp_1Dto2D.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4", "03.0"],
+        help='float format (to store) for positional, value, and the identifier columns respectively (default=[".4",".4","03.0"])')
+    gdp_1Dto2D.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    gdp_1Dto2D.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    gdp_1Dto2D.add_argument(
+        '--prefix',
+        type=str,
+        action='store',
+        default = 'model_',
+        help='output file name prefix (default="model_")')
+    gdp_1Dto2D.add_argument(
+        '--suffix',
+        type=str,
+        action='store',
+        default = '',
+        help='output file name suffix (default="")')
+    gdp_1Dto2D.add_argument(
+        '--ext',
+        type=str,
+        action='store',
+        default = 'dat',
+        help='output file extension (default="dat")')
     
     # # gdp convert 1Dto3D
     # gdp_1Dto3D = subparsers.add_parser('1Dto3D', help='1Dto3D',
     # description="1Dto3D")
     
-    # # gdp convert 2Dto1D
-    # gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='2Dto1D',
-    # description="2Dto1D")
+    # gdp convert 2Dto1D
+    gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='extract/convert 2D datasets into 1D datasets',
+    description="Extract/convert 2D datasets into 1D datasets. Example use cases:\
+     (1) extracting point dispersion curves from phase velocity maps,\
+     (2) extracing 1D shear velocity profiles from shear velocity map datasets")
+    gdp_2Dto1D.add_argument("datalist", type=str, action='store', help='2D dataset datalist')
+    gdp_2Dto1D.add_argument(
+        '-o',
+        '--outdir',
+        type=str,
+        action='store',
+        required=True,
+        help='output directory')
+    gdp_2Dto1D.add_argument(
+        '-x',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[1],
+        help='positional column number in 1D data files (default=1)')
+    gdp_2Dto1D.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[2],
+        help="value column(s) in 1D data files (default=[2])"
+    )
+    gdp_2Dto1D.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
+    gdp_2Dto1D.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4", "03.0"],
+        help='float format (to store) for positional, value, and the identifier columns respectively (default=[".4",".4","03.0"])')
+    gdp_2Dto1D.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    gdp_2Dto1D.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
     
     # # gdp convert 2Dto3D
     # gdp_2Dto3D = subparsers.add_parser('2Dto3D', help='2Dto3D',
@@ -1048,8 +1162,8 @@ def parse_args(*args, **kwargs):
 
 
     #====gdp seismic=====#
-    seismic = subparsers.add_parser('seismic', help='seismic data acquisition and processing module',
-    description="seismic data acquisition and processing module")
+    seismic = subparsers.add_parser('seismic', help='seismic data acquisition and processing module (requires SAC)',
+    description="seismic data acquisition and processing module (requires SAC)")
     seismic_subparsers = seismic.add_subparsers(dest='submodule')
 
     # gdp seismic download
@@ -1624,14 +1738,14 @@ def main(*args, **kwargs):
         dat.add_intersect_values(args)
         exit(0)
     elif args.module == '1Dto2D':
-        subprocess.call('gdp 1Dto2D -h', shell=True)
-        under_dev()
+        conv.datasets_1Dto2D(args)
+        exit(0)
     elif args.module == '1Dto3D':
         subprocess.call('gdp 1Dto3D -h', shell=True)
         under_dev()
     elif args.module == '2Dto1D':
-        subprocess.call('gdp 2Dto1D -h', shell=True)
-        under_dev()
+        conv.datasets_2Dto1D(args)
+        exit(0)
     elif args.module == '2Dto3D':
         subprocess.call('gdp 2Dto3D -h', shell=True)
         under_dev()

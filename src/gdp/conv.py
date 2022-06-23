@@ -6,6 +6,65 @@ import subprocess
 from . import io
 from . import dependency
 
+
+def datasets_1Dto2D(args):
+    if len(args.fmt) == 1:
+        args.fmt = [args.fmt[0], args.fmt[0], "03.0"]
+    elif len(args.fmt) == 2:
+        args.fmt = [args.fmt[0], args.fmt[1], "03.0"]
+    elif len(args.fmt) > 2:
+        pass
+
+    datalist = io.read_1D_datalist(args.datalist, args.fmt[0])
+    args.fmt = [args.fmt[2], args.fmt[1]] # this line should be after datalist = ...
+    outmodel_xy = {}
+    outmodel_lines = {}
+    for xy in datalist.keys():
+        datafile = datalist[xy]
+        args.nan = False
+        args.noextra = True
+        data = io.data_lines(datafile,args)
+        for dline in data:
+            fid = dline.split()[0] # fid could be period, depth etc.
+            fid_vals = ' '.join(dline.split()[1:])
+            if fid not in outmodel_xy.keys():
+                outmodel_xy[fid] = []
+                outmodel_lines[fid] = []
+
+            outmodel_xy[fid].append(f"{xy}")
+            outmodel_lines[fid].append(f"{xy} {fid_vals}")
+
+    fids = sorted(list(outmodel_xy.keys()))
+    
+    # add nans to outmodel_lines
+    if not args.skipnan:
+        nans = ' '.join(["nan" for x in range(len(args.v))])
+        for fid in fids:
+            for xy in datalist.keys():
+                if xy not in outmodel_xy[fid]:
+                    outmodel_lines[fid].append(f"{xy} {nans}")
+
+    args.sort = True
+    args.uniq = False
+    args.append = False
+    # write files to outdir
+    if not os.path.isdir(args.outdir):
+        os.mkdir(args.outdir)
+    for fid in fids:
+        fout = f"{args.prefix}{fid}{args.suffix}.{args.ext}"
+        args.outfile = os.path.join(args.outdir, fout)
+        print(f"1Dto2D: '{args.datalist}' >> '{args.outfile}'")
+        io.output_lines(outmodel_lines[fid], args)
+
+
+
+
+
+def datasets_2Dto1D(args):
+    print("hello from datasets_2Dto1D")
+
+
+
 def shp2dat(args):
     if not os.path.isdir(args.outdir):
         os.mkdir(args.outdir)

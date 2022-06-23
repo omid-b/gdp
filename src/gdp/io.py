@@ -1,5 +1,48 @@
 #!/usr/bin/env python3
 
+
+def read_1D_datalist(input_datalist, fmt):
+    import os
+    datalist = {}
+    try:
+        fopen = open(input_datalist, 'r')
+        flines = fopen.read().splitlines()
+        fopen.close()
+    except Exception as e:
+        print(f"{e}\nError! Could not read/find input datalist: '{input_datalist}'")
+        exit(1)
+    for i, line in enumerate(flines):
+        if len(line.split()) == 3:
+            try:
+                x = float(line.split()[0])
+                y = float(line.split()[1])
+                data = line.split()[2]
+            except Exception as e:
+                print(f"{e}\nDatalist format error at line {i+1}!")
+                print("All lines must have 3 columns: (1) lon/X, (2) lat/Y, (3) path to 1D data")
+                exit(1)
+
+            if not os.path.isfile(data):
+                print(f"Error! Could not find data at line {i+1}: '{data}'")
+                exit(1)
+            else:
+                key = f"%{fmt}f %{fmt}f" %(x, y)
+                datalist[key] = data
+        else:
+            print(f"Datalist format error at line {i+1}!")
+            print("All lines must have 3 columns: (1) lon/X, (2) lat/Y, (3) path to 1D data")
+            exit(1)
+
+    return datalist
+
+
+
+
+def read_2D_datalist(datalist):
+    print("hello from read_2D_datalist")
+
+
+
 def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx, skipnan=False):
     from numpy import array
     from numpy import nan as npnan
