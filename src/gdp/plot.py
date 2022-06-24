@@ -17,6 +17,10 @@ def plot_features(args):
     import matplotlib.pyplot as plt
     from mpl_toolkits.basemap import Basemap
 
+    if args.padding <= -0.25:
+        print("Error! Parameter 'padding' cannot be smaller than (or equal to) -0.5")
+        exit(1)
+
     points = []
     polygons = []
     # read points
@@ -86,7 +90,6 @@ def plot_features(args):
         region_lons += polygons_lons
         region_lats += polygons_lats
 
-
     region_min_lon = np.nanmin(region_lons)
     region_max_lon = np.nanmax(region_lons)
     region_min_lat = np.nanmin(region_lats)
@@ -95,15 +98,17 @@ def plot_features(args):
     region_center_lat = (region_min_lat + region_max_lat) / 2
 
     width = (region_max_lon - region_min_lon) * np.cos(np.deg2rad(region_center_lat)) * 111000
-    height = (region_max_lat - region_min_lat) * 111000
-
+    if width == 0:
+        width == np.cos(np.deg2rad(region_center_lat)) * 111000
     width += args.padding * 2 * width
-    height += args.padding * 2 * height
 
+    height = (region_max_lat - region_min_lat) * 111000
+    if height == 0:
+        height = 111000
+    height += args.padding * 2 * height
 
     # start plotting
     fig, ax = plt.subplots(figsize=args.figsize)
-
     m = Basemap(width=width,
                 height=height,
                 resolution='i',
@@ -127,10 +132,24 @@ def plot_features(args):
         m.plot(x, y, linewidth=args.linewidth, color=colors[i])
 
     m.drawcoastlines(linewidth=0.25)
-    m.drawmeridians(np.arange(-180,180,int((width/111000)/5)),
-                      labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
-    m.drawparallels(np.arange(-90,90,int((height/111000)/5)),
-                      labels=[1,1,0,0], dashes=[1,1], color=(0,0,0,0.1))
+
+    if args.ticks[0] == 999:
+        m.drawmeridians(np.arange(-180,180,int((width/111000)/5)),
+                          labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
+    elif args.ticks[0] == 0:
+        pass
+    else:
+        m.drawmeridians(np.arange(-180,180,args.ticks[0]),
+                          labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
+
+    if args.ticks[1] == 999:
+        m.drawparallels(np.arange(-90,90,int((height/111000)/5)),
+                          labels=[1,1,0,0], dashes=[1,1], color=(0,0,0,0.1))
+    elif args.ticks[1] ==0:
+        pass
+    else:
+        m.drawparallels(np.arange(-90,90,args.ticks[1]),
+                          labels=[1,1,0,0], dashes=[1,1], color=(0,0,0,0.1))
 
     plt.tight_layout()
     if args.outfile:

@@ -1701,6 +1701,12 @@ def parse_args(*args, **kwargs):
         default=2,
         help="polygons line width (default=2)")
     plot_features.add_argument(
+        '--ticks',
+        type=float,
+        nargs=2,
+        default=[999, 999],
+        help="meridians and parallels tick spacing (default=Auto; [0, 0] to disable)")
+    plot_features.add_argument(
         '--figsize',
         type=float,
         nargs=2,
