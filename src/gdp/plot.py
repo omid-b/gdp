@@ -13,24 +13,149 @@ from . import dependency
 pkg_dir, _ = os.path.split(__file__)
 
 def plot_features(args):
-    print("Hello from plot_features!")
-    from . import io
+    import seaborn as sns
+    import matplotlib.pyplot as plt
+    from mpl_toolkits.basemap import Basemap
+
     points = []
     polygons = []
-
+    # read points
     if args.point != None:
-        for point in args.point:
-            io.read_point_shp(point)
+        points_lons = []
+        points_lats = []
+        for point_file in args.point:
+            if os.path.splitext(point_file)[1] == ".shp":
+                pts = io.read_point_shp(point_file)
+            else:
+                # else if point_file is not *.shp >> ascii file
+                point_data = io.read_numerical_data(point_file, args.header, args.footer, [".10",".10"], args.x, [])
+                pts = [point_data[0][0], point_data[0][1]]
+            points.append(pts)
+            points_lons += pts[0]
+            points_lats += pts[1]
+
+        points_min_lon = np.nanmin(points_lons)
+        points_max_lon = np.nanmax(points_lons)
+        points_min_lat = np.nanmin(points_lats)
+        points_max_lat = np.nanmax(points_lats)
+
+    # read polygons
+    if args.polygon != None:
+        polygons_lons = []
+        polygons_lats = []
+        for polygon_file in args.polygon:
+            if os.path.splitext(polygon_file)[1] == ".shp":
+                # if polygon_file is *.shp
+                polys = io.read_polygon_shp(polygon_file)
+            else:
+                # else if polygon_file is not *.shp >> ascii file
+                polygon_data = io.read_numerical_data(polygon_file, args.header, args.footer, [".10",".10"], args.x, [])
+                polys = [[polygon_data[0][0], polygon_data[0][1]]]
+            for polygon in polys:
+                polygons.append(polygon)
+                polygons_lons += polygon[0]
+                polygons_lats += polygon[1]
+
+        polygons_min_lon = np.nanmin(polygons_lons)
+        polygons_max_lon = np.nanmax(polygons_lons)
+        polygons_min_lat = np.nanmin(polygons_lats)
+        polygons_max_lat = np.nanmax(polygons_lats)
+
+    # build colors
+    num_features = len(points) + len(polygons)
+    colors = []
+    if args.palette == 'Black':
+        for i in range(num_features):
+           colors.append((0,0,0,args.transparency)) 
+    else:
+        palette = sns.color_palette(args.palette, num_features)
+        for i in range(num_features):
+            colors.append((palette[i][0],
+                           palette[i][1],
+                           palette[i][2],
+                           args.transparency))
+
+    # map/region information
+    region_lons = []
+    region_lats = []
+    if args.point != None:
+        region_lons += points_lons
+        region_lats += points_lats
 
     if args.polygon != None:
-        for polygon in args.polygon:
-            io.read_polygon_shp(polygon)
+        region_lons += polygons_lons
+        region_lats += polygons_lats
+
+
+    region_min_lon = np.nanmin(region_lons)
+    region_max_lon = np.nanmax(region_lons)
+    region_min_lat = np.nanmin(region_lats)
+    region_max_lat = np.nanmax(region_lats)
+    region_center_lon = (region_min_lon + region_max_lon) / 2
+    region_center_lat = (region_min_lat + region_max_lat) / 2
+
+    width = (region_max_lon - region_min_lon) * np.cos(np.deg2rad(region_center_lat)) * 111000
+    height = (region_max_lat - region_min_lat) * 111000
+
+    width += args.padding * 2 * width
+    height += args.padding * 2 * height
+
+
+    # start plotting
+    fig, ax = plt.subplots(figsize=args.figsize)
+
+    m = Basemap(width=width,
+                height=height,
+                resolution='i',
+                projection='aeqd',
+                lon_0=region_center_lon,
+                lat_0=region_center_lat,
+                area_thresh=args.area,
+                ax=ax)
+
+    m.fillcontinents(color=args.landcolor)
+    m.drawcountries(linewidth=0.4)
+
+    # plot points
+    for i, point in enumerate(points):
+        x, y = m(point[0], point[1])
+        m.scatter(x, y, marker = 'o', s=args.pointsize, color=colors[i])
+
+    # plot polygons
+    for i, polygon in enumerate(polygons):
+        x, y = m(polygon[0], polygon[1])
+        m.plot(x, y, linewidth=args.linewidth, color=colors[i])
+
+    m.drawcoastlines(linewidth=0.25)
+    m.drawmeridians(np.arange(-180,180,int((width/111000)/5)),
+                      labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
+    m.drawparallels(np.arange(-90,90,int((height/111000)/5)),
+                      labels=[1,1,0,0], dashes=[1,1], color=(0,0,0,0.1))
+
+    plt.tight_layout()
+    if args.outfile:
+        outfile = os.path.abspath(args.outfile)
+        if os.path.splitext(outfile)[1] != '.pdf':
+            outfile = f"{outfile}.pdf"
+        plt.savefig(outfile, format="PDF", transparent=True)
+        plt.close()
+        print(f"output: {outfile}\n\nDone!\n")
+    else:
+        plt.show()
+    plt.close()
+
+
+
+
 
 
 def plot_hist(args):
     import random
     import matplotlib.pyplot as plt
     import seaborn as sns
+    if args.transparency <= 0 or args.transparency > 1:
+        print("Error! Argument 'transparency' must be between in (0, 1] range.")
+        exit(1)
     datasets = []
     datasets_all = []
     for input_file in args.input_files:
@@ -74,15 +199,15 @@ def plot_hist(args):
     bins = np.linspace(np.min(datasets_all), np.max(datasets_all), num=nbins+1).tolist()
     sns.set_style("ticks")
     sns.set_context("notebook")
-    fig = plt.figure(figsize=(8,6))
+    fig = plt.figure(figsize=(args.figsize[0],args.figsize[1]))
     ax = plt.subplot(1,1,1)
     colors = []
-    palette = sns.color_palette("Set1", nod)
+    palette = sns.color_palette(args.palette, nod)
     for i in range(nod):
         colors.append((palette[i][0],
                       palette[i][1],
                       palette[i][2],
-                      0.75))
+                      args.transparency))
         ax.hist(datasets[i], label=legend[i].replace('_',' '), color=colors[i], bins=bins)
 
     max_y = ax.get_ylim()[1]*1.1
@@ -101,8 +226,8 @@ def plot_hist(args):
     ax.legend(loc=2)
     plt.ylim((0,max_y))
     # save or show the plot
-    if args.o:
-        outfile = os.path.abspath(args.o)
+    if args.outfile:
+        outfile = os.path.abspath(args.outfile)
         if os.path.splitext(outfile)[1] != '.pdf':
             outfile = f"{outfile}.pdf"
         plt.savefig(outfile, format="PDF", transparent=True)

@@ -707,7 +707,7 @@ def parse_args(*args, **kwargs):
         '--polygon',
         type=str,
         action='store',
-        help='path to polygon file (only single allowed)')
+        help='path to polygon file (ascii or shape file)')
     gdp_pip.add_argument(
         '-x',
         nargs=2,
@@ -904,13 +904,13 @@ def parse_args(*args, **kwargs):
     gdp_shp2dat.add_argument(
         '--point',
         type=str,
-        nargs='*',
+        nargs='+',
         action='store',
         help='point(s): shape file(s)')
     gdp_shp2dat.add_argument(
         '--polygon',
         type=str,
-        nargs='*',
+        nargs='+',
         action='store',
         help='polygon(s): shape file(s)')
     gdp_shp2dat.add_argument(
@@ -1549,6 +1549,7 @@ def parse_args(*args, **kwargs):
     )
     plot_hist.add_argument(
         '-o',
+        '--outfile',
         type=str,
         help='output file name')
     plot_hist.add_argument(
@@ -1608,6 +1609,30 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='enable plotting distribution median (dashed line)')
     plot_hist.add_argument(
+        '--palette',
+        type=str,
+        default='Set1',
+        choices=['BrBG','PRGn','PiYG','PuOr','RdBu','RdGy','RdYlBu',
+                 'RdYlGn','Spectral','Accent','Dark2','Paired',
+                 'Pastel1','Pastel2','Set1','Set2','Set3',
+                 'Blues','BuGn','BuPu','GnBu','Greens','Greys',
+                 'OrRd','Oranges','PuBu','PuBuGn','PuRd','Purples',
+                 'RdPu','Reds','YlGn','YlGnBu','YlGnBu','YlOrBr','YlOrRd'],
+        help="color palette (see https://www.codecademy.com/article/seaborn-design-ii)"
+    )
+    plot_hist.add_argument(
+        '--figsize',
+        type=float,
+        nargs=2,
+        default=[8,6],
+        help="output plot size dimention along x and y (default=[8,6])"
+    )
+    plot_hist.add_argument(
+        '--transparency',
+        type=float,
+        default=0.75,
+        help='transparency value (between 0 and 1; default=0.75)')
+    plot_hist.add_argument(
         '--header',
         type=int,
         action='store',
@@ -1621,20 +1646,96 @@ def parse_args(*args, **kwargs):
         help='number of footer lines to ignore (default=0)')
 
     # gdp plot features
-    # plot_features = plot_subparsers.add_parser('features', help='plot geographical features (e.g., points, polygons)',
-    # description="Plot geographical features (e.g., points, polygons)")
-    # plot_features.add_argument(
-    #     '--point',
-    #     type=str,
-    #     nargs='*',
-    #     action='store',
-    #     help='point(s): ascii or shape file(s)')
-    # plot_features.add_argument(
-    #     '--polygon',
-    #     type=str,
-    #     nargs='*',
-    #     action='store',
-    #     help='polygon(s): ascii or shape file(s)')
+    plot_features = plot_subparsers.add_parser('features', help='plot geographical features (e.g., points, polygons)',
+    description="Plot geographical features (e.g., points, polygons)")
+    plot_features.add_argument(
+        '--point',
+        type=str,
+        nargs='+',
+        action='store',
+        help='point(s): ascii or shape file(s)')
+    plot_features.add_argument(
+        '--polygon',
+        type=str,
+        nargs='+',
+        action='store',
+        help='polygon(s): ascii or shape file(s)')
+    plot_features.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        help='output file name')
+    plot_features.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1,2],
+        help='for ascii files only: positional column numbers ([lon, lat]; default=[1,2])')
+    plot_features.add_argument(
+        '--palette',
+        type=str,
+        default='Set1',
+        choices=['Black','BrBG','PRGn','PiYG','PuOr','RdBu','RdGy','RdYlBu',
+                 'RdYlGn','Spectral','Accent','Dark2','Paired',
+                 'Pastel1','Pastel2','Set1','Set2','Set3',
+                 'Blues','BuGn','BuPu','GnBu','Greens','Greys',
+                 'OrRd','Oranges','PuBu','PuBuGn','PuRd','Purples',
+                 'RdPu','Reds','YlGn','YlGnBu','YlGnBu','YlOrBr','YlOrRd'],
+        help="color palette (default='Set1'; see https://www.codecademy.com/article/seaborn-design-ii)"
+    )
+    plot_features.add_argument(
+        '--landcolor',
+        type=str,
+        default='lightgrey',
+        help="land color; choose among standrad matplotlib colors (default='lightgrey')"
+    )
+    plot_features.add_argument(
+        '--pointsize',
+        type=float,
+        default=20,
+        help="points marker size (default=20)")
+    plot_features.add_argument(
+        '--linewidth',
+        type=float,
+        default=2,
+        help="polygons line width (default=2)")
+    plot_features.add_argument(
+        '--figsize',
+        type=float,
+        nargs=2,
+        default=[8,6],
+        help="output plot size dimention along x and y (default=[8,6])"
+    )
+    plot_features.add_argument(
+        '--transparency',
+        type=float,
+        default=1,
+        help="transparency value (between 0 and 1; default=1)")
+    plot_features.add_argument(
+        '--area',
+        type=int,
+        default=1000,
+        help="area threshold size to plot (default=1000)"
+    )
+    plot_features.add_argument(
+        '--padding',
+        type=float,
+        default=0.1,
+        help="map padding factor (default=0.1)"
+    )
+    plot_features.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='for ascii files only: number of header lines to ignore (default=0)')
+    plot_features.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='for ascii files only: number of footer lines to ignore (default=0)')
     
     # return arguments
     return parser.parse_args()
