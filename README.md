@@ -8,12 +8,22 @@ Ubuntu/Debian:
 
 ```bash
 sudo apt-get install libbz2-dev
+sudo apt-get install python3-tk
 ```
 
 Fedora:
 
 ```bash
 sudo yum install bzip2-devel
+sudo yum install python3-tkinter
+```
+
+MacOS:
+
+Note that installing requirements for tkinter on MacOS is python versino specific.
+
+```bash
+brew install python-tk@3.10
 ```
 
 
