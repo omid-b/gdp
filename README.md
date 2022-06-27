@@ -20,7 +20,7 @@ sudo yum install python3-tkinter
 
 MacOS:
 
-Note that installing requirements for tkinter on MacOS is python versino specific.
+Note that installing requirements for tkinter on MacOS is python version specific.
 
 ```bash
 brew install python-tk@3.10
