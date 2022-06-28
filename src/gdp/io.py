@@ -277,9 +277,6 @@ def read_point_shp(point_file):
         try:
             point_x = np.array(mapping(shp)['features'][i]['geometry']['coordinates'][0]).tolist()
             point_y = np.array(mapping(shp)['features'][i]['geometry']['coordinates'][1]).tolist()
-            if len(point_x) != len(point_y):
-                print(f"Error! Cannot read point file: '{point_file}'")
-                exit(1)
         except Exception as e:
             print(f"Error! Could not read shape file item '{i+1}': '{point_file}'\n{e}\n")
             exit(1)

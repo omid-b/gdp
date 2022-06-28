@@ -1092,11 +1092,11 @@ def parse_args(*args, **kwargs):
         default = 'dat',
         help='output file extension (default="dat")')
     
-    # # gdp convert 1Dto3D
+    # # gdp 1Dto3D
     # gdp_1Dto3D = subparsers.add_parser('1Dto3D', help='1Dto3D',
     # description="1Dto3D")
     
-    # gdp convert 2Dto1D
+    # gdp 2Dto1D
     gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='extract/convert 2D datasets into 1D datasets',
     description="Extract/convert 2D datasets into 1D datasets. Example use cases:\
      (1) extracting point dispersion curves from phase velocity maps,\
@@ -1154,17 +1154,26 @@ def parse_args(*args, **kwargs):
         default = 'dat',
         help='output file extension (default="dat")')
     
-    # # gdp convert 2Dto3D
+    # # gdp 2Dto3D
     # gdp_2Dto3D = subparsers.add_parser('2Dto3D', help='2Dto3D',
     # description="2Dto3D")
     
-    # # gdp convert 3Dto1D
+    # # gdp 3Dto1D
     # gdp_3Dto1D = subparsers.add_parser('3Dto1D', help='3Dto1D',
     # description="3Dto1D")
     
-    # # gdp convert 3Dto2D
+    # # gdp 3Dto2D
     # gdp_3Dto2D = subparsers.add_parser('3Dto2D', help='3Dto2D',
     # description="3Dto2D")
+
+    gdp_georef = subparsers.add_parser('georef', help='georeference maps',
+    description="Georeference maps. Coordinate system could be defined using the EPSG code (visit 'epsg.io' for more information).")
+    gdp_georef.add_argument(
+        '--epsg',
+        type=int,
+        action='store',
+        default=4326,
+        help='EPSG coordinate system and trasfomation code (default=4326; WGS84)')
 
 
     #====gdp seismic=====#
@@ -1880,6 +1889,12 @@ def main(*args, **kwargs):
     elif args.module == 'dat2nc':
         conv.dat2nc(args)
         exit(0)
+    elif args.module == 'georef':
+        from . import georefmaps
+        import tkinter as tk
+        root = tk.Tk()
+        app = georefmaps.Application(master=root, epsg=args.epsg)
+        app.mainloop()
     elif args.module == 'seismic':
 
         if args.submodule == 'download':
