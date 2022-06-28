@@ -6,9 +6,12 @@
 
 Ubuntu/Debian:
 
+Note that the version of binary bindings for GDAL (could be installed using pip) and libgdal-dev must match
+
 ```bash
 sudo apt-get install libbz2-dev
 sudo apt-get install python3-tk
+sudo apt install libgdal-dev
 ```
 
 Fedora:
