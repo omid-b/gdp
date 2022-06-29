@@ -21,6 +21,32 @@ def plot_features(args):
         print("Error! Parameter 'padding' cannot be smaller than (or equal to) -0.5")
         exit(1)
 
+    region_lons = []
+    region_lats = []
+    # read geotiff if available
+    if args.geotiff != None:
+        import rasterio
+        import earthpy.plot as ep
+        import earthpy.mask as em
+        from earthpy.mask import mask_pixels
+        try:
+            geotiff = rasterio.open(args.geotiff[0])
+        except Exception as e:
+            print(f"Could not read GeoTiff: '{args.geotiff[0]}'\n{e}")
+            exit(1)
+        if geotiff.crs == None:
+            print(f"\nError! Could not read GeoTiff coordinate system.\n")
+            exit(1)
+        region_lons.append(geotiff.bounds.left)
+        region_lons.append(geotiff.bounds.right)
+        region_lats.append(geotiff.bounds.bottom)
+        region_lats.append(geotiff.bounds.top)
+
+        geotiff_data_extent = [geotiff.bounds.left, geotiff.bounds.right,
+                               geotiff.bounds.bottom, geotiff.bounds.top]
+
+        
+
     points = []
     polygons = []
     # read points
@@ -80,8 +106,6 @@ def plot_features(args):
                            args.transparency))
 
     # map/region information
-    region_lons = []
-    region_lats = []
     if args.point != None:
         region_lons += points_lons
         region_lats += points_lats
@@ -94,31 +118,41 @@ def plot_features(args):
     region_max_lon = np.nanmax(region_lons)
     region_min_lat = np.nanmin(region_lats)
     region_max_lat = np.nanmax(region_lats)
-    region_center_lon = (region_min_lon + region_max_lon) / 2
-    region_center_lat = (region_min_lat + region_max_lat) / 2
-
-    width = (region_max_lon - region_min_lon) * np.cos(np.deg2rad(region_center_lat)) * 111000
-    if width == 0:
-        width == np.cos(np.deg2rad(region_center_lat)) * 111000
-    width += args.padding * 2 * width
-
-    height = (region_max_lat - region_min_lat) * 111000
-    if height == 0:
-        height = 111000
-    height += args.padding * 2 * height
+    xsize_arc = (region_max_lon - region_min_lon) \
+    * np.cos(np.deg2rad((region_min_lat + region_max_lat) / 2))
+    ysize_arc = (region_max_lat - region_min_lat)
 
     # start plotting
     fig, ax = plt.subplots(figsize=args.figsize)
-    m = Basemap(width=width,
-                height=height,
-                resolution='i',
-                projection='aeqd',
-                lon_0=region_center_lon,
-                lat_0=region_center_lat,
+    fig.canvas.manager.set_window_title('gdp: Plot Features') 
+    llcrnrlon = region_min_lon - args.padding * min(xsize_arc, ysize_arc)
+    urcrnrlon = region_max_lon + args.padding * min(xsize_arc, ysize_arc)
+    llcrnrlat = region_min_lat - args.padding * min(xsize_arc, ysize_arc)
+    urcrnrlat = region_max_lat + args.padding * min(xsize_arc, ysize_arc)
+    m = Basemap(llcrnrlon=llcrnrlon,
+                llcrnrlat=llcrnrlat,
+                urcrnrlon=urcrnrlon,
+                urcrnrlat=urcrnrlat,
+                resolution='h',
+                epsg=args.epsg,
                 area_thresh=args.area,
                 ax=ax)
 
-    m.fillcontinents(color=args.landcolor)
+    if args.geotiff == None:
+        m.fillcontinents(color=args.landcolor)
+
+    # plot geotiff
+    if args.geotiff != None:
+        x1, y1 = m(geotiff_data_extent[0], geotiff_data_extent[2], inverse=False)
+        x2, y2 = m(geotiff_data_extent[1], geotiff_data_extent[3], inverse=False)
+
+        raster = np.array(geotiff.read(masked=True))
+        raster_masked = em.mask_pixels(raster, raster, vals=[0,0,0])
+
+        ep.plot_rgb(raster_masked,
+                    ax=ax,
+                    extent=(x1,x2,y1,y2))
+
     m.drawcountries(linewidth=0.4)
 
     # plot points
@@ -134,7 +168,7 @@ def plot_features(args):
     m.drawcoastlines(linewidth=0.25)
 
     if args.ticks[0] == 999:
-        m.drawmeridians(np.arange(-180,180,int((width/111000)/5)),
+        m.drawmeridians(np.arange(-180,180,int(xsize_arc/5)),
                           labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
     elif args.ticks[0] == 0:
         pass
@@ -143,7 +177,7 @@ def plot_features(args):
                           labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
 
     if args.ticks[1] == 999:
-        m.drawparallels(np.arange(-90,90,int((height/111000)/5)),
+        m.drawparallels(np.arange(-90,90,int(ysize_arc/5)),
                           labels=[1,1,0,0], dashes=[1,1], color=(0,0,0,0.1))
     elif args.ticks[1] ==0:
         pass
@@ -160,9 +194,9 @@ def plot_features(args):
         plt.close()
         print(f"output: {outfile}\n\nDone!\n")
     else:
+        ax.format_coord = lambda x, y: "Longitude=%9.4f, Latitude=%8.4f" %(m(x,y,inverse=True))
         plt.show()
     plt.close()
-
 
 
 
@@ -219,6 +253,7 @@ def plot_hist(args):
     sns.set_style("ticks")
     sns.set_context("notebook")
     fig = plt.figure(figsize=(args.figsize[0],args.figsize[1]))
+    fig.canvas.manager.set_window_title('gdp: Plot Histograms') 
     ax = plt.subplot(1,1,1)
     colors = []
     palette = sns.color_palette(args.palette, nod)

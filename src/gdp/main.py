@@ -1670,10 +1670,23 @@ def parse_args(*args, **kwargs):
         action='store',
         help='polygon(s): ascii or shape file(s)')
     plot_features.add_argument(
+        '--geotiff',
+        type=str,
+        nargs=1,
+        default=None,
+        action='store',
+        help='GeoTiff (georeferenced map)')
+    plot_features.add_argument(
         '-o',
         '--outfile',
         type=str,
         help='output file name')
+    plot_features.add_argument(
+        '--epsg',
+        type=int,
+        action='store',
+        default=4326,
+        help='EPSG coordinate system and trasfomation code (default=4326; WGS84)')
     plot_features.add_argument(
         '-x',
         nargs=2,
@@ -1966,7 +1979,7 @@ def main(*args, **kwargs):
             plot.plot_hist(args)
             exit(0)
         elif args.submodule == 'features':
-            if args.point == None and args.polygon == None:
+            if args.point == None and args.polygon == None and args.geotiff == None:
                print("Error! At least one input feature is required!")
                exit(1)
             plot.plot_features(args)
