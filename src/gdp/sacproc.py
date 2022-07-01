@@ -34,7 +34,7 @@ def get_metadata_info(metadata_dir):
     return metadata_info
 
 
-def get_sacfiles_info(sacfiles):
+def get_sacfiles_info(sacfiles, read_headers=False, read_data=False):
     for sacfile in sacfiles:
         if not os.path.isfile(sacfile):
             print(f"Error! Could not find/read sacfile:\n{sacfile}\n")
@@ -44,17 +44,50 @@ def get_sacfiles_info(sacfiles):
     for sacfile in sacfiles:
         event_dir = os.path.basename(os.path.split(sacfile)[0])
         try:
-            st = obspy.read(sacfile, format="SAC", headonly=True)
+            if read_data:
+                st = obspy.read(sacfile, format="SAC")
+            else:
+                st = obspy.read(sacfile, format="SAC", headonly=True)
             tr = st[0]
-            net = tr.stats.sac.knetwk
-            sta = tr.stats.sac.kstnm
-            chn = tr.stats.sac.kcmpnm
-            tag = f"{net}.{sta}.{chn}"
+            knetwk = tr.stats.sac.knetwk
+            kstnm = tr.stats.sac.kstnm
+            kcmpnm = tr.stats.sac.kcmpnm
+            tag = f"{knetwk}.{kstnm}.{kcmpnm}"
             sacfiles_info[f"{sacfile}"] = {}
             sacfiles_info[f"{sacfile}"]['tag'] = tag
             sacfiles_info[f"{sacfile}"]['event'] = event_dir
+            if read_headers:
+                stla = tr.stats.sac.stla
+                stlo = tr.stats.sac.stlo
+                stel = tr.stats.sac.stel
+                evla = tr.stats.sac.evla
+                evlo = tr.stats.sac.evlo
+                evdp = tr.stats.sac.evdp
+                o = tr.stats.sac.o
+                gcarc = tr.stats.sac.gcarc
+                az = tr.stats.sac.az
+                baz = tr.stats.sac.baz
+                sacfiles_info[f"{sacfile}"]['knetwk'] = knetwk
+                sacfiles_info[f"{sacfile}"]['kstnm'] = kstnm
+                sacfiles_info[f"{sacfile}"]['kcmpnm'] = kcmpnm
+                sacfiles_info[f"{sacfile}"]['stla'] = float(stla)
+                sacfiles_info[f"{sacfile}"]['stlo'] = float(stlo)
+                sacfiles_info[f"{sacfile}"]['stel'] = float(stel)
+                sacfiles_info[f"{sacfile}"]['evla'] = float(evla)
+                sacfiles_info[f"{sacfile}"]['evlo'] = float(evlo)
+                sacfiles_info[f"{sacfile}"]['evdp'] = float(evdp)
+                sacfiles_info[f"{sacfile}"]['o'] = float(o)
+                sacfiles_info[f"{sacfile}"]['gcarc'] = float(gcarc)
+                sacfiles_info[f"{sacfile}"]['az'] = float(az)
+                sacfiles_info[f"{sacfile}"]['baz'] = float(baz)
+            if read_data:
+                times = st[0].times()
+                data = st[0].data
+                sacfiles_info[f"{sacfile}"]['times'] = times
+                sacfiles_info[f"{sacfile}"]['data'] = data
+
         except:
-            print(f"WARNING! Could not read sacfile headers: {sacfile}")
+            print(f"WARNING! Could not read sacfile headers/data: {sacfile}")
             warnings += 1
     if warnings > 0:
         uans = input("\nSome sacfiles could not be read (those will be skipped).\nDo you want to continue (y/n)? ")

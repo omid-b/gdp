@@ -52,7 +52,7 @@ class Application(tk.Frame):
             self.file_menu.add_command(label="Save GeoTIFF", command = self.file_menu_save_geotiff, accelerator="Ctrl+S", state="disabled")
         self.menu_bar.bind_all("<Control-s>", self.file_menu_save_geotiff)
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Exit", command = self.exit, accelerator="Ctrl+W")
+        self.file_menu.add_command(label="Exit", command = self.exit_program, accelerator="Ctrl+W")
         self.menu_bar.bind_all("<Control-o>", self.file_menu_open_image)
         self.menu_bar.bind_all("<Control-w>", self.exit_program )
         # georeferencing menu
