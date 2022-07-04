@@ -6,17 +6,30 @@ import tkinter as tk
 import tkinter.messagebox
 
 import matplotlib
-matplotlib.use('TkAgg')
+
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_tkagg as tkagg
 import seaborn as sns
 
 from gdp import sacproc
 
+
 class SWS_Dataset_App(tk.Frame):
     def __init__(self, sacfiles_info, time_range=None, master=None):
         super().__init__(master)
         matplotlib.rcParams["savefig.directory"] = os.getcwd()
+        matplotlib.use("TkAgg")
+        matplotlib.backend_bases.NavigationToolbar2.toolitems = (
+            ('Home', 'Reset original view', 'home', 'home'),
+            (None, None, None, None),
+            (None, None, None, None),
+            ('Pan', 'Pan timeseries (hold X)', 'move', 'pan'),
+            ('Zoom', 'Zoom timeseries (hold X)', 'zoom_to_rect', 'zoom'),
+            (None, None, None, None),
+            ('Save', 'Save the figure', 'filesave', 'save_figure'),
+        )
+        self.master = master
+        self.master.config(bg='#fff')
         self.win_width = 1000
         self.win_height = 650
 
@@ -28,11 +41,11 @@ class SWS_Dataset_App(tk.Frame):
         self.plot_datalist = self.get_plot_datalist()
 
         num_events = len(self.sws_dataset.keys())
-        num_measurements = len(self.plot_datalist)
+        self.num_measurements = len(self.plot_datalist)
         num_sacs = len(self.plot_datalist) * 3
 
         self.master.geometry(f"{self.win_width}x{self.win_height}")
-        self.app_title = f"SWS Dataset QC - #Events: {num_events} - #Three component data: {num_measurements}"
+        self.app_title = f"SWS Dataset QC - #Events: {num_events} - #Three component data: {self.num_measurements}"
         self.master.title(self.app_title)
         self.state_modified = False
         self.create_ui()
@@ -42,7 +55,6 @@ class SWS_Dataset_App(tk.Frame):
             self.lbl_statusbar["text"] = "Warning! Some data dplication was found."
         else:
             self.lbl_statusbar["text"] = "Ready..."
-
 
     def create_ui(self):
         self.create_menu()
@@ -71,12 +83,16 @@ class SWS_Dataset_App(tk.Frame):
 
 
     def next_data(self, event=None):
+        if self.plot_data_index >= (self.num_measurements - 1):
+            return
         self.plot_data_index += 1
         print(self.plot_data_index)
         self.update_canvas()
 
 
     def prev_data(self, event=None):
+        if self.plot_data_index == 0:
+            return
         self.plot_data_index -= 1
         print(self.plot_data_index)
         self.update_canvas()
@@ -86,11 +102,21 @@ class SWS_Dataset_App(tk.Frame):
         # create container for plot
         canvas_width = self.win_width
         canvas_height = self.win_height
-        self.frame_plot = tk.Frame(root)
+        self.frame_plot = tk.Frame(self.master)
         self.frame_plot.pack(side=tk.TOP)
         self.canvas = self.create_canvas()
-        self.canvas_toolbar = tkagg.NavigationToolbar2Tk(self.canvas, self.frame_plot)
+        self.canvas_toolbar = tkagg.NavigationToolbar2Tk(self.canvas, self.frame_plot, pack_toolbar=False)
+        for x in self.canvas_toolbar.winfo_children():
+            x.config(bg='#fff')
+        self.canvas_toolbar._message_label.config(bg='#fff')
+        self.canvas_toolbar._message_label.config(fg='#000')
+        self.canvas_toolbar.config(bg='#fff')
+    
+
         self.update_canvas()
+        self.canvas_toolbar.pack(side=tkinter.BOTTOM, fill=tkinter.X)
+
+
 
         # statusbar
         frame_statusbar = tk.Frame(self.master, bd=1, relief = tk.SUNKEN)
@@ -102,12 +128,13 @@ class SWS_Dataset_App(tk.Frame):
     def create_canvas(self):
         sns.set_context('notebook')
         sns.set_style('white')
+
         self.fig = plt.Figure(dpi=72, figsize=(10,8))
         self.ax1 = self.fig.add_subplot(311)
         self.ax2 = self.fig.add_subplot(312)
         self.ax3 = self.fig.add_subplot(313)
         self.ax1.get_shared_x_axes().join(self.ax1, self.ax2, self.ax3)
-        # plt.close()
+        plt.close()
         canvas = tkagg.FigureCanvasTkAgg(self.fig , master=self.frame_plot)
         return canvas
 
@@ -167,6 +194,7 @@ class SWS_Dataset_App(tk.Frame):
             verticalalignment='top',horizontalalignment='center', bbox=bbox_props)
 
         self.canvas.draw()
+        self.canvas.flush_events()
         self.canvas.get_tk_widget().pack()
         self.canvas_toolbar.update()
         plt.close()
@@ -255,6 +283,40 @@ class SWS_Dataset_App(tk.Frame):
     def apply_changes(self, event=None):
         pass
 
+
+def run_sws_dataset_app(sacfiles):
+    root = tk.Tk()
+    sacfiles_info = sacproc.get_sacfiles_info(sacfiles, read_headers=True, read_data=True)
+    app = SWS_Dataset_App(sacfiles_info, master=root)
+    app.mainloop()
+    # import gi
+    # gi.require_version('Gtk', '3.0')
+    # from gi.repository import Gtk
+
+    # from matplotlib.figure import Figure
+    # from matplotlib.backends.backend_gtk3agg import FigureCanvas
+    # from matplotlib.backends.backend_gtk3 import (
+    #     NavigationToolbar2GTK3 as NavigationToolbar)
+
+    # win = Gtk.Window()
+    # win.connect("destroy", lambda x: Gtk.main_quit())
+    # win.set_default_size(400,300)
+    # win.set_title("Embedding in GTK")
+
+    # vbox = Gtk.VBox()
+    # win.add(vbox)
+
+    # fig = Figure(figsize=(5,4), dpi=100)
+    # ax = fig.add_subplot(111)
+    # ax.plot([1,2,3])
+
+    # canvas = FigureCanvas(fig)  # a Gtk.DrawingArea
+    # vbox.pack_start(canvas, True, True, 0)
+    # toolbar = NavigationToolbar(canvas, win)
+    # vbox.pack_start(toolbar, False, False, 0)
+
+    # win.show_all()
+    # Gtk.main()
 
 
 if __name__ == "__main__":

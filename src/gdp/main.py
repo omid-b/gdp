@@ -1265,6 +1265,18 @@ def parse_args(*args, **kwargs):
         help='download for ambient-noise-tomography; do not read events list (default=False)'
     )
 
+    #####################
+    # gdp seismic sws
+    seismic_sws = seismic_subparsers.add_parser('sws', help='shear wave splitting (sws) processing module',
+    description="shear wave splitting (sws) processing module")
+    sws_subparsers = seismic_sws.add_subparsers(dest='subsubmodule')
+
+    # gdp seismic sws init
+    sws_init = sws_subparsers.add_parser('init', help='initialize sws project: write XKS phase travel times, make copies, and initial QC',
+    description='initialize sws project: write XKS phase travel times, make copies, and initial QC')
+    sws_init.add_argument("input_files", nargs='+', help='input sac files')
+    ####################
+
 
     # gdp seismic mseed2sac
 
@@ -1928,6 +1940,14 @@ def main(*args, **kwargs):
                 exit(0)
             else:
                 subprocess.call('gdp seismic download -h', shell=True)
+
+        elif args.submodule == 'sws':
+            from . import sws
+            if args.subsubmodule == 'init':
+                sws.run_sws_dataset_app(args.input_files)
+                exit(0)
+            else:
+                subprocess.call('gdp seismic sws -h', shell=True)
 
         elif args.submodule == 'mseed2sac':
             conv.mseed2sac(args)

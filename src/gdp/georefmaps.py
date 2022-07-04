@@ -344,7 +344,7 @@ class Application(tk.Frame):
         warp_window.title(f" ")
         main_size = [self.master.winfo_width(), self.master.winfo_height()]
         main_position = [self.master.winfo_x(), self.master.winfo_y()]
-        this_size = [210, 150]
+        this_size = [300, 150]
         this_position = [int(main_position[0] + (main_size[0])/2 - this_size[0]/2),
                          int(main_position[1] + (main_size[1])/2 - this_size[1]/2) ]
         warp_window.geometry(f"{this_size[0]}x{this_size[1]}+{this_position[0]}+{this_position[1]}")
