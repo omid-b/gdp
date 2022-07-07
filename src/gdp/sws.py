@@ -5,6 +5,8 @@ import numpy as np
 import tkinter as tk
 import tkinter.messagebox
 
+import operator
+
 import matplotlib
 
 import matplotlib.pyplot as plt
@@ -221,7 +223,7 @@ class SWS_Dataset_App(tk.Frame):
             widget.destroy()
         plot_data = self.plot_datalist[self.plot_data_index]
         lbl_info = tk.Label(self.frm_arrivals, text=f"Theoretical arrivals ({self.refmodel.upper()}):",
-            justify=tk.LEFT, font='Helvetica 14 bold', bg='#fff')
+            justify=tk.LEFT, font='Helvetica 14 bold', bg='#fff', fg='#000')
         lbl_info.place(relx=0, rely=0)
 
         plot_data_p_phase_names = list(plot_data[3].keys())
@@ -287,12 +289,12 @@ class SWS_Dataset_App(tk.Frame):
             widget.destroy()
         plot_data = self.plot_datalist[self.plot_data_index]
         lbl_info = tk.Label(self.frm_info, text=f"Event: {plot_data[2]['event']}\n\nData information ({self.plot_data_index+1} of {self.num_measurements}):",
-            justify=tk.LEFT, font='Helvetica 14 bold', bg='#fff')
+            justify=tk.LEFT, font='Helvetica 14 bold', bg='#fff', fg='#000')
         lbl_info.place(relx=0, rely=0)
         col1_text = f"Network: {plot_data[2]['knetwk']}\n\nStation: {plot_data[2]['kstnm']}"
         col2_text = "BAZ: %.2f\n\nGCARC: %.2f" %(float(plot_data[2]['baz']), float(plot_data[2]['gcarc']))
-        lbl_col1 = tk.Label(self.frm_info, bg='#fff', justify=tk.LEFT, text=col1_text, font='Helvetica 14')
-        lbl_col2 = tk.Label(self.frm_info, bg='#fff', justify=tk.LEFT, text=col2_text, font='Helvetica 14')
+        lbl_col1 = tk.Label(self.frm_info, bg='#fff', fg='#000',  justify=tk.LEFT, text=col1_text, font='Helvetica 14')
+        lbl_col2 = tk.Label(self.frm_info, bg='#fff', fg='#000', justify=tk.LEFT, text=col2_text, font='Helvetica 14')
         lbl_col1.place(relx=0, rely=0.5)
         lbl_col2.place(relx=0.4, rely=0.5)
 
@@ -407,7 +409,7 @@ class SWS_Dataset_App(tk.Frame):
     def show_duplication_warning(self):
         duplicates = self.find_duplicates()
         duplicates = '\n'.join(duplicates)
-        message = f"These sac files will be ignored:\n\n{duplicates}"
+        message = f"These sac files are ignored:\n\n{duplicates}"
         tkinter.messagebox.showinfo(title="Data duplication!", message=message)
 
 
@@ -443,8 +445,7 @@ class SWS_Dataset_App(tk.Frame):
         sws_dataset = {}
         # find uniq list of events
         events_uniq = []
-        # reverse sorting keys: I prefer BHN over BH1, for example
-        for key in sorted(self.sacfiles_info.keys(), reverse=True):
+        for key in sorted(self.sacfiles_info.keys()):
             event_dir, sacfile = os.path.split(key)
             kstnm = self.sacfiles_info[key]['kstnm']
             kcmpnm = self.sacfiles_info[key]['kcmpnm']
@@ -486,7 +487,6 @@ class SWS_Dataset_App(tk.Frame):
         model = TauPyModel(model=self.refmodel)
         for event in sws_dataset.keys():
             for station in sws_dataset[event].keys():
-                # print(sws_dataset[event][station]['Z'].keys())
                 sacfile_key = list(sws_dataset[event][station]['Z'].keys())[0]
                 # P arrivals
                 ptt = model.get_travel_times(
@@ -496,7 +496,26 @@ class SWS_Dataset_App(tk.Frame):
                 )
                 arrivals_p = {}
                 for i in range(len(ptt)):
-                    arrivals_p[f"{ptt[i].name}"] = [float(ptt[i].time), 0]
+                    cmp1 = self.sacfiles_info[list(sws_dataset[event][station]['N'].keys())[0]]['kcmpnm']
+                    cmp2 = self.sacfiles_info[list(sws_dataset[event][station]['E'].keys())[0]]['kcmpnm']
+                    cmp3 = self.sacfiles_info[list(sws_dataset[event][station]['Z'].keys())[0]]['kcmpnm']
+                    fname1 = f"{os.path.basename(event)}_{station}_{ptt[i].name}.{cmp1}"
+                    fname2 = f"{os.path.basename(event)}_{station}_{ptt[i].name}.{cmp2}"
+                    fname3 = f"{os.path.basename(event)}_{station}_{ptt[i].name}.{cmp3}"
+                    fname1 = os.path.join(event, fname1)
+                    fname2 = os.path.join(event, fname2)
+                    fname3 = os.path.join(event, fname3)
+                    if os.path.isfile(fname1) and os.path.isfile(fname2) and os.path.isfile(fname3):
+                        arrivals_p[f"{ptt[i].name}"] = [float(ptt[i].time), 1]
+                    else:
+                        arrivals_p[f"{ptt[i].name}"] = [float(ptt[i].time), 0]
+                # sort by value:
+                sorted_arrivals_p = sorted(arrivals_p.items(), key=operator.itemgetter(1))
+                arrivals_p = {}
+                for (key, val) in sorted_arrivals_p:
+                    arrivals_p[key] = val
+
+
                 # S arrivals
                 stt = model.get_travel_times(
                     source_depth_in_km=sws_dataset[event][station]['Z'][sacfile_key]['evdp'],
@@ -505,7 +524,24 @@ class SWS_Dataset_App(tk.Frame):
                 )
                 arrivals_s = {}
                 for i in range(len(stt)):
-                    arrivals_s[f"{stt[i].name}"] = [float(stt[i].time), 0]
+                    cmp1 = self.sacfiles_info[list(sws_dataset[event][station]['N'].keys())[0]]['kcmpnm']
+                    cmp2 = self.sacfiles_info[list(sws_dataset[event][station]['E'].keys())[0]]['kcmpnm']
+                    cmp3 = self.sacfiles_info[list(sws_dataset[event][station]['Z'].keys())[0]]['kcmpnm']
+                    fname1 = f"{os.path.basename(event)}_{station}_{stt[i].name}.{cmp1}"
+                    fname2 = f"{os.path.basename(event)}_{station}_{stt[i].name}.{cmp2}"
+                    fname3 = f"{os.path.basename(event)}_{station}_{stt[i].name}.{cmp3}"
+                    fname1 = os.path.join(event, fname1)
+                    fname2 = os.path.join(event, fname2)
+                    fname3 = os.path.join(event, fname3)
+                    if os.path.isfile(fname1) and os.path.isfile(fname2) and os.path.isfile(fname3):
+                        arrivals_s[f"{stt[i].name}"] = [float(stt[i].time), 1]
+                    else:
+                        arrivals_s[f"{stt[i].name}"] = [float(stt[i].time), 0]
+                # sort by value:
+                sorted_arrivals_s = sorted(arrivals_s.items(), key=operator.itemgetter(1))
+                arrivals_s = {}
+                for (key, val) in sorted_arrivals_s:
+                    arrivals_s[key] = val
 
                 # append to sws dataset dictionary
                 sws_dataset[event][station]['P'] = arrivals_p
