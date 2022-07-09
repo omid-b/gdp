@@ -176,50 +176,60 @@ gdp chull points.xy -x 2 1 --smooth 10 -o points_area_polygon.dat
 > **Description:**  This command will output the polygon enclosing the points in 'points.xy' (convex-hull problem). Flag -x specify column numbers for lon and lat respectively. Flag '--smooth 10' specifies that the output polygon is smoothed using 10 Bezier points between output point pairs. The output results will be written into 'points_area_polygon.dat'.
 
 ```bash
-gdp shp2dat 
+gdp shp2dat --point points.shp --polygon polygons.shp -o ./
 ```
-> **Description:**  xxx
-
-```bash
-gdp xxx
-```
-> **Description:**  xxx
-
-```bash
-gdp xxx
-```
-> **Description:**  xxx
-
-```bash
-gdp xxx
-```
-> **Description:**  xxx
-
-```bash
-gdp xxx
-```
-> **Description:**  xxx
-
-```bash
-gdp xxx
-```
-> **Description:**  xxx
-
-```bash
-gdp xxx
-```
-> **Description:**  xxx
-
-```bash
-gdp xxx
-```
-> **Description:**  xxx
+> **Description:**  Convert GIS shape files (point/polygon) to ascii format. The above command outputs the resluts into the following directory.
 
 ```bash
 gdp nc2dat model.nc --metadata
 gdp nc2dat model.nc -v vs vp --fmt .2 .6 -o model.dat
 ```
 > **Description:** This tool can be used to convert NetCDF files to ascii format. In this example, by running the first command, the program will output meta data information related to 'model.nc'. It's necessary to figure out the data fields that one is interested to extract from the nc file first (in this case, they are 'vp' and 'vs'). The second command will print to file the results in a custom format to 'model.dat'.
+
+
+```bash
+gdp dat2nc vs_10km_gridded.dat  vs_10km_gridded.nc  --xrange -75 -60 --yrange 44 48 -x 1 2 -v 3
+```
+> **Description:** convert gridded ascii data (format: lon, lat, value)
+
+
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+
 
 
 ###########################################
