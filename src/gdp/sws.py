@@ -8,6 +8,7 @@ import tkinter.messagebox
 
 import operator
 
+from datetime import datetime
 import matplotlib
 
 import matplotlib.pyplot as plt
@@ -50,14 +51,18 @@ class SWS_Dataset_App(tk.Frame):
         duplicates = self.find_duplicates()
         if len(duplicates):
             duplicates = '\n'.join(duplicates)
-            print(f"Warning! Some data files are ignored:\n{duplicates}")
+            print(f"WARNING! Some data files are ignored:\n{duplicates}")
 
-        print("Write arrivals headers ...")
+        print(f"Write arrivals into headers (model={refmodel.upper()})...")
         self.write_traveltime_headers()
+        
+        if headonly:
+            print("Headers were successfully updated.")
+            exit(0)
+
         self.old_select_status = self.get_select_status()
         self.current_select_status = self.get_select_status()
         self.plot_datalist = self.get_plot_datalist()
-
 
         num_events = len(self.sws_dataset.keys())
         self.num_measurements = len(self.plot_datalist)
@@ -74,9 +79,6 @@ class SWS_Dataset_App(tk.Frame):
         else:
             self.lbl_statusbar["text"] = "Ready..."
 
-        if headonly:
-            print("Only headers were updated.")
-            exit(0)
 
 
     def write_traveltime_headers(self):
@@ -180,20 +182,20 @@ class SWS_Dataset_App(tk.Frame):
         if self.plot_data_index >= (self.num_measurements - 1):
             return
         self.plot_data_index += 1
-        self.update_canvas()
         self.update_info()
-        self.update_arrivals()
         self.update_buttons()
+        self.update_arrivals()
+        self.update_canvas()
 
 
     def prev_data(self, event=None):
         if self.plot_data_index == 0:
             return
         self.plot_data_index -= 1
-        self.update_canvas()
         self.update_info()
-        self.update_arrivals()
         self.update_buttons()
+        self.update_arrivals()
+        self.update_canvas()
 
 
     def create_main(self):
@@ -258,13 +260,13 @@ class SWS_Dataset_App(tk.Frame):
         frame_statusbar.pack(side=tk.BOTTOM, fill=tk.X)
 
     def update_buttons(self):
-    
-        if self.current_select_status == self.old_select_status:
-            self.btn_update.config(state='disabled')
-            self.file_menu.entryconfig("Update datasets", state="disabled")
-        else:
-            self.btn_update.config(state='normal')
-            self.file_menu.entryconfig("Update datasets", state="normal")
+        self.btn_update.config(state='disabled')
+        self.file_menu.entryconfig("Update datasets", state="disabled")
+        for i in range(len(self.current_select_status)):
+            if self.current_select_status[i] != self.old_select_status[i]:
+                self.btn_update.config(state='normal')
+                self.file_menu.entryconfig("Update datasets", state="normal")
+                break
 
         if self.plot_data_index == 0:
             self.btn_prev.config(state='disabled')
@@ -279,70 +281,61 @@ class SWS_Dataset_App(tk.Frame):
 
 
     def update_arrivals(self):
+        plot_data = self.plot_datalist[self.plot_data_index]
+        # update plot_data[3] and plot_data[4]
+        p_phase_names = list(plot_data[3].keys())
+        s_phase_names = list(plot_data[4].keys())
+        num_p_phases = len(p_phase_names)
+        num_s_phases = len(s_phase_names)
+        p_index_start = self.get_select_status_index(self.plot_data_index)
+        p_index_end = p_index_start + num_p_phases
+        s_index_start = p_index_end
+        s_index_end = s_index_start + num_s_phases
+        select_status = []
+        for x in self.current_select_status[p_index_start:s_index_end]:
+            select_status.append(x)
+
+        i = 0
+        for p_phase in p_phase_names:
+            plot_data[3][p_phase][1] = select_status[i]
+            i += 1
+        for s_phase in s_phase_names:
+            plot_data[4][s_phase][1] = select_status[i]
+            i += 1
+
         for widget in self.frm_arrivals.winfo_children():
             widget.destroy()
-        plot_data = self.plot_datalist[self.plot_data_index]
         lbl_info = tk.Label(self.frm_arrivals, text=f"Theoretical arrivals ({self.refmodel.upper()}):",
             justify=tk.LEFT, font='Helvetica 14 bold', bg='#fff', fg='#000')
         lbl_info.place(relx=0, rely=0)
 
-
-        # update plot_data[3] and plot_data[4]
-        plot_data_p_phase_names = list(plot_data[3].keys())
-        plot_data_s_phase_names = list(plot_data[4].keys())
-        i = 0
-        for event in self.sws_dataset.keys():
-            for station in self.sws_dataset[event].keys():
-                if i == self.plot_data_index:
-                    num_p_phases = len(self.sws_dataset[event][station]['P'])
-                    num_s_phases = len(self.sws_dataset[event][station]['S'])
-                    break
-        p_index_start = self.get_select_status_index(self.plot_data_index)
-        p_index_end = p_index_start + len(plot_data_p_phase_names)
-        s_index_start = p_index_end
-        s_index_end = s_index_start + len(plot_data_s_phase_names)
-        plot_data_select_status = self.current_select_status[p_index_start:s_index_end]
-
-        i = 0
-        for p_phase in plot_data[3].keys():
-            plot_data[3][p_phase][1] = plot_data_select_status[i]
-            i += 1
-        for s_phase in plot_data[4].keys():
-            plot_data[4][s_phase][1] = plot_data_select_status[i]
-            i += 1
-
-        p_index_start = self.get_select_status_index(self.plot_data_index)
-        p_index_end = p_index_start + len(plot_data_p_phase_names)
-        s_index_start = p_index_end
-        s_index_end = s_index_start + len(plot_data_s_phase_names)
-        plot_data_select_status = self.current_select_status[p_index_start:s_index_end]
-        self.chb_vars = [tk.IntVar() for x in range(len(plot_data_p_phase_names) + len(plot_data_s_phase_names))]
-        for iP, p_phase_name in enumerate(plot_data_p_phase_names):
+        self.chb_vars = [tk.IntVar() for x in range(num_p_phases + num_s_phases)]
+        for iP, p_phase_name in enumerate(p_phase_names):
             var = self.chb_vars[iP]
             chb = tk.Checkbutton(self.frm_arrivals, text=f"{p_phase_name}",
                 onvalue=1, offvalue=0,
                 bg='white', fg='#000', activebackground='white',
                 activeforeground='#555',selectcolor="white", bd=0, highlightthickness=0,
                 font='Helvetica 14', justify=tk.LEFT,
-                command=self.button_state_changed,
+                command=self.update_select_status,
                 variable=var)
-            if plot_data_select_status[iP]:
+            if select_status[iP]:
                 chb.select()
             else:
                 chb.deselect()
             chb.place(relx=0, rely=iP*0.07 + 0.1)
 
 
-        for iS, s_phase_name in enumerate(plot_data_s_phase_names):
-            var = self.chb_vars[iS + len(plot_data_p_phase_names)]
+        for iS, s_phase_name in enumerate(s_phase_names):
+            var = self.chb_vars[iS + num_p_phases]
             chb = tk.Checkbutton(self.frm_arrivals, text=f"{s_phase_name}",
                 onvalue=1, offvalue=0,
                 bg='white', fg='#000', activebackground='white',
                 activeforeground='#555',selectcolor="white", bd=0, highlightthickness=0,
                 font='Helvetica 14', justify=tk.LEFT,
-                command=self.button_state_changed,
+                command=self.update_select_status,
                 variable=var)
-            if plot_data_select_status[iS+len(plot_data_p_phase_names)]:
+            if select_status[iS+num_p_phases]:
                 chb.select()
             else:
                 chb.deselect()
@@ -351,20 +344,17 @@ class SWS_Dataset_App(tk.Frame):
 
 
 
-    def button_state_changed(self):
-        # temp_current = self.current_select_status
-        # self.old_select_status = temp_current
-        # self.current_select_status = temp_current
-        plot_data_select_status = []
+    def update_select_status(self):
+        select_status = []
         for i, widget in enumerate(self.frm_arrivals.winfo_children()[1:]):
-            plot_data_select_status.append(self.chb_vars[i].get())
+            select_status.append(self.chb_vars[i].get())
         select_status_index_start = self.get_select_status_index(self.plot_data_index)
-        select_status_index_end = select_status_index_start + len(plot_data_select_status)
+        select_status_index_end = select_status_index_start + len(select_status)
         i = 0
         for j in range(select_status_index_start, select_status_index_end):
-            self.current_select_status[j] = plot_data_select_status[i]
+            self.old_select_status[j] = self.current_select_status[j]
+            self.current_select_status[j] = select_status[i]
             i += 1
-
         self.update_canvas()
         self.update_buttons()
 
@@ -434,27 +424,23 @@ class SWS_Dataset_App(tk.Frame):
         color_not_selected = '#888'
 
         # update plot_data[3] and plot_data[4]
-        plot_data_p_phase_names = list(plot_data[3].keys())
-        plot_data_s_phase_names = list(plot_data[4].keys())
-        i = 0
-        for event in self.sws_dataset.keys():
-            for station in self.sws_dataset[event].keys():
-                if i == self.plot_data_index:
-                    num_p_phases = len(self.sws_dataset[event][station]['P'])
-                    num_s_phases = len(self.sws_dataset[event][station]['S'])
-                    break
+        p_phase_names = list(plot_data[3].keys())
+        s_phase_names = list(plot_data[4].keys())
+        num_p_phases = len(p_phase_names)
+        num_s_phases = len(s_phase_names)
+
         p_index_start = self.get_select_status_index(self.plot_data_index)
-        p_index_end = p_index_start + len(plot_data_p_phase_names)
+        p_index_end = p_index_start + len(p_phase_names)
         s_index_start = p_index_end
-        s_index_end = s_index_start + len(plot_data_s_phase_names)
-        plot_data_select_status = self.current_select_status[p_index_start:s_index_end]
+        s_index_end = s_index_start + len(s_phase_names)
+        select_status = self.current_select_status[p_index_start:s_index_end]
 
         i = 0
         for p_phase in plot_data[3].keys():
-            plot_data[3][p_phase][1] = plot_data_select_status[i]
+            plot_data[3][p_phase][1] = select_status[i]
             i += 1
         for s_phase in plot_data[4].keys():
-            plot_data[4][s_phase][1] = plot_data_select_status[i]
+            plot_data[4][s_phase][1] = select_status[i]
             i += 1
 
 
@@ -511,7 +497,6 @@ class SWS_Dataset_App(tk.Frame):
             verticalalignment='top',horizontalalignment='center', bbox=bbox_props, clip_on=True)
 
         self.canvas.draw()
-        # self.canvas.flush_events()
         self.canvas.get_tk_widget().pack()
         self.canvas_toolbar.update()
         plt.close()
@@ -536,7 +521,7 @@ class SWS_Dataset_App(tk.Frame):
         duplicates = []
         for sacfile in inp_datalist:
             if sacfile not in sws_datalist:
-                duplicates.append(f"'{os.path.basename(sacfile)}'")
+                duplicates.append(f"  {os.path.basename(sacfile)}")
         return duplicates
 
 
@@ -682,12 +667,12 @@ class SWS_Dataset_App(tk.Frame):
                     dst2 = f"{src2_split[0]}_{p_phase}{src2_split[1]}"
                     dst3 = f"{src3_split[0]}_{p_phase}{src3_split[1]}"
                     if self.current_select_status[i] == 1:
-                        self.plot_datalist[self.plot_data_index][3][p_phase][1] = 1
+                        # self.plot_datalist[self.plot_data_index][3][p_phase][1] = 1
                         shutil.copyfile(src1, dst1)
                         shutil.copyfile(src2, dst2)
                         shutil.copyfile(src3, dst3)
                     else:
-                        self.plot_datalist[self.plot_data_index][3][p_phase][1] = 0
+                        # self.plot_datalist[self.plot_data_index][3][p_phase][1] = 0
                         if os.path.isfile(dst1):
                             os.remove(dst1)
                         if os.path.isfile(dst2):
@@ -700,12 +685,12 @@ class SWS_Dataset_App(tk.Frame):
                     dst2 = f"{src2_split[0]}_{s_phase}{src2_split[1]}"
                     dst3 = f"{src3_split[0]}_{s_phase}{src3_split[1]}"
                     if self.current_select_status[i] == 1:
-                        self.plot_datalist[self.plot_data_index][4][s_phase][1] = 1
+                        # self.plot_datalist[self.plot_data_index][4][s_phase][1] = 1
                         shutil.copyfile(src1, dst1)
                         shutil.copyfile(src2, dst2)
                         shutil.copyfile(src3, dst3)
                     else:
-                        self.plot_datalist[self.plot_data_index][4][s_phase][1] = 0
+                        # self.plot_datalist[self.plot_data_index][4][s_phase][1] = 0
                         if os.path.isfile(dst1):
                             os.remove(dst1)
                         if os.path.isfile(dst2):
@@ -713,14 +698,12 @@ class SWS_Dataset_App(tk.Frame):
                         if os.path.isfile(dst3):
                             os.remove(dst3)
                     i += 1
-        # temp_old = self.old_select_status
-        temp_current = self.current_select_status
-        self.old_select_status = temp_current
-        # self.current_select_status = temp_current
-        # self.lbl_statusbar["text"] = "SWS dataset updated"
-        # self.btn_update.config(state='disabled')
-        # self.file_menu.entryconfig("Update datasets", state="disabled")
-        self.update_buttons()
+
+        self.btn_update.config(state='disabled')
+        self.file_menu.entryconfig("Update datasets", state="disabled")
+        now = datetime.now()
+        current_time = now.strftime("%H:%M:%S")
+        self.lbl_statusbar["text"] = f"SWS dataset was last updated at {current_time}"
 
 
     def exit_program(self, event=None):
@@ -731,7 +714,7 @@ def run_sws_dataset_app(sacfiles, refmodel='iasp91', SAC='auto', headonly=False)
     print("Read sac files headers ...")
     sacfiles_info = sacproc.get_sacfiles_info(sacfiles, read_headers=True, read_data=True)
     root = tk.Tk()
-    app = SWS_Dataset_App(sacfiles_info, master=root, refmodel='iasp91')
+    app = SWS_Dataset_App(sacfiles_info, master=root, refmodel=refmodel, SAC=SAC, headonly=headonly)
     app.mainloop()
 
 
