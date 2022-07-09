@@ -1,6 +1,6 @@
 # ***gdp*: Geophysical Data Processing**
 
-*gdp* provides a set of tools that are available through command-line-interface (CLI) to process and/or convert common geophysical data types.
+*gdp* provides a set of tools that are available through command-line-interface (CLI) to process and/or convert common geophysical data types. *gdp* has been successfully tested on Python 3.x.
 
 ## Requirements
 
@@ -12,6 +12,7 @@ Note that the version of binary bindings for GDAL (could be installed using pip)
 sudo apt-get install libbz2-dev
 sudo apt-get install python3-tk
 sudo apt install libgdal-dev
+pip install gdal
 ```
 
 Fedora:
@@ -19,6 +20,7 @@ Fedora:
 ```bash
 sudo yum install bzip2-devel
 sudo yum install python3-tkinter
+pip install gdal
 ```
 
 MacOS:
@@ -27,6 +29,8 @@ Note that installing requirements for tkinter on MacOS is python version specifi
 
 ```bash
 brew install python-tk@3.10
+brew install gdal
+pip install gdal
 ```
 
 
@@ -62,12 +66,13 @@ The following new tools/modules will be added for this version:
   3. *download stations*: download list of stations according to the list of datacenters (specified in download.config)
   4. *download metadata*: download station metadata (xml) according to stations.dat
   5. *download mseeds*: download mseed datafiles based
-  6. *writehdr*: update sac headers using xml metadata (obspy method)
-  7. *remresp*: remove sac file instrument response using xml metadata (obspy method)
-  8. *resample*: resample sac timeseries using obspy method
-  9. *bandpass*: apply bandpass filter to sac files (sac method)
-  10. *cut*: cut sac timeseries (sac method)
-  11. *remchannel*: remove extra channels
+  6. *sws init*: initialize shear-wave-splitting project by writting arrivals info into sac headers and making copies
+  7. *writehdr*: update sac headers using xml metadata (obspy method)
+  8. *remresp*: remove sac file instrument response using xml metadata (obspy method)
+  9. *resample*: resample sac timeseries using obspy method
+  10. *bandpass*: apply bandpass filter to sac files (sac method)
+  11. *cut*: cut sac timeseries (sac method)
+  12. *remchannel*: remove extra channels
 
 
 
@@ -163,20 +168,52 @@ gdp gridder vs_model/depth* --spacing 0.2 --smoothing 50 --polygon polygon.dat -
 ```
 > **Description:** This command will perform gridding (2D interpolation) to the input xyz format data files. In case of the above command: '--spacing 0.2' specifies that grid spacing along both longitude and latitude is 0.2 degrees (two values can be given as well; \[lon_spacing, lat_spacing\]); '--smoothing 50' sets a 50 km Gaussian smoothing to the output data; '--polygon polygon.dat' is optional: if given, only points inside the given polygon will be printed out.
 
-
-
-```bash
-gdp  mseed2sac mseed_dataset/*  --reformat --offset -500 --resample 10 -o sac_dataset 
-
-```
-> **Description:** This command will convert mseed files in 'mseed_dataset'  to another directory named 'sac_dataset'. Flag '--reformat' will cause creating of sub-folders in the output directory in 'YYJJJHHMMSS' format, and the sacfiles within these sub-directories will be renamed as 'YYJJJHHMMSS_STA.CHN', where 'STA' is the station code and 'CHN' is the channel code. If reformat is enabled, offset time can be adjusted using '--offset'. Finally, '--resample 10' results in resampling of output timeseries to 10 Hz.
-
+#####################################################
 
 ```bash
-gdp sac2dat sac_dataset/*  -o timeseries --timerange 0 3600
+gdp chull points.xy -x 2 1 --smooth 10 -o points_area_polygon.dat 
 ```
-> **Description:** This command will output the first hour (0-3600 s) of the sac data in sac_dataset/\*
+> **Description:**  This command will output the polygon enclosing the points in 'points.xy' (convex-hull problem). Flag -x specify column numbers for lon and lat respectively. Flag '--smooth 10' specifies that the output polygon is smoothed using 10 Bezier points between output point pairs. The output results will be written into 'points_area_polygon.dat'.
 
+```bash
+gdp shp2dat 
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
+
+```bash
+gdp xxx
+```
+> **Description:**  xxx
 
 ```bash
 gdp nc2dat model.nc --metadata
@@ -185,4 +222,17 @@ gdp nc2dat model.nc -v vs vp --fmt .2 .6 -o model.dat
 > **Description:** This tool can be used to convert NetCDF files to ascii format. In this example, by running the first command, the program will output meta data information related to 'model.nc'. It's necessary to figure out the data fields that one is interested to extract from the nc file first (in this case, they are 'vp' and 'vs'). The second command will print to file the results in a custom format to 'model.dat'.
 
 
+###########################################
+
+```bash
+gdp seismic mseed2sac mseed_dataset/*  --reformat --offset -500 --resample 10 -o sac_dataset 
+
+```
+> **Description:** This command will convert mseed files in 'mseed_dataset'  to another directory named 'sac_dataset'. Flag '--reformat' will cause creating of sub-folders in the output directory in 'YYJJJHHMMSS' format, and the sacfiles within these sub-directories will be renamed as 'YYJJJHHMMSS_STA.CHN', where 'STA' is the station code and 'CHN' is the channel code. If reformat is enabled, offset time can be adjusted using '--offset'. Finally, '--resample 10' results in resampling of output timeseries to 10 Hz.
+
+
+```bash
+gdp seismic sac2dat sac_dataset/*  -o timeseries --timerange 0 3600
+```
+> **Description:** This command will output the first hour (0-3600 s) of the sac data in sac_dataset/\*
 
