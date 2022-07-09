@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import numpy as np
 import tkinter as tk
 import tkinter.messagebox
@@ -14,13 +15,12 @@ import matplotlib.transforms as mtrans
 import matplotlib.backends.backend_tkagg as tkagg
 import seaborn as sns
 
-from gdp import sacproc
-
+from . import sacproc
+from . import dependency
 
 class SWS_Dataset_App(tk.Frame):
-    def __init__(self, sacfiles_info, time_range=None, master=None, refmodel='iasp91',
-        p_phase_list=["ttp"],
-        s_phase_list=["tts", "SKKS", "PKS"]):
+    def __init__(self, sacfiles_info, master=None,
+        refmodel='iasp91', SAC='auto', headonly=False):
         super().__init__(master)
         matplotlib.rcParams["savefig.directory"] = os.getcwd()
         matplotlib.use("TkAgg")
@@ -35,8 +35,7 @@ class SWS_Dataset_App(tk.Frame):
         )
         self.master = master
         self.refmodel = refmodel
-        self.p_phase_list = p_phase_list
-        self.s_phase_list = s_phase_list
+        self.SAC = SAC
 
         self.master.config(bg='#fff')
         self.win_width = 1000
@@ -45,7 +44,16 @@ class SWS_Dataset_App(tk.Frame):
 
         # build required dictionaries and lists
         self.sacfiles_info = sacfiles_info
+        print("Calculate theoretical travel times ...")
         self.sws_dataset = self.get_sws_dataset()
+
+        duplicates = self.find_duplicates()
+        if len(duplicates):
+            duplicates = '\n'.join(duplicates)
+            print(f"Warning! Some data files are ignored:\n{duplicates}")
+
+        print("Write arrivals headers ...")
+        self.write_traveltime_headers()
         self.old_select_status = self.get_select_status()
         self.current_select_status = self.get_select_status()
         self.plot_datalist = self.get_plot_datalist()
@@ -53,20 +61,72 @@ class SWS_Dataset_App(tk.Frame):
 
         num_events = len(self.sws_dataset.keys())
         self.num_measurements = len(self.plot_datalist)
-        num_sacs = len(self.plot_datalist) * 3
 
         self.master.geometry(f"{self.win_width}x{self.win_height}")
         self.master.minsize(self.win_width, self.win_height)
         self.app_title = f"SWS Dataset QC - #Events: {num_events} - #Three component data: {self.num_measurements}"
         self.master.title(self.app_title)
-        self.update_required = False
         self.init_ui()
 
-        if num_sacs != len(sacfiles_info.keys()):
-            self.show_duplication_warning()
+        if len(duplicates):
             self.lbl_statusbar["text"] = "Warning! Some data duplication was found."
+            self.show_duplication_warning()
         else:
             self.lbl_statusbar["text"] = "Ready..."
+
+        if headonly:
+            print("Only headers were updated.")
+            exit(0)
+
+
+    def write_traveltime_headers(self):
+        # store T1-T9 and KT1-KT2
+        for event in self.sws_dataset.keys():
+            for station in self.sws_dataset[event].keys():
+                headers = {}
+                iP = 1
+                for p_phase in self.sws_dataset[event][station]['P'].keys():
+                    if iP <= 2:
+                        headers[f"T{iP}"] = self.sws_dataset[event][station]['P'][p_phase][0]
+                        headers[f"KT{iP}"] = p_phase
+                        iP += 1
+                iS = 3
+                for s_phase in self.sws_dataset[event][station]['S'].keys():
+                    if iS <= 4 and s_phase not in ['SKKS', 'PKS']:
+                        headers[f"T{iS}"] = self.sws_dataset[event][station]['S'][s_phase][0]
+                        headers[f"KT{iS}"] = s_phase
+                        iS += 1
+                iS = 5
+                for s_phase in self.sws_dataset[event][station]['S'].keys():
+                    if s_phase in ['SKKS', 'PKS']:
+                        headers[f"T{iS}"] = self.sws_dataset[event][station]['S'][s_phase][0]
+                        headers[f"KT{iS}"] = s_phase
+                        iS += 1
+                arrivals_saved = []
+                for key in headers.keys():
+                    if key[0] == 'K':
+                        arrivals_saved.append(headers[key])
+                i=7
+                for p_phase in self.sws_dataset[event][station]['P'].keys():
+                    if i <= 9 and p_phase not in arrivals_saved:
+                        headers[f"T{i}"] = self.sws_dataset[event][station]['P'][p_phase][0]
+                        headers[f"KT{i}"] = p_phase
+                        i += 1
+                for s_phase in self.sws_dataset[event][station]['S'].keys():
+                    if i <= 9 and s_phase not in arrivals_saved:
+                        headers[f"T{i}"] = self.sws_dataset[event][station]['S'][s_phase][0]
+                        headers[f"KT{i}"] = s_phase
+                        i += 1
+                # write T1-T9 and KT1-KT2 headers into the three components
+                if self.SAC == 'auto':
+                    self.SAC = dependency.find_sac_path()
+                if len(self.SAC) == 0 or not os.path.isfile(self.SAC):
+                    print("Error! Could not find SAC software in the following path:\n{SAC}\n")
+                    exit(1)
+                for comp in ['N','E','Z']:
+                    sacfile = list(self.sws_dataset[event][station][comp].keys())[0]
+                    sacproc.write_sac_headers(sacfile, headers, SAC=self.SAC)
+
 
 
     def get_select_status(self):
@@ -106,10 +166,12 @@ class SWS_Dataset_App(tk.Frame):
         self.gref_menu = tk.Menu(self.menu_bar, tearoff = tk.OFF)
         self.menu_bar.add_cascade(label="File", menu=self.file_menu)
         # file menu
-        self.update_menu = self.file_menu.add_command(label="Update datasets", command = self.apply_update_dataset, accelerator="Ctrl+S")
-        self.menu_bar.bind_all("<Control-s>", self.apply_update_dataset)
+        self.update_menu = self.file_menu.add_command(label="Update datasets",
+            command=self.apply_update_dataset, accelerator="Ctrl+S")
+        self.menu_bar.bind_all("<Control-s>", self.apply_update_dataset )
         self.file_menu.add_separator()
-        self.file_menu.add_command(label="Exit", command = self.exit_program, accelerator="Ctrl+W")
+        self.file_menu.add_command(label="Exit", command = self.exit_program,
+            accelerator="Ctrl+W")
         self.menu_bar.bind_all("<Control-w>", self.exit_program)
         self.master.config(menu=self.menu_bar)
 
@@ -178,7 +240,7 @@ class SWS_Dataset_App(tk.Frame):
             relwidth=(1-canvas_relwidth),
             relheight=(0.8-frm_arrivals_relheight-frm_info_relheight))
         self.btn_update = tk.Button(self.frm_buttons, text="Update SWS dataset",
-            bd=1, relief=tk.RAISED, font='Helvetica 14 bold', command=self.test)
+            bd=1, relief=tk.RAISED, font='Helvetica 14 bold', command=self.apply_update_dataset)
         self.btn_prev = tk.Button(self.frm_buttons, text="Previous",
             bd=1, relief=tk.RAISED, font='Helvetica 14', command=self.prev_data)
         self.btn_next = tk.Button(self.frm_buttons, text="Next",
@@ -215,8 +277,6 @@ class SWS_Dataset_App(tk.Frame):
             self.btn_next.config(state='normal')
 
 
-    def test(self):
-        pass
 
     def update_arrivals(self):
         for widget in self.frm_arrivals.winfo_children():
@@ -226,8 +286,30 @@ class SWS_Dataset_App(tk.Frame):
             justify=tk.LEFT, font='Helvetica 14 bold', bg='#fff', fg='#000')
         lbl_info.place(relx=0, rely=0)
 
+
+        # update plot_data[3] and plot_data[4]
         plot_data_p_phase_names = list(plot_data[3].keys())
         plot_data_s_phase_names = list(plot_data[4].keys())
+        i = 0
+        for event in self.sws_dataset.keys():
+            for station in self.sws_dataset[event].keys():
+                if i == self.plot_data_index:
+                    num_p_phases = len(self.sws_dataset[event][station]['P'])
+                    num_s_phases = len(self.sws_dataset[event][station]['S'])
+                    break
+        p_index_start = self.get_select_status_index(self.plot_data_index)
+        p_index_end = p_index_start + len(plot_data_p_phase_names)
+        s_index_start = p_index_end
+        s_index_end = s_index_start + len(plot_data_s_phase_names)
+        plot_data_select_status = self.current_select_status[p_index_start:s_index_end]
+
+        i = 0
+        for p_phase in plot_data[3].keys():
+            plot_data[3][p_phase][1] = plot_data_select_status[i]
+            i += 1
+        for s_phase in plot_data[4].keys():
+            plot_data[4][s_phase][1] = plot_data_select_status[i]
+            i += 1
 
         p_index_start = self.get_select_status_index(self.plot_data_index)
         p_index_end = p_index_start + len(plot_data_p_phase_names)
@@ -267,7 +349,12 @@ class SWS_Dataset_App(tk.Frame):
             chb.place(relx=0.4, rely=iS*0.07 + 0.1)
 
 
+
+
     def button_state_changed(self):
+        # temp_current = self.current_select_status
+        # self.old_select_status = temp_current
+        # self.current_select_status = temp_current
         plot_data_select_status = []
         for i, widget in enumerate(self.frm_arrivals.winfo_children()[1:]):
             plot_data_select_status.append(self.chb_vars[i].get())
@@ -280,8 +367,6 @@ class SWS_Dataset_App(tk.Frame):
 
         self.update_canvas()
         self.update_buttons()
-
-
 
 
     def update_info(self):
@@ -298,6 +383,7 @@ class SWS_Dataset_App(tk.Frame):
         lbl_col1.place(relx=0, rely=0.5)
         lbl_col2.place(relx=0.4, rely=0.5)
 
+
     def create_canvas(self):
         sns.set_context('notebook')
         sns.set_style('white')
@@ -313,7 +399,6 @@ class SWS_Dataset_App(tk.Frame):
         canvas = tkagg.FigureCanvasTkAgg(self.fig , master=self.frm_canvas)
         return canvas
 
-        
 
     def update_canvas(self, event=None):
 
@@ -347,6 +432,32 @@ class SWS_Dataset_App(tk.Frame):
 
         color_selected = "#f00"
         color_not_selected = '#888'
+
+        # update plot_data[3] and plot_data[4]
+        plot_data_p_phase_names = list(plot_data[3].keys())
+        plot_data_s_phase_names = list(plot_data[4].keys())
+        i = 0
+        for event in self.sws_dataset.keys():
+            for station in self.sws_dataset[event].keys():
+                if i == self.plot_data_index:
+                    num_p_phases = len(self.sws_dataset[event][station]['P'])
+                    num_s_phases = len(self.sws_dataset[event][station]['S'])
+                    break
+        p_index_start = self.get_select_status_index(self.plot_data_index)
+        p_index_end = p_index_start + len(plot_data_p_phase_names)
+        s_index_start = p_index_end
+        s_index_end = s_index_start + len(plot_data_s_phase_names)
+        plot_data_select_status = self.current_select_status[p_index_start:s_index_end]
+
+        i = 0
+        for p_phase in plot_data[3].keys():
+            plot_data[3][p_phase][1] = plot_data_select_status[i]
+            i += 1
+        for s_phase in plot_data[4].keys():
+            plot_data[4][s_phase][1] = plot_data_select_status[i]
+            i += 1
+
+
         
         # plot event origin
         color = color_not_selected
@@ -409,8 +520,9 @@ class SWS_Dataset_App(tk.Frame):
     def show_duplication_warning(self):
         duplicates = self.find_duplicates()
         duplicates = '\n'.join(duplicates)
+        title = "Data duplication!"
         message = f"These sac files are ignored:\n\n{duplicates}"
-        tkinter.messagebox.showinfo(title="Data duplication!", message=message)
+        tkinter.messagebox.showinfo(title=title, message=message, parent=self.master)
 
 
     def find_duplicates(self):
@@ -426,6 +538,7 @@ class SWS_Dataset_App(tk.Frame):
             if sacfile not in sws_datalist:
                 duplicates.append(f"'{os.path.basename(sacfile)}'")
         return duplicates
+
 
     def get_plot_datalist(self):
         plot_datalist = []
@@ -492,7 +605,7 @@ class SWS_Dataset_App(tk.Frame):
                 ptt = model.get_travel_times(
                     source_depth_in_km=sws_dataset[event][station]['Z'][sacfile_key]['evdp'],
                     distance_in_degree=sws_dataset[event][station]['Z'][sacfile_key]['gcarc'],
-                    phase_list=self.p_phase_list
+                    phase_list=["ttp"]
                 )
                 arrivals_p = {}
                 for i in range(len(ptt)):
@@ -520,7 +633,7 @@ class SWS_Dataset_App(tk.Frame):
                 stt = model.get_travel_times(
                     source_depth_in_km=sws_dataset[event][station]['Z'][sacfile_key]['evdp'],
                     distance_in_degree=sws_dataset[event][station]['Z'][sacfile_key]['gcarc'],
-                    phase_list=self.s_phase_list
+                    phase_list=["tts", "SKKS", "PKS"]
                 )
                 arrivals_s = {}
                 for i in range(len(stt)):
@@ -550,36 +663,83 @@ class SWS_Dataset_App(tk.Frame):
         return sws_dataset
 
     
+
+    def apply_update_dataset(self, event=None):
+        if self.current_select_status == self.old_select_status:
+            return
+        self.lbl_statusbar["text"] = "Updating SWS dataset ..."
+        i = 0 
+        for event in self.sws_dataset.keys():
+            for station in self.sws_dataset[event].keys():
+                src1 = list(self.sws_dataset[event][station]['N'].keys())[0]
+                src2 = list(self.sws_dataset[event][station]['E'].keys())[0]
+                src3 = list(self.sws_dataset[event][station]['Z'].keys())[0]
+                src1_split = os.path.splitext(src1)
+                src2_split = os.path.splitext(src2)
+                src3_split = os.path.splitext(src3)
+                for p_phase in self.sws_dataset[event][station]['P'].keys():
+                    dst1 = f"{src1_split[0]}_{p_phase}{src1_split[1]}"
+                    dst2 = f"{src2_split[0]}_{p_phase}{src2_split[1]}"
+                    dst3 = f"{src3_split[0]}_{p_phase}{src3_split[1]}"
+                    if self.current_select_status[i] == 1:
+                        self.plot_datalist[self.plot_data_index][3][p_phase][1] = 1
+                        shutil.copyfile(src1, dst1)
+                        shutil.copyfile(src2, dst2)
+                        shutil.copyfile(src3, dst3)
+                    else:
+                        self.plot_datalist[self.plot_data_index][3][p_phase][1] = 0
+                        if os.path.isfile(dst1):
+                            os.remove(dst1)
+                        if os.path.isfile(dst2):
+                            os.remove(dst2)
+                        if os.path.isfile(dst3):
+                            os.remove(dst3)
+                    i += 1
+                for s_phase in self.sws_dataset[event][station]['S'].keys():
+                    dst1 = f"{src1_split[0]}_{s_phase}{src1_split[1]}"
+                    dst2 = f"{src2_split[0]}_{s_phase}{src2_split[1]}"
+                    dst3 = f"{src3_split[0]}_{s_phase}{src3_split[1]}"
+                    if self.current_select_status[i] == 1:
+                        self.plot_datalist[self.plot_data_index][4][s_phase][1] = 1
+                        shutil.copyfile(src1, dst1)
+                        shutil.copyfile(src2, dst2)
+                        shutil.copyfile(src3, dst3)
+                    else:
+                        self.plot_datalist[self.plot_data_index][4][s_phase][1] = 0
+                        if os.path.isfile(dst1):
+                            os.remove(dst1)
+                        if os.path.isfile(dst2):
+                            os.remove(dst2)
+                        if os.path.isfile(dst3):
+                            os.remove(dst3)
+                    i += 1
+        # temp_old = self.old_select_status
+        temp_current = self.current_select_status
+        self.old_select_status = temp_current
+        # self.current_select_status = temp_current
+        # self.lbl_statusbar["text"] = "SWS dataset updated"
+        # self.btn_update.config(state='disabled')
+        # self.file_menu.entryconfig("Update datasets", state="disabled")
+        self.update_buttons()
+
+
     def exit_program(self, event=None):
         self.master.destroy()
 
-    def apply_update_dataset(self, event=None):
-        pass
 
-
-def run_sws_dataset_app(sacfiles):
-    root = tk.Tk()
+def run_sws_dataset_app(sacfiles, refmodel='iasp91', SAC='auto', headonly=False):
     print("Read sac files headers ...")
     sacfiles_info = sacproc.get_sacfiles_info(sacfiles, read_headers=True, read_data=True)
-    print("Calculate theoretical travel times ...")
+    root = tk.Tk()
     app = SWS_Dataset_App(sacfiles_info, master=root, refmodel='iasp91')
-    print("Run gui application ...")
     app.mainloop()
 
 
 if __name__ == "__main__":
     import sys
     if len(sys.argv) == 1:
-        print("Error! Must enter <sacfiles> as sys.argv[1]!")
+        print("Error! Must enter <sacfiles> as sys.argv[1:]!")
         exit(1)
-    
-    print("Read sac files headers ...")
-    sacfiles_info = sacproc.get_sacfiles_info(sacfiles, read_headers=True, read_data=True)
-    print("Calculate theoretical travel times ...")
-    root = tk.Tk()
-    app = SWS_Dataset_App(sacfiles_info, master=root, refmodel='iasp91')
-    print("Run gui application ...")
-    app.mainloop()
-
+    run_sws_dataset_app(sys.argv[1:])
 
 
