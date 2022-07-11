@@ -1115,14 +1115,14 @@ def parse_args(*args, **kwargs):
         type=int,
         action='store',
         default=[1,2],
-        help='positional column number in 1D data files (default=[1,2])')
+        help='positional column number in 2D data files (default=[1,2])')
     gdp_2Dto1D.add_argument(
         '-v',
         nargs='+',
         type=int,
         action='store',
         default=[3],
-        help="value column(s) in 1D data files (default=[3])"
+        help="value column(s) in 2D data files (default=[3])"
     )
     gdp_2Dto1D.add_argument(
         '--skipnan',
@@ -1264,39 +1264,6 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='download for ambient-noise-tomography; do not read events list (default=False)'
     )
-
-    #####################
-    # gdp seismic sws
-    seismic_sws = seismic_subparsers.add_parser('sws', help='shear wave splitting (sws) processing module',
-    description="shear wave splitting (sws) processing module")
-    sws_subparsers = seismic_sws.add_subparsers(dest='subsubmodule')
-
-    # gdp seismic sws init
-    sws_init = sws_subparsers.add_parser('init', help='initialize sws project: write XKS phase travel times, make copies, and initial QC',
-    description='initialize sws project: write XKS phase travel times using "obspy.taup()", make copies, and initial QC')
-    sws_init.add_argument("input_files", nargs='+', help='input sac files')
-
-    sws_init.add_argument(
-        '--headonly',
-        action='store_true',
-        help='only update header information')
-
-    sws_init.add_argument(
-        '--refmodel',
-        type=str,
-        choices=['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'],
-        default='iasp91',
-        help="reference model (default: 'iasp91'; choices:['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'])"
-    )
-
-    sws_init.add_argument(
-        '--sac',
-        type=str,
-        default='auto',
-        help='path to sac software executable (default=auto)'
-    )
-
-    ####################
 
 
     # gdp seismic mseed2sac
@@ -1516,6 +1483,37 @@ def parse_args(*args, **kwargs):
         required=True,
         nargs='+',
         help='REQUIRED: if all similar channels are available, only keep these channels'
+    )
+
+
+    # gdp seismic sws
+    seismic_sws = seismic_subparsers.add_parser('sws', help='shear wave splitting (sws) processing module',
+    description="shear wave splitting (sws) processing module")
+    sws_subparsers = seismic_sws.add_subparsers(dest='subsubmodule')
+
+    # gdp seismic sws init
+    sws_init = sws_subparsers.add_parser('init', help='initialize sws project: write XKS phase travel times, make copies, and initial QC',
+    description='initialize sws project: write XKS phase travel times using "obspy.taup()", make copies, and initial QC')
+    sws_init.add_argument("input_files", nargs='+', help='input sac files')
+
+    sws_init.add_argument(
+        '--hdronly',
+        action='store_true',
+        help='only update header information')
+
+    sws_init.add_argument(
+        '--refmodel',
+        type=str,
+        choices=['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'],
+        default='iasp91',
+        help="reference model (default: 'iasp91'; choices:['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'])"
+    )
+
+    sws_init.add_argument(
+        '--sac',
+        type=str,
+        default='auto',
+        help='path to sac software executable (default=auto)'
     )
 
 
@@ -1966,7 +1964,7 @@ def main(*args, **kwargs):
             from . import sws
             if args.subsubmodule == 'init':
                 sws.run_sws_dataset_app(args.input_files, refmodel=args.refmodel,
-                    SAC=args.sac, headonly=args.headonly)
+                    SAC=args.sac, headonly=args.hdronly)
                 exit(0)
             else:
                 subprocess.call('gdp seismic sws -h', shell=True)
