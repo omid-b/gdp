@@ -78,7 +78,6 @@ def plot_features(args):
                 # if polygon_file is *.shp
                 print(polygon_file)
                 polys = io.read_polygon_shp(polygon_file)
-                exit()
                 
             else:
                 # else if polygon_file is not *.shp >> ascii file
