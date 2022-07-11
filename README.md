@@ -337,8 +337,8 @@ $ gdp plot features --point points_set1.shp  points_set2.dat --polygon polygons.
 ## Version 0.1.2
 
 
-**Following changes will be applied**:
-- *mseed2sac* and *sac2dat* will be moved into the *seismic* module
+**Following changes are applied**:
+- *mseed2sac* and *sac2dat* are moved into the *seismic* module
 - *--lonrange* >> *--xrange* (generalization for utm/cartesian case)
 - *--latrange* >> *--yrange* (generalization for utm/cartesian case)
 
