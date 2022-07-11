@@ -76,9 +76,7 @@ def plot_features(args):
         for polygon_file in args.polygon:
             if os.path.splitext(polygon_file)[1] == ".shp":
                 # if polygon_file is *.shp
-                print(polygon_file)
                 polys = io.read_polygon_shp(polygon_file)
-                
             else:
                 # else if polygon_file is not *.shp >> ascii file
                 polygon_data = io.read_numerical_data(polygon_file, args.header, args.footer, [".10",".10"], args.x, [])
