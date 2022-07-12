@@ -10,13 +10,14 @@
 
 # Requirements (installation prerequisites)
 
-*gdp* uses GMT (generic mapping tools ) and SAC (seismic analysis codes) in some of the tools. Hence, these software must be already installed if one wish to use such tools. Os-specific prerequisites are described below.
+*gdp* uses GMT (generic mapping tools ) in plot module and SAC (seismic analysis codes) in seismic module. Hence, these software must be already installed if one wish to use such tools. Os-specific prerequisites are described below.
 
 To use the georef module, GDAL has to be installed. It is relatively easy using a conda environment:
 
 ```bash
 $ conda install -c conda-forge gdal
 ```
+If you don't have conda installed on your machine, it's a bit tricky to install GDAL (specially on Linux). That said, it is still doable! See below that also has OS-specific instructions to install tkinter (gui framework).
 
 Ubuntu/Debian:
 
