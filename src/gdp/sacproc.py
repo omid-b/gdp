@@ -222,7 +222,7 @@ def writehdr(args):
             headers['evlo'] = events_info[f"{event_name}"]['evlo']
             headers['evdp'] = events_info[f"{event_name}"]['evdp']
             headers['mag'] = events_info[f"{event_name}"]['mag']
-            headers['imagtyp'] = events_info[f"{event_name}"]['imagtyp']
+            #headers['imagtyp'] = events_info[f"{event_name}"]['imagtyp']
         else:
             headers['o'] = ""
 
