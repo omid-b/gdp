@@ -128,25 +128,25 @@ def get_events_info(sacfiles_info, config):
         evlo = float(events_read['lon'][i])
         evdp = float(events_read['dep'][i])
         mag = float(events_read['mag'][i])
-        mag_type = events_read['mag_type'][i]
-        if mag_type.lower() == 'mb':
-            imagtyp=52
-        elif mag_type.lower() == 'ms':
-            imagtyp=53
-        elif mag_type.lower() == 'ml':
-            imagtyp=54
-        elif mag_type.lower() == 'mw':
-            imagtyp=55
-        elif mag_type.lower() == 'md':
-            imagtyp=56
-        else:
-            imagtyp=57
+        # mag_type = events_read['mag_type'][i]
+        # if mag_type.lower() == 'mb':
+        #     imagtyp=52
+        # elif mag_type.lower() == 'ms':
+        #     imagtyp=53
+        # elif mag_type.lower() == 'ml':
+        #     imagtyp=54
+        # elif mag_type.lower() == 'mw':
+        #     imagtyp=55
+        # elif mag_type.lower() == 'md':
+        #     imagtyp=56
+        # else:
+        #     imagtyp=57
         events_info[f"{event_name}"] = {
             'evla': evla,
             'evlo': evlo,
             'evdp': evdp,
-            'mag': mag,
-            'imagtyp': int(imagtyp)
+            'mag': mag
+            # 'imagtyp': int(imagtyp)
         }
     # check if all 'dataset_events' are in 'eventlist_events'
     for dataset_event in dataset_events:
