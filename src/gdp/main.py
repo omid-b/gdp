@@ -49,7 +49,7 @@ def parse_args(*args, **kwargs):
     # gdp data cat
     gdp_cat = subparsers.add_parser('cat', help='concatenate and reformat input data files',
     description="Concatenate and reformat input data files")
-    gdp_cat.add_argument("input_files", nargs='+')
+    gdp_cat.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_cat.add_argument(
         '--nan',
         action='store_true',
@@ -118,7 +118,7 @@ def parse_args(*args, **kwargs):
     # gdp data union
     gdp_union = subparsers.add_parser('union', help='generate the union of input data files',
     description="Generate the union of input data files")
-    gdp_union.add_argument("input_files", nargs='+')
+    gdp_union.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_union.add_argument(
         '--nan',
         action='store_true',
@@ -192,7 +192,7 @@ def parse_args(*args, **kwargs):
     # gdp data intersect
     gdp_intersect = subparsers.add_parser('intersect', help='generate the intersect of input data files',
     description="Generate the intersect of input data files")
-    gdp_intersect.add_argument("input_files", nargs='+')
+    gdp_intersect.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_intersect.add_argument(
         '--nan',
         action='store_true',
@@ -266,7 +266,7 @@ def parse_args(*args, **kwargs):
     # gdp data difference
     gdp_difference = subparsers.add_parser('difference', help='generate the difference of input data files',
     description="Generate the difference of input data files")
-    gdp_difference.add_argument("input_files", nargs='+')
+    gdp_difference.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_difference.add_argument(
         '--nan',
         action='store_true',
@@ -342,7 +342,7 @@ def parse_args(*args, **kwargs):
     description="Split a concatenated dataset into multiple data files")
     gdp_split._positionals.title = 'required positional arguments'
     gdp_split._optionals.title = 'optional/required arguments'
-    gdp_split.add_argument("input_file", nargs=1)
+    gdp_split.add_argument("input_file", nargs=1, description='input ascii file')
     gdp_split.add_argument(
         '--method',
         choices=['nrow','ncol'],
@@ -392,7 +392,7 @@ def parse_args(*args, **kwargs):
     # gdp data min
     gdp_min = subparsers.add_parser('min', help='calculate min of numerical column(s)',
     description="Calculate minimum of values in numerical column(s)")
-    gdp_min.add_argument("input_files", nargs='+')
+    gdp_min.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_min.add_argument(
         '-v',
         nargs='+',
@@ -434,7 +434,7 @@ def parse_args(*args, **kwargs):
     # gdp data max
     gdp_max = subparsers.add_parser('max', help='calculate max of numerical column(s)',
     description="Calculate maximum of values in numerical column(s)")
-    gdp_max.add_argument("input_files", nargs='+')
+    gdp_max.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_max.add_argument(
         '-v',
         nargs='+',
@@ -476,7 +476,7 @@ def parse_args(*args, **kwargs):
     # gdp data sum
     gdp_sum = subparsers.add_parser('sum', help='calculate sum of numerical column(s)',
     description="Calculate summation of values in numerical column(s)")
-    gdp_sum.add_argument("input_files", nargs='+')
+    gdp_sum.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_sum.add_argument(
         '-v',
         nargs='+',
@@ -518,7 +518,7 @@ def parse_args(*args, **kwargs):
     # gdp data mean
     gdp_mean = subparsers.add_parser('mean', help='calculate mean of numerical column(s)',
     description="Calculate mean of values in numerical column(s)")
-    gdp_mean.add_argument("input_files", nargs='+')
+    gdp_mean.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_mean.add_argument(
         '-v',
         nargs='+',
@@ -560,7 +560,7 @@ def parse_args(*args, **kwargs):
     # gdp data median
     gdp_median = subparsers.add_parser('median', help='calculate median of numerical column(s)',
     description="Calculate median of values in numerical column(s)")
-    gdp_median.add_argument("input_files", nargs='+')
+    gdp_median.add_argument("input_files", nargs='+',description='input ascii files (can use wildcards)')
     gdp_median.add_argument(
         '-v',
         nargs='+',
@@ -602,7 +602,7 @@ def parse_args(*args, **kwargs):
     # gdp data std
     gdp_std = subparsers.add_parser('std', help='calculate std of numerical column(s)',
     description="Calculate standard deviation of values in numerical column(s)")
-    gdp_std.add_argument("input_files", nargs='+')
+    gdp_std.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_std.add_argument(
         '-v',
         nargs='+',
@@ -644,7 +644,7 @@ def parse_args(*args, **kwargs):
     # gdp data add
     gdp_add = subparsers.add_parser('add', help='add value comumn(s) of input data files',
     description="Add value comumn(s) of input data files")
-    gdp_add.add_argument("input_files", nargs='+', help='input numerical data files')
+    gdp_add.add_argument("input_files", nargs='+', help='input numerical data files (can use wildcards)')
     gdp_add.add_argument(
         '-x',
         nargs='+',
@@ -761,7 +761,7 @@ def parse_args(*args, **kwargs):
     # gdp data gridder
     gdp_gridder = subparsers.add_parser('gridder', help='gridding/interpolation of 2D/map data',
     description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
-    gdp_gridder.add_argument("input_files", nargs='+')
+    gdp_gridder.add_argument("input_files", nargs='+', description='input ascii files (can use wildcards)')
     gdp_gridder.add_argument(
         '--spacing',
         nargs='+',
@@ -1193,7 +1193,7 @@ def parse_args(*args, **kwargs):
         '--maindir',
         type=str,
         default='./',
-        help="path to directory containing 'download.config' (default='./')"
+        help="path to maindir containing 'download.config' (default='./')"
     )
 
     # gdp seismic download events
@@ -1203,7 +1203,7 @@ def parse_args(*args, **kwargs):
         '--maindir',
         type=str,
         default='./',
-        help="path to directory containing 'download.config' (default='./')"
+        help="path to maindir containing 'download.config' (default='./')"
     )
 
     # gdp seismic download stations
@@ -1213,7 +1213,7 @@ def parse_args(*args, **kwargs):
         '--maindir',
         type=str,
         default='./',
-        help="path to directory containing 'download.config' (default='./')"
+        help="path to maindir containing 'download.config' (default='./')"
     )
 
     # gdp seismic download metadata
@@ -1223,7 +1223,7 @@ def parse_args(*args, **kwargs):
         '--maindir',
         type=str,
         default='./',
-        help="path to directory containing 'download.config' (default='./')"
+        help="path to maindir containing 'download.config' (default='./')"
     )
     download_metadata.add_argument(
         '--metadata',
@@ -1239,7 +1239,7 @@ def parse_args(*args, **kwargs):
         '--maindir',
         type=str,
         default='./',
-        help="path to directory containing 'download.config' (default='./')"
+        help="path to maindir containing 'download.config' (default='./')"
     )
     download_mseeds.add_argument(
         '--duration',
@@ -1270,7 +1270,7 @@ def parse_args(*args, **kwargs):
 
     seismic_mseed2sac = seismic_subparsers.add_parser('mseed2sac', help='convert mseed to sac',
     description="Convert mseed to sac. This script also handles data fragmentation issue. ")
-    seismic_mseed2sac.add_argument("input_files", nargs='+', help='input mseed files')
+    seismic_mseed2sac.add_argument("input_files", nargs='+', help='input mseed files (can use wildcards e.g., mseeds/*/*)')
     seismic_mseed2sac.add_argument(
         '-o',
         '--outdir',
@@ -1305,7 +1305,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic sac2dat
     seismic_sac2dat = seismic_subparsers.add_parser('sac2dat', help='convert sac to dat (ascii)',
     description="Convert sac to dat (ascii); output format: time, amplitude")
-    seismic_sac2dat.add_argument("input_files", nargs='+')
+    seismic_sac2dat.add_argument("input_files", nargs='+', description='input sac files (can use wildcards e.g., sacfiles/*/*)')
     seismic_sac2dat.add_argument(
         '-o',
         '--outdir',
@@ -1332,7 +1332,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic writehdr
     seismic_writehdr = seismic_subparsers.add_parser('writehdr', help='write sac headers using xml metadata',
     description="Write sac headers using xml metadata")
-    seismic_writehdr.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_writehdr.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
     seismic_writehdr.add_argument(
         '--metadata',
         type=str,
@@ -1343,7 +1343,7 @@ def parse_args(*args, **kwargs):
         '--maindir',
         type=str,
         default='./',
-        help="path to directory containing 'download.config' (default='./')"
+        help="path to maindir containing 'download.config' (default='./')"
     )
     seismic_writehdr.add_argument(
         '--ant',
@@ -1360,7 +1360,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic remresp
     seismic_remresp = seismic_subparsers.add_parser('remresp', help='remove sac instrument response using xml metadata',
     description="Remove instrument response of sacfiles using xml metadata (see obspy documentation for 'unit' (output), 'pre_filt', and 'water_level' information)")
-    seismic_remresp.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_remresp.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
     seismic_remresp.add_argument(
         '--metadata',
         type=str,
@@ -1392,7 +1392,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic resample
     seismic_resample = seismic_subparsers.add_parser('resample', help='resample sac files',
     description="Resample sac files using obspy")
-    seismic_resample.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_resample.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
     seismic_resample.add_argument(
         '--sf',
         type=int,
@@ -1410,7 +1410,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic bandpass
     seismic_bandpass = seismic_subparsers.add_parser('bandpass', help='apply bandpass filter to sac files',
     description="Apply bandpass filter to sac files")
-    seismic_bandpass.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_bandpass.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
     seismic_bandpass.add_argument(
         '--cp1',
         type=float,
@@ -1445,7 +1445,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic cut
     seismic_cut = seismic_subparsers.add_parser('cut', help='cut sac files (also applies cutter fillz)',
     description="Cut sac files (also applies cutter fillz)")
-    seismic_cut.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_cut.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
     seismic_cut.add_argument(
         '--begin',
         type=float,
@@ -1469,7 +1469,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic remchan
     seismic_remchan = seismic_subparsers.add_parser('remchan', help='remove extra channels from event directories',
     description="remove extra channels from event directories")
-    seismic_remchan.add_argument("input_files", nargs='+', help='input sac files')
+    seismic_remchan.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
     seismic_remchan.add_argument(
         '--channels',
         type=str,
@@ -1494,7 +1494,7 @@ def parse_args(*args, **kwargs):
     # gdp seismic sws init
     sws_init = sws_subparsers.add_parser('init', help='initialize sws project: write XKS phase travel times, make copies, and initial QC',
     description='initialize sws project: write XKS phase travel times using "obspy.taup()", make copies, and initial QC')
-    sws_init.add_argument("input_files", nargs='+', help='input sac files')
+    sws_init.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
 
     sws_init.add_argument(
         '--hdronly',
@@ -1585,7 +1585,7 @@ def parse_args(*args, **kwargs):
         "input_files",
         type=str,
         nargs='+',
-        help='input data files'
+        help='input data files (can use wildcards)'
     )
     plot_hist.add_argument(
         '-o',

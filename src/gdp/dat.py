@@ -643,6 +643,7 @@ def convex_hull(args):
         if line not in outlines:
             outlines.append(line)
     outlines.append(outlines[0])
+    args.append = False
     io.output_lines(outlines, args)
 
 
