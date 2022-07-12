@@ -5,7 +5,7 @@
 import os
 import numpy as np
 import tkinter as tk
-from tkinter import filedialog, Toplevel
+from tkinter import filedialog, Toplevel, font
 from PIL import Image, ImageTk
 
 try:
@@ -26,6 +26,16 @@ class Application(tk.Frame):
         if os.path.isfile(icon_file):
             icon_img = ImageTk.PhotoImage(Image.open(icon_file))
             self.master.wm_iconphoto(False, icon_img)
+        
+        self.defaultFont = font.nametofont("TkDefaultFont")
+        self.menuFont = font.nametofont("TkMenuFont")
+        self.menuFont.configure(family="Dejavu",
+                                   size=10,
+                                   weight=font.NORMAL)
+        self.defaultFont.configure(family="Dejavu",
+                                   size=11,
+                                   weight=font.NORMAL)
+
         self.master.geometry(f"{window_size[0]}x{window_size[1]}")
         self.app_title = f"Georeference Maps (EPSG={epsg})"
         self.master.title(self.app_title)
@@ -231,7 +241,7 @@ class Application(tk.Frame):
             self.canvas.create_line(wp_canvas_x+7, wp_canvas_y, wp_canvas_x+2, wp_canvas_y, fill=fill_color, width= 3)
             self.canvas.create_line(wp_canvas_x, wp_canvas_y-7, wp_canvas_x, wp_canvas_y-2, fill=fill_color, width= 3)
             self.canvas.create_line(wp_canvas_x, wp_canvas_y+7, wp_canvas_x, wp_canvas_y+2, fill=fill_color, width= 3)
-            self.canvas.create_text(wp_canvas_x, wp_canvas_y-15, text=f"({float(wp[2])}, {float(wp[3])})", fill=fill_color, font=('Helvetica 16 bold'))
+            self.canvas.create_text(wp_canvas_x, wp_canvas_y-15, text=f"({float(wp[2])}, {float(wp[3])})", fill=fill_color, font=('Dejavu 16 bold'))
 
 
 

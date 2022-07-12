@@ -5,6 +5,7 @@ import shutil
 import numpy as np
 import tkinter as tk
 import tkinter.messagebox
+from tkinter import font
 
 import operator
 
@@ -34,6 +35,16 @@ class SWS_Dataset_App(tk.Frame):
             (None, None, None, None),
             ('Save', 'Save the figure', 'filesave', 'save_figure'),
         )
+
+        self.defaultFont = font.nametofont("TkDefaultFont")
+        self.menuFont = font.nametofont("TkMenuFont")
+        self.menuFont.configure(family="Dejavu",
+                                   size=10,
+                                   weight=font.NORMAL)
+        self.defaultFont.configure(family="Dejavu",
+                                   size=11,
+                                   weight=font.NORMAL)
+
         self.master = master
         self.refmodel = refmodel
         self.SAC = SAC
@@ -242,11 +253,11 @@ class SWS_Dataset_App(tk.Frame):
             relwidth=(1-canvas_relwidth),
             relheight=(0.8-frm_arrivals_relheight-frm_info_relheight))
         self.btn_update = tk.Button(self.frm_buttons, text="Update SWS dataset",
-            bd=1, relief=tk.RAISED, font='Helvetica 14 bold', command=self.apply_update_dataset)
+            bd=1, relief=tk.RAISED, font='Dejavu 11 bold', command=self.apply_update_dataset)
         self.btn_prev = tk.Button(self.frm_buttons, text="Previous",
-            bd=1, relief=tk.RAISED, font='Helvetica 14', command=self.prev_data)
+            bd=1, relief=tk.RAISED, font='Dejavu 11', command=self.prev_data)
         self.btn_next = tk.Button(self.frm_buttons, text="Next",
-            bd=1, relief=tk.RAISED, font='Helvetica 14', command=self.next_data)
+            bd=1, relief=tk.RAISED, font='Dejavu 11', command=self.next_data)
         self.btn_update.place(relx=0, rely=0.1, relwidth=0.8, relheight=0.33)
         self.btn_prev.place(relx=0, rely=0.66, relwidth=0.37, relheight=0.33)
         self.btn_next.place(relx=0.43, rely=0.66, relwidth=0.37, relheight=0.33)
@@ -306,7 +317,7 @@ class SWS_Dataset_App(tk.Frame):
         for widget in self.frm_arrivals.winfo_children():
             widget.destroy()
         lbl_info = tk.Label(self.frm_arrivals, text=f"Theoretical arrivals ({self.refmodel.upper()}):",
-            justify=tk.LEFT, font='Helvetica 14 bold', bg='#fff', fg='#000')
+            justify=tk.LEFT, font='Dejavu 11 bold', bg='#fff', fg='#000')
         lbl_info.place(relx=0, rely=0)
 
         self.chb_vars = [tk.IntVar() for x in range(num_p_phases + num_s_phases)]
@@ -316,7 +327,7 @@ class SWS_Dataset_App(tk.Frame):
                 onvalue=1, offvalue=0,
                 bg='white', fg='#000', activebackground='white',
                 activeforeground='#555',selectcolor="white", bd=0, highlightthickness=0,
-                font='Helvetica 14', justify=tk.LEFT,
+                font='Dejavu 11', justify=tk.LEFT,
                 command=self.update_select_status,
                 variable=var)
             if select_status[iP]:
@@ -332,7 +343,7 @@ class SWS_Dataset_App(tk.Frame):
                 onvalue=1, offvalue=0,
                 bg='white', fg='#000', activebackground='white',
                 activeforeground='#555',selectcolor="white", bd=0, highlightthickness=0,
-                font='Helvetica 14', justify=tk.LEFT,
+                font='Dejavu 11', justify=tk.LEFT,
                 command=self.update_select_status,
                 variable=var)
             if select_status[iS+num_p_phases]:
@@ -364,12 +375,12 @@ class SWS_Dataset_App(tk.Frame):
             widget.destroy()
         plot_data = self.plot_datalist[self.plot_data_index]
         lbl_info = tk.Label(self.frm_info, text=f"Event: {plot_data[2]['event']}\n\nData information ({self.plot_data_index+1} of {self.num_measurements}):",
-            justify=tk.LEFT, font='Helvetica 14 bold', bg='#fff', fg='#000')
+            justify=tk.LEFT, font='Dejavu 11 bold', bg='#fff', fg='#000')
         lbl_info.place(relx=0, rely=0)
         col1_text = f"Network: {plot_data[2]['knetwk']}\n\nStation: {plot_data[2]['kstnm']}"
         col2_text = "BAZ: %.2f\n\nGCARC: %.2f" %(float(plot_data[2]['baz']), float(plot_data[2]['gcarc']))
-        lbl_col1 = tk.Label(self.frm_info, bg='#fff', fg='#000',  justify=tk.LEFT, text=col1_text, font='Helvetica 14')
-        lbl_col2 = tk.Label(self.frm_info, bg='#fff', fg='#000', justify=tk.LEFT, text=col2_text, font='Helvetica 14')
+        lbl_col1 = tk.Label(self.frm_info, bg='#fff', fg='#000',  justify=tk.LEFT, text=col1_text, font='Dejavu 11')
+        lbl_col2 = tk.Label(self.frm_info, bg='#fff', fg='#000', justify=tk.LEFT, text=col2_text, font='Dejavu 11')
         lbl_col1.place(relx=0, rely=0.5)
         lbl_col2.place(relx=0.4, rely=0.5)
 
