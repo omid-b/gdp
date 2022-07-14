@@ -8,6 +8,7 @@ import tkinter.messagebox
 from tkinter import font
 
 import operator
+from copy import deepcopy
 
 from datetime import datetime
 import matplotlib
@@ -575,21 +576,36 @@ class SWS_Dataset_App(tk.Frame):
                 sws_dataset[event_dir][kstnm][channel] = {}
             # append to lists
             sws_dataset[event_dir][kstnm][channel][key] = self.sacfiles_info[key]
+
         # delete station if data for a channel is missing
+        del_stations = []
         for event in sws_dataset.keys():
             for station in sws_dataset[event].keys():
                 del_station = False
                 for channel in ['N','E','Z']:
-                    if channel not in sws_dataset[event][station].keys():
+                    if channel not in sws_dataset[event][station].keys() or len(sws_dataset[event][station][channel].keys()) == 0:
                         del_station = True
-                        continue
-                    elif len(sws_dataset[event][station][channel].keys()) == 0:
-                        del_station = True
-                        continue
-                if del_station:
+                del_stations.append(del_station)
+
+        i = 0
+        del_events = []
+        events = list(sws_dataset.keys())
+        for event in events:
+            stations = list(sws_dataset[event].keys())
+            for station in stations:
+                if del_stations[i]:
                     del sws_dataset[event][station]
-            if len(sws_dataset[event]) == 0:
+                i += 1
+            if len(list(sws_dataset[event].keys())):
+                del_events.append(False)
+            else:
+                del_events.append(True)
+
+        i = 0
+        for event in events:
+            if del_events[i]:
                 del sws_dataset[event]
+            i += 1
 
         # calculate arrival times for P and S
         from obspy.taup import TauPyModel
