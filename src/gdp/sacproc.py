@@ -163,6 +163,14 @@ def get_events_info(sacfiles_info, config):
 
 
 def writehdr(args):
+    import operator
+    from obspy.taup import TauPyModel
+    try:
+        from . import _geographic as geographic
+    except ImportError:
+        print("WARNING! Could not use cythonized module: geographic")
+        from . import geographic
+    
     if args.sac == 'auto':
         SAC = dependency.find_sac_path()
     else:
@@ -226,6 +234,78 @@ def writehdr(args):
             headers['evdp'] = events_info[f"{event_name}"]['evdp']
             headers['mag'] = events_info[f"{event_name}"]['mag']
             #headers['imagtyp'] = events_info[f"{event_name}"]['imagtyp']
+            if args.refmodel != None:
+                model = TauPyModel(model=args.refmodel)
+                point1 = geographic.Point(headers['evlo'], headers['evla'])
+                point2 = geographic.Point(headers['stlo'], headers['stla'])
+                line = geographic.Line(point1, point2)
+                gcarc = line.calc_gcarc()
+
+                # P arrivals
+                ttp = model.get_travel_times(
+                    source_depth_in_km=events_info[f"{event_name}"]['evdp'],
+                    distance_in_degree=gcarc,
+                    phase_list=["ttp"]
+                )
+                arrivals_p = {}
+                for i in range(len(ttp)):
+                    arrivals_p[f"{ttp[i].name}"] = float(ttp[i].time)
+                # sort by value:
+                sorted_arrivals_p = sorted(arrivals_p.items(), key=operator.itemgetter(1))
+                arrivals_p = {}
+                for (key, val) in sorted_arrivals_p:
+                    arrivals_p[key] = val
+
+                # S arrivals
+                tts = model.get_travel_times(
+                    source_depth_in_km=events_info[f"{event_name}"]['evdp'],
+                    distance_in_degree=gcarc,
+                    phase_list=["tts"]
+                )
+                arrivals_s = {}
+                for i in range(len(tts)):
+                    arrivals_s[f"{tts[i].name}"] = float(tts[i].time)
+                # sort by value:
+                sorted_arrivals_s = sorted(arrivals_s.items(), key=operator.itemgetter(1))
+                arrivals_s = {}
+                for (key, val) in sorted_arrivals_s:
+                    arrivals_s[key] = val
+
+                # store arrival times into 'headers' dictionaries
+                iP = 1
+                for p_phase in arrivals_p.keys():
+                    if iP <= 2:
+                        headers[f"T{iP}"] = arrivals_p[p_phase]
+                        headers[f"KT{iP}"] = p_phase
+                        iP += 1
+                iS = 3
+                for s_phase in arrivals_s.keys():
+                    if iS <= 4 and s_phase not in ['SKKS', 'PKS']:
+                        headers[f"T{iS}"] = arrivals_s[s_phase]
+                        headers[f"KT{iS}"] = s_phase
+                        iS += 1
+                iS = 5
+                for s_phase in arrivals_s.keys():
+                    if s_phase in ['SKKS', 'PKS']:
+                        headers[f"T{iS}"] = arrivals_s[s_phase]
+                        headers[f"KT{iS}"] = s_phase
+                        iS += 1
+
+                arrivals_saved = []
+                for key in headers.keys():
+                    if key[0:2] == 'KT':
+                        arrivals_saved.append(headers[key])
+                i=7
+                for p_phase in arrivals_p.keys():
+                    if i <= 9 and p_phase not in arrivals_saved:
+                        headers[f"T{i}"] = arrivals_p[p_phase]
+                        headers[f"KT{i}"] = p_phase
+                        i += 1
+                for s_phase in arrivals_s.keys():
+                    if i <= 9 and s_phase not in arrivals_saved:
+                        headers[f"T{i}"] = arrivals_s[s_phase]
+                        headers[f"KT{i}"] = s_phase
+                        i += 1
         else:
             headers['o'] = ""
 

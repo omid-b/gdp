@@ -1340,6 +1340,13 @@ def parse_args(*args, **kwargs):
         help="path to xml (metadata) dataset directory (default='./metadata')"
     )
     seismic_writehdr.add_argument(
+        '--refmodel',
+        type=str,
+        choices=['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'],
+        default=None,
+        help="reference model to write theoretical arrivals into headers (default: None)"
+    )
+    seismic_writehdr.add_argument(
         '--maindir',
         type=str,
         default='./',
@@ -1417,19 +1424,19 @@ def parse_args(*args, **kwargs):
         type=str,
         required=True,
         choices=['p','f'],
-        help='REQUIRED: corner unit choices=("p": period, "f":frequency)'
+        help='REQUIRED: corner unit; choices=("p": period, "f":frequency)'
     )
     seismic_bandpass.add_argument(
         '--c1',
         type=float,
         required=True,
-        help='REQUIRED: corner period/frequency 1 (s)'
+        help='REQUIRED: corner period (s) / frequency (Hz) 1'
     )
     seismic_bandpass.add_argument(
         '--c2',
         type=float,
         required=True,
-        help='REQUIRED: corner period/frequency 2 (s)'
+        help='REQUIRED: corner period (s) / frequency (Hz) 2'
     )
     seismic_bandpass.add_argument(
         '-n',
@@ -1520,7 +1527,7 @@ def parse_args(*args, **kwargs):
         type=str,
         choices=['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'],
         default='iasp91',
-        help="reference model (default: 'iasp91'; choices:['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'])"
+        help="reference model (default: 'iasp91')"
     )
 
     sws_init.add_argument(

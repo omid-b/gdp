@@ -65,7 +65,11 @@ class SWS_Dataset_App(tk.Frame):
             duplicates = '\n'.join(duplicates)
             print(f"WARNING! Some data files are ignored:\n{duplicates}")
 
-        print(f"Write arrivals into headers (model={refmodel.upper()})...")
+        if len(self.sws_dataset) == 0:
+            print("Error! This dataset does not include any complete-set 3-component timeseries!")
+            exit(1)
+
+        print(f"Write arrivals into headers (model={refmodel})...")
         self.write_traveltime_headers()
         
         if headonly:
@@ -317,7 +321,7 @@ class SWS_Dataset_App(tk.Frame):
 
         for widget in self.frm_arrivals.winfo_children():
             widget.destroy()
-        lbl_info = tk.Label(self.frm_arrivals, text=f"Theoretical arrivals ({self.refmodel.upper()}):",
+        lbl_info = tk.Label(self.frm_arrivals, text=f"Theoretical arrivals ({self.refmodel}):",
             justify=tk.LEFT, font='Dejavu 11 bold', bg='#fff', fg='#000')
         lbl_info.place(relx=0, rely=0)
 

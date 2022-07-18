@@ -68,6 +68,9 @@ class EVENTS:
 
             if len(str(max_mag)):
                 self.max_mag = str(max_mag)
+                if float(max_mag) >= 10:
+                    print("Error! Parameter 'event_max_mag' must be smaller than 10.0")
+                    exit(1)
             else:
                 print(f"Error! Parameter 'event_max_mag' is not specified in 'download.config'")
                 exit(1)

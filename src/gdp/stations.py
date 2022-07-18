@@ -126,8 +126,15 @@ class STATIONS:
                     # store requested information
                     for i in range(len(inv)):
                         for j in range(len(inv[i])):
+                            net = inv[i].code
                             sta = inv[i][j].code
                             if sta not in stalist['sta']:
+                                if len(self.config["station_setting"]["stations"]) \
+                                and sta not in self.config["station_setting"]["stations"]:
+                                    continue
+                                if len(self.config["station_setting"]["networks"]) \
+                                and net not in self.config["station_setting"]["networks"]:
+                                    continue
                                 stalist['net'].append(inv[i].code)
                                 stalist['sta'].append(inv[i][j].code)
                                 stalist['lat'].append(inv[i][j]._latitude)
