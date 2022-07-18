@@ -1412,16 +1412,24 @@ def parse_args(*args, **kwargs):
     description="Apply bandpass filter to sac files")
     seismic_bandpass.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
     seismic_bandpass.add_argument(
-        '--cp1',
-        type=float,
+        '-u',
+        '--unit',
+        type=str,
         required=True,
-        help='REQUIRED: corner period 1 (s)'
+        choices=['p','f'],
+        help='REQUIRED: corner unit choices=("p": period, "f":frequency)'
     )
     seismic_bandpass.add_argument(
-        '--cp2',
+        '--c1',
         type=float,
         required=True,
-        help='REQUIRED: corner period 2 (s)'
+        help='REQUIRED: corner period/frequency 1 (s)'
+    )
+    seismic_bandpass.add_argument(
+        '--c2',
+        type=float,
+        required=True,
+        help='REQUIRED: corner period/frequency 2 (s)'
     )
     seismic_bandpass.add_argument(
         '-n',
@@ -1457,6 +1465,12 @@ def parse_args(*args, **kwargs):
         type=float,
         required=True,
         help='REQUIRED: cut end time (s)'
+    )
+    seismic_cut.add_argument(
+        '--relative',
+        type=str,
+        default=None,
+        help='cut relative to header ... e.g. t1-t9 (default=None)'
     )
     seismic_cut.add_argument(
         '--sac',
@@ -1549,13 +1563,21 @@ def parse_args(*args, **kwargs):
     plot_stations.add_argument(
         '--labels',
         action='store_true',
-        help='print station labels on the output map')
+        help='print station labels on the output map (if not global scale map)')
     plot_stations.add_argument(
-        '--global',
+        '--boundaries',
+        action='store_true',
+        help='plot major tectonic boundaries')
+    plot_stations.add_argument(
+        '-g',
+        '--glob',
+        action='store_true',
+        help='enable global scale map')
+    plot_stations.add_argument(
+        '--meridian',
         type=float,
-        nargs='*',
-        default=0.0,
-        help='global scale map; enter meridian longitude (default=0.)')
+        default=0,
+        help='map central meridian (only if global scale map)')
     plot_stations.add_argument(
         '--gmt',
         type=str,
@@ -1994,7 +2016,10 @@ def main(*args, **kwargs):
             sacproc.bandpass(args)
             exit(0)
         elif args.submodule == 'cut':
-            sacproc.cut(args)
+            if args.relative == None:
+                sacproc.cut(args)
+            else:
+                sacproc.cut_relative(args)
             exit(0)
         elif args.submodule == 'remchan':
             sacproc.remchan(args)
@@ -2016,7 +2041,11 @@ def main(*args, **kwargs):
             subprocess.call('gdp mag -h', shell=True)
     elif args.module == 'plot':
         if args.submodule == 'stations':
-            plot.plot_stations(args.stalist, args.labels, GMT=args.gmt)
+            if args.glob:
+                plot.plot_stations_global(args.stalist, labels=args.labels,
+                    meridian=args.meridian, boundaries=args.boundaries, GMT=args.gmt)
+            else:
+                plot.plot_stations(args.stalist, args.labels, GMT=args.gmt)
             exit(0)
         elif args.submodule == 'events':
             plot.plot_events(args.eventlist, args.lon, args.lat, GMT=args.gmt)

@@ -34,6 +34,7 @@ class EVENTS:
             starttime = config['download_setting']['startdate']
             endtime = config['download_setting']['enddate']
             min_mag = config['event_setting']['event_min_mag']
+            max_mag = config['event_setting']['event_max_mag']
             min_gcarc = config['event_setting']['event_min_gcarc']
             max_gcarc = config['event_setting']['event_max_gcarc']
             minlon = config['event_setting']['event_minlon']
@@ -63,6 +64,12 @@ class EVENTS:
                 self.min_mag = str(min_mag)
             else:
                 print(f"Error! Parameter 'event_min_mag' is not specified in 'download.config'")
+                exit(1)
+
+            if len(str(max_mag)):
+                self.max_mag = str(max_mag)
+            else:
+                print(f"Error! Parameter 'event_max_mag' is not specified in 'download.config'")
                 exit(1)
 
             if len(str(minlon)):
@@ -190,6 +197,7 @@ class EVENTS:
                 cat = client.get_events(starttime=self.starttime,
                 endtime=self.endtime,
                 minmagnitude=str(self.min_mag),
+                maxmagnitude=str(self.max_mag),
                 minlongitude=self.minlon,
                 maxlongitude=self.maxlon,
                 minlatitude=self.minlat,

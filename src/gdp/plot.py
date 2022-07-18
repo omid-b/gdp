@@ -292,7 +292,74 @@ def plot_hist(args):
         plt.show()
 
 
+def plot_stations_global(input_stalist, labels=False, boundaries=False, meridian=0, GMT='auto'):
+    if meridian < -180 or meridian > 180:
+        print("Error! Argument 'meridian' must be between -180 and 180.")
+        exit(1)
+    # GMT
+    if GMT == 'auto':
+        GMT = dependency.find_gmt_path()
+    if len(GMT) == 0 or not os.path.isfile(GMT):
+        print(f"Error! Could not find GMT executable:\nGMT: '{GMT}'\n")
+        exit(1)
 
+    tempdir = os.path.abspath('./.gmt')
+    if not os.path.isdir(tempdir):
+        os.mkdir(tempdir)
+
+    input_stalist = os.path.abspath(input_stalist)
+    maindir, fname = os.path.split(input_stalist)
+    fname, _ = os.path.splitext(fname)
+
+    stations_obj = stations.STATIONS(input_stalist, stalist_input=True)
+    stalist = stations_obj.read_stalist()
+    if len(stalist['lon']) == 0:
+        print(f"\nError! No station is listed in the station file!\n")
+        exit(1)
+
+    print(f"station list: {input_stalist}\n")
+
+    stalist['lon'] = np.array(stalist['lon'], dtype=float)
+    stalist['lat'] = np.array(stalist['lat'], dtype=float)
+
+    prj = "N800p"
+    reg = "%.2f/%.2f/-90/90" %(-180+meridian, 180+meridian)
+
+    # bulid plot script and run
+    print(f"  generating plot ...\n")
+    remove_gmt_temp(tempdir, fname)
+    os.chdir(tempdir)
+    gmt_script = [\
+    f"{GMT} set PS_MEDIA 2000px2000p",
+    f"{GMT} set GMT_VERBOSE q",
+    f"{GMT} set MAP_FRAME_PEN thin,black",
+    f"{GMT} set MAP_GRID_CROSS_SIZE_PRIMARY 0",
+    f"{GMT} set MAP_FRAME_TYPE plain",
+    f"{GMT} set MAP_FRAME_PEN 2p,black",
+    f"{GMT} set FONT_ANNOT_PRIMARY 18p,Helvetica,black",
+    f"{GMT} pscoast -R{reg} -J{prj} -K -P -Dh -Ba -A1000 -Givory3 -Slightcyan > {fname}.ps"]
+    fopen = open(f"{fname}.dat",'w')
+    for i in range(len(stalist['lon'])):
+        fopen.write(f"{stalist['lon'][i]} {stalist['lat'][i]}\n")
+    fopen.close()
+    fopen = open(f"{fname}.tmp",'w')
+    for i in range(len(stalist['lon'])):
+        fopen.write(f"{stalist['lon'][i]} {stalist['lat'][i]} {stalist['net'][i]}.{stalist['sta'][i]}\n")
+    fopen.close()
+    # tectonic boundaries
+    if boundaries:
+        for x in os.listdir(os.path.join(pkg_dir,'data','tectonics')):
+            if re.search('dat$',x):
+                gmt_script += [f"cat {os.path.join(pkg_dir,'data','tectonics',x)}|gmt psxy -R -J -O -P -K -Wthick,azure3 >> {fname}.ps"]
+    if labels:
+        gmt_script += [f"cat {fname}.tmp| gmt pstext -D0/-0.27i -F+f11p,Helvetica-Bold,black -R -J -P -K -O >> {fname}.ps"]
+    gmt_script += [f"cat {fname}.dat | gmt psxy -R -J -K -O -P -Si15p -Groyalblue4 -Wthin,black >> {fname}.ps",
+    f"echo 0 0|gmt psxy -R -J -P -O -Sc0.001p -Gblack -Wthin,black >> {fname}.ps"]
+    subprocess.call("\n".join(gmt_script), shell=True)
+    outfile = ps2pdf(f"{fname}.ps", maindir)
+    remove_gmt_temp(tempdir, fname)
+    shutil.rmtree(tempdir)
+    print(f"output: '{os.path.join(maindir,outfile)}'\n\nDone!\n")
 
 
 def plot_stations(input_stalist, labels=False, GMT='auto'):

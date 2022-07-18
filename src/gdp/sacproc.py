@@ -34,7 +34,7 @@ def get_metadata_info(metadata_dir):
     return metadata_info
 
 
-def get_sacfiles_info(sacfiles, read_headers=False, read_data=False):
+def get_sacfiles_info(sacfiles, header=False, read_headers=False, read_data=False):
     for sacfile in sacfiles:
         if not os.path.isfile(sacfile):
             print(f"Error! Could not find/read sacfile:\n{sacfile}\n")
@@ -56,6 +56,9 @@ def get_sacfiles_info(sacfiles, read_headers=False, read_data=False):
             sacfiles_info[f"{sacfile}"] = {}
             sacfiles_info[f"{sacfile}"]['tag'] = tag
             sacfiles_info[f"{sacfile}"]['event'] = event_dir
+            if header != False:
+                sacfiles_info[f"{sacfile}"][header] = tr.stats.sac[header]
+
             if read_headers:
                 stla = tr.stats.sac.stla
                 stlo = tr.stats.sac.stlo
@@ -356,8 +359,8 @@ def bandpass(args):
         print("Use flag 'sac' to fix this issue.")
         exit(1)
 
-    if args.cp1 > args.cp2:
-        print(f"Error! 'cp2' must be larger than 'cp1'.\n")
+    if args.c1 > args.c2:
+        print(f"Error! argument 'c2' must be larger than 'c1'.\n")
         exit(1)
 
     if args.n not in range(1,11):
@@ -374,11 +377,20 @@ def bandpass(args):
     # start bandpass filtering process
     nerr = 0
     errors = []
+    if args.unit.lower() == 'p':
+        cp1 = args.c1
+        cp2 = args.c2
+    elif args.unit.lower() == 'f':
+        cp1 = 1 / args.c2
+        cp2 = 1 / args.c1
+
     for sacfile in sacfiles:
         print(f"bandpass: '{sacfile}' ... ", end="\r")
 
+
+
         bandpass_success = sac_bandpass_filter(sacfile, sacfile,
-                           args.cp1, args.cp2, n=args.n, p=args.p, SAC=SAC)
+                           cp1, cp2, n=args.n, p=args.p, SAC=SAC)
 
         if bandpass_success:
             print(f"bandpass: '{sacfile}' ... OK")
@@ -440,6 +452,59 @@ def cut(args):
         fopen.close()
 
 
+def cut_relative(args):
+    if args.sac == 'auto':
+        SAC = dependency.find_sac_path()
+    else:
+        SAC = args.sac
+    if not len(SAC):
+        print("Error! Could not find SAC executable! This operation requires SAC to be installed.")
+        print("Use flag 'sac' to fix this issue.")
+        exit(1)
+
+    if args.begin > args.end:
+        print(f"Error! 'end' must be larger than 'begin'.\n")
+        exit(1)
+
+    sacfiles_info = get_sacfiles_info(args.input_files, header=args.relative)
+    sacfiles = list(sacfiles_info.keys())
+
+    # start cut process
+    nerr = 0
+    errors = []
+    for sacfile in sacfiles:
+        print(f"cut: '{sacfile}' ... ", end="\r")
+
+        if args.relative not in sacfiles_info[sacfile].keys():
+            continue
+
+        try:
+            cut_beg = float(sacfiles_info[sacfile][args.relative]) + args.begin
+            cut_end = float(sacfiles_info[sacfile][args.relative]) + args.end
+        except:
+            nerr += 1
+            errors.append(sacfile)
+            print(f"cut: '{sacfile}' ... Failed")
+            continue
+
+        cut_success = sac_cut_fillz(sacfile, sacfile,
+                      cut_beg, cut_end, SAC=SAC)
+
+        if cut_success:
+            print(f"cut: '{sacfile}' ... OK")
+        else:
+            nerr += 1
+            errors.append(sacfile)
+            print(f"cut: '{sacfile}' ... Failed")
+
+    if nerr == 0:
+        print("\nall successful!\n")
+    else:
+        print("\nnumber of errors: {nerr}\nsee 'cut_errors.txt'")
+        fopen = open('cut_errors.txt', 'a')
+        for err in errors:
+            fopen.write(f"{err}\n")
+        fopen.close()
     
     
 def remchan(args):

@@ -80,6 +80,7 @@ station_maxlat =
 
 event_list = %s
 event_min_mag = 
+event_max_mag = 
 event_min_gcarc = 0
 event_max_gcarc = 180
 event_minlon = -180.0
@@ -139,15 +140,16 @@ def read_download_config(args):
     download_setting_params = ["obspy_mdl_script", "iris_fetch_script", "startdate", "enddate"]
     station_setting_params = ["station_list", "station_channels", "station_location_codes",
                               "station_maxlat", "station_maxlon", "station_minlat", "station_minlon"]
-    event_setting_params = ["event_list", "event_min_mag", "event_min_gcarc", "event_max_gcarc",
-                            "event_minlon", "event_maxlon", "event_minlat", "event_maxlat"]
+    event_setting_params = ["event_list", "event_min_mag", "event_max_mag", "event_min_gcarc",
+                            "event_max_gcarc", "event_minlon", "event_maxlon", "event_minlat",
+                            "event_maxlat"]
     datacenters_params = ["auspass", "bgr", "eth", "geofon", "icgc", "ingv",
                           "iris", "irisph5", "koeri", "lmu", "ncedc", "niep",
                           "noa", "odc", "orfeus", "raspishake", "resif",
                           "resifph5", "scedc", "texnet", "usp"]    
     dependencies_params = ["perl", "sac"]
     list_params = ["station_channels", "station_location_codes"]
-    float_params = ["event_min_mag", "event_min_gcarc", "event_max_gcarc"]
+    float_params = ["event_min_mag", "event_max_mag", "event_min_gcarc", "event_max_gcarc"]
     lat_params = ["station_maxlat", "station_minlat", "event_minlat", "event_maxlat"]
     lon_params = ["station_maxlon", "station_minlon", "event_minlon", "event_maxlon"]
 
