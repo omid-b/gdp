@@ -10,7 +10,7 @@
 
 # Requirements (installation prerequisites)
 
-*gdp* uses GMT (generic mapping tools ) in plot module and SAC (seismic analysis codes) in seismic module. Hence, these software must be already installed if one wish to use such tools.
+*gdp* uses GMT (Generic Mapping Tools) in plot module and SAC (Seismic Analysis Code) in seismic module. Hence, these software packages must be already installed if one wish to use such tools.
 
 To use the georef module, GDAL has to be installed. It is relatively easy using conda:
 
@@ -18,7 +18,7 @@ To use the georef module, GDAL has to be installed. It is relatively easy using 
 $ conda install -c conda-forge gdal
 ```
 
-If you don't have conda installed on your machine, it's a bit tricky to install GDAL (specially on Linux). That said, it is still doable! See below that also has OS-specific instructions to install tkinter (a gui framework).
+If you don't have conda installed on your machine, it's a bit tricky to install GDAL (specially on Linux). That said, it is still doable! See below, including OS-specific instructions to install tkinter (a gui framework).
 
 Ubuntu/Debian:
 
@@ -51,7 +51,7 @@ $ pip install gdal
 
 # Installation
 
-In order to install the latest (under development) version:
+To install the latest (under development) version:
 
 ```bash
 $ pip install git+https://github.com/omid-b/gdp.git
@@ -85,30 +85,30 @@ $ pip install gdp
 |shp2dat   |convert GIS shape files (point/polygon) to ascii data|
 |nc2dat    |convert nc data to dat/ascii|
 |dat2nc    |convert gridded ascii data to nc format|
-|1Dto2D    |Combine/convert 1D datasets into 2D datasets. Example use cases: (1) building phase velocity map datasets from point/1D dispersion curve datasets, (2) building shear velocity map datasets from 1D shear velocity profiles.|
-|2Dto1D    |Extract/convert 2D datasets into 1D datasets. Example use cases: (1) extracting point dispersion curves from phase velocity maps, (2) extracing 1D shear velocity profiles from shear velocity map datasets|
+|1Dto2D    |Combine/convert 1D datasets into 2D datasets. Example case: building shear wave velocity maps from 1D profiles|
+|2Dto1D    |Extract/convert 2D datasets into 1D datasets. Example case: extracting point (1D) dispersion curves from phase velocity maps|
 |georef    | image georeferencing module |
 |seismic   |seismic data acquisition and processing module set (see below)|
 |plot      |plot module set (requires gmt; see below)|
 
 - *seismic* module set includes the following tools:
 
-  1. *download init*: initialize current directory for seismic data acquisition. It outputs a config file (i.e. 'download.config') that is used by the 4 following tools.
-  2. *download events*: download list of events according to the list of datacenters (specified in download.config)
-  3. *download stations*: download list of stations according to the list of datacenters (specified in download.config)
-  4. *download metadata*: download station metadata (xml) according to stations.dat
-  5. *download mseeds*: download mseed datafiles based
+  1. *download init*: initialize current directory for seismic data acquisition. It outputs a config file 'download.config' that is used by the 4 following tools.
+  2. *download events*: download list of events according to options in 'download.config'
+  3. *download stations*: download list of stations according to options in 'download.config'
+  4. *download metadata*: download station metadata (xml) for stations/channels specified in ‘download.config’
+  5. *download mseeds*: download MiniSEED data files for events/stations listed in steps 2-3.
   6. *writehdr*: update sac headers using xml metadata (obspy method)
   7. *remresp*: remove sac file instrument response using xml metadata (obspy method)
   8. *resample*: resample sac timeseries using obspy method
   9. *bandpass*: apply bandpass filter to sac files (sac method)
   10. *cut*: cut sac timeseries (sac method)
-  11. *remchannel*: remove extra channels
-  12. *sws init*: initialize shear-wave-splitting project by writing arrivals info into sac headers and making copies
+  11. *remchannel*: remove redundant channels
+  12. *sws init*: initialize shear-wave-splitting project by writing theoretical arrival info into sac headers and making copies
 
-- *plot* module set includes the following tools:
+- *plot* module set (requires GMT; see below):
 
-  1. *plot station*: plot station map from previously downloaded station list
+  1. *plot stations*: plot station map from previously downloaded station list
   2. *plot events*: plot event distribution map and related statistics
   3. *plot hist*: generate combined histogram plots (customizable)
   4. *plot features*: quickly visualize geographical features on a map. Accepted input data types include points and polygons (both ascii and shape files), and GeoTiff
@@ -121,7 +121,7 @@ Some example *gdp* commands are explained below:
 ```bash
 $ gdp cat file* -x 1 2 -v 5 3 4 --header 2 --footer 4 --fmt .2 .4 --sort --uniq --noextra -o concatenated.txt
 ```
-> **Description:** This command will concatenate files in current directory matching names 'files\*'. While reading, 2 header lines and 4 footer lines will be omitted. Positional columns are the first and second columns (-x 1 2), and value/numerical columns are \[5 3 4\]. Positional columns will be printed in %.2f format, and value columns will be printed in %.4f.	If files have extra (non-numerical) columns other than the first 5 columns,	'--noextra' will cause not printing them. Flag '-o' can be used to set the output file name and if not specified, the results will be printed to standard output.Many of these flags are also common for the following commands.
+> **Description:** This command will concatenate files in current directory matching names 'files\*'. While reading, 2 header lines and 4 footer lines will be omitted. Positional columns are the first and second columns (-x 1 2), and value/numerical columns are \[5 3 4\]. Positional columns will be printed in %.2f format, and value columns will be printed in %.4f.	If files have extra (non-numerical) columns other than the first 5 columns,	'--noextra' will omit them from the output file. Flag '-o' can be used to set the output file name and if not specified, the results will be printed to standard output. Many of these flags are also common for the following commands.
 
 
 ```bash
@@ -146,7 +146,7 @@ $ gdp difference file_1.dat file_2.dat file_3.dat
 ```bash
 $ gdp split dataset.dat --method ncol --number 4 --start -2 --name 3 -o outdir
 ```
-> **Description:** This command is useful to split/unmerge a concatenated dataset ('dataset.dat'). Either of two methods can be selected: (1) nrow: split based on a fixed number of rows, (2) ncol: split based on a row that has a unique number of columns as an identifier. In case of method 'ncol' above: '--number 4' specifies that the row with unique number of columns has 4 columns (reference row); '--start -2' specifies the start line or row offset relative to the reference line; '--name 3' specifies the row offset relative to 'start line' that will be used for output file names;	'-o outdir' specifies output directory (it can be omitted for printing to the standard output)
+> **Description:** This command is useful to split/unmerge a concatenated dataset ('dataset.dat'). Either of two methods can be selected: (1) nrow: split based on a fixed number of rows, (2) ncol: split based on a row that has a unique number of columns as an identifier. In case of method 'ncol' above: '--number 4' specifies that the row with unique number of columns has 4 columns (reference row); '--start -2' specifies the start line or row offset relative to the reference line; '--name 3' specifies the row offset relative to 'start line' that will be used for output file names; '-o outdir' specifies output directory (this can be omitted for printing to the standard output)
 
 
 ```bash
@@ -170,7 +170,7 @@ $ gdp pip  --point *.xyz  --polygon polygon.dat -i
 ```bash
 $ gdp gridder vs_model/depth* --spacing 0.2 --smoothing 50 --polygon polygon.dat -o outdir
 ```
-> **Description:** This command will perform gridding (2D interpolation) to the input xyz format data files. In case of the above command: '--spacing 0.2' specifies that grid spacing along both longitude and latitude is 0.2 degrees (two values can be given as well; \[lon_spacing, lat_spacing\]); '--smoothing 50' sets a 50 km Gaussian smoothing to the output data; '--polygon polygon.dat' is optional: if given, only points inside the given polygon will be printed out.
+> **Description:** This command will perform gridding (2D interpolation) on the input xyz format data files addressed at 'vs_model/depth\*'. In case of the above command: '--spacing 0.2' specifies that grid spacing along both longitude and latitude is 0.2 degrees (two values can be given as well; \[lon_spacing, lat_spacing\]); '--smoothing 50' sets a 50 km Gaussian smoothing to the output data; '--polygon polygon.dat' is optional: if given, only points inside the given polygon will be output.
 
 
 ```bash
@@ -181,13 +181,13 @@ $ gdp chull points.xy -x 2 1 --smooth 10 -o polygon.dat
 ```bash
 $ gdp shp2dat --point points.shp --polygon polygons.shp -o ./
 ```
-> **Description:**  Convert GIS shape files (point/polygon) to ascii format. This command will output the results into the following directory.
+> **Description:**  Convert GIS shape files (point/polygon) to ascii format. This command will output the results into the directory specified by the '-o' option.
 
 ```bash
 $ gdp nc2dat model.nc --metadata
 $ gdp nc2dat model.nc -v vs vp --fmt .2 .6 -o model.dat
 ```
-> **Description:** This tool can be used to convert NetCDF files to ascii format. In this example, by running the first command, the program will output meta data information related to 'model.nc'. It's necessary to figure out the data fields that one is interested to extract from the nc file first (in this case, they are 'vp' and 'vs'). The second command will print to file the results in a custom format to 'model.dat'.
+> **Description:** This tool can be used to convert NetCDF files to ascii format. In this example, by running the first command, the program will output meta data information related to 'model.nc'. It's necessary to figure out the data fields that one is interested to extract from the nc file first (in this case, they are 'vp' and 'vs'). The second command will print to file the results in a custom format ('--fmt' option) to 'model.dat'.
 
 
 ```bash
@@ -217,31 +217,25 @@ $ gdp georef --epsg 4326
 ```bash
 $ gdp seismic download init --maindir ./myproject
 ```
-> **Description:**  initialize seismic download project and create 'download.config' file in './myproject'. Once the config file was created, open it in a text editor and modify the parameters as desired. Some example important parameters to be adjusted include 'startdate', 'enddate', 'station_channels', 'station_location_codes', 'station_minlon', 'station_maxlon', 'station_minlat', 'station_maxlat' etc. Once all parameters were set, one can start downloading events list ($ gdp seismic download events), stations list ($ gdp seismic download stations), station meta data XML files ($ gdp seismic download metadata), and mseed data files ($ gdp seismic download mseeds).
+> **Description:**  initialize seismic download project and create 'download.config' file in './myproject'. Once the config file is created, open it in a text editor and modify the parameters as desired. Some example important parameters to be adjusted include 'startdate', 'enddate' (format YYYY-MM-DD), 'station_channels', 'station_location_codes' (names separated by spaces), 'station_minlon', 'station_maxlon', 'station_minlat', 'station_maxlat' etc. Once all parameters are set, one can start downloading events list ($ gdp seismic download events), stations list ($ gdp seismic download stations), station meta data XML files ($ gdp seismic download metadata), and MiniSEED data files ($ gdp seismic download mseeds).
 
 
 ```bash
-$ gdp gdp seismic download mseeds --maindir ./myproject --mseeds ./myproject/mseeds --duration 3000 --offset -500 
+$ gdp seismic download mseeds --maindir ./myproject --mseeds ./myproject/mseeds --duration 3000 --offset -500 
 ```
-> **Description:**  This command will start downloading mseed files based on previously set parameters in 'download.config' into './myproject/mseeds' directory. The timeseries duration will be 3000 seconds and the begin time will be 500 seconds earlier than the event origin time.
+> **Description:**  This command will start downloading MiniSEED files based on previously set parameters in 'download.config' into './myproject/mseeds' directory. The timeseries duration will be 3000 seconds and the begin time of the files will be 500 seconds earlier than the event origin time.
 
 
 ```bash
-$ gdp gdp seismic download mseeds --maindir ./myproject --mseeds ./myproject/mseeds --duration 86400 --ant
+$ gdp seismic download mseeds --maindir ./myproject --mseeds ./myproject/mseeds --duration 86400 --ant
 ```
-> **Description:**  This command is similar to the example above, except that by using the flag '--ant', the code will not read event list and the entire time span between 'startdate' and 'enddate' will be considered for downloading.
+> **Description:**  This command is similar to the example above, except that by using the flag '--ant', the code will not read event list and the entire time span between 'startdate' and 'enddate' (24-hour timeseries specified by '--duration 86400') will be considered for downloading.
 
 
 ```bash
 $ gdp seismic mseed2sac ./myproject/mseeds/\*/\*.mseed -o ./myproject/sacs --offset -500 --resample 10 --reformat
 ```
-> **Description:**  This command will convert previously downloaded mseed files in './myproject/mseeds/\*/\*.mseed' into sacfiles and the output results will be stored in './myproject/sacs'. Flag '--reformat' specifies that the output sac files should be renamed/reformatted to './myproject/sacs/YYJJJHHMMSS/YYJJJHHMMSS_STA.CHN' file naming convention. Note that parameter '--offset -500' will be important here and it has to be set the same as the data download time ($ gdp seismic download mseeds). Setting the flag '--resample 10' results in resampling of the output sacfiles to 10 hertz sampling rate after the conversion process.
-
-
-```bash
-$ gdp seismic sac2dat ./myproject/sacs/*/* -o ./myproject/sacs_ascii --timerange 1000 2000
-```
-> **Description:**  Extract sac file data in time, value format and output in ascii format. In this example, only date between 1000 and 2000 seconds will be extracted.
+> **Description:**  This command will convert previously downloaded MiniSEED files in './myproject/mseeds/\*/\*.mseed' into sacfiles and the output results will be stored in './myproject/sacs'. Flag '--reformat' specifies that the output sac files will be renamed/reformatted to './myproject/sacs/YYJJJHHMMSS/YYJJJHHMMSS_STA.CHN' file naming convention. Note that parameter '--offset -500' will be important here and it has to be set the same as the data download time ($ gdp seismic download mseeds). Setting the flag '--resample 10' results in resampling of the output sacfiles to 10 hertz sampling rate after the conversion process.
 
 
 ```bash
@@ -254,7 +248,7 @@ $ gdp seismic sac2dat ./myproject/sacs/*/* -o ./myproject/sacs_ascii --timerange
 ```bash
 $ gdp seismic writehdr sacs/*/* --metadata ./metadata --maindir ./
 ```
-> **Description:** Write/update sac file headers from station meta files (metadata directory is specified using flag '--metadata ./metadata'), and event list (path to event list file is specified in '$maindir/download.config'; if this is an ambient noise tomography project, append '--ant' flag to the command above and it will ignore '--maindir').
+> **Description:** Write/update sac file headers from station metadata files (metadata directory is specified using flag '--metadata ./metadata'), and event list (path to event list file is specified in '$maindir/download.config'; if this is an ambient noise tomography project, append '--ant' flag to the command above and it will ignore '--maindir').
 
 
 ```bash
@@ -272,24 +266,24 @@ $ gdp seismic resample sacs/*/* --sf 5
 
 
 ```bash
-$ gdp seismic bandpass sacs/*/* --cp1 3 --cp2 300 -n 3 -p 2
+$ gdp seismic bandpass sacs/*/* --c1 3 --c2 300 -u p -n 3 -p 2
 
 ```
-> **Description:** This command will apply bandpass filtering to the input sac files using corner periods of 3 and 300 seconds, number-of-poles of 3, and a number of passes of 2. See SAC documentation for more information.
+> **Description:** This command will apply bandpass filtering to the input sac files using corner periods of 3 and 300 seconds, number-of-poles of 3, and a number of passes of 2. See SAC documentation for more information. Option '-u p' specifies that the unit for '--c1' and '--c2' is period; alternatively, one can change this to corner frequencies by using '-u f'.
 
 
 ```bash
-$ gdp seismic cut sacs/*/* --begin 1000 --end 2000
+$ gdp seismic cut sacs/*/* --begin 1000 --end 2000 --relative t1
 
 ```
-> **Description:** This command will cut the input sac file timeseries from 1000 s to 2000 s, and zero values will replace missing data (i.e. applies 'cutter fillz'; see SAC documentation for more information).
+> **Description:** This command will cut the input sac file timeseries from 1000 s to 2000 s relative to header t1 (option '--relative' is optional and if omitted, the cut will be done based on the absolute time values), and zero values will replace missing data (i.e. applies 'cutter fillz'; see SAC documentation for more information).
 
 
 ```bash
 $ gdp seismic remchan sacs/*/* --channels BHZ HHZ --onlykeep BHZ
 
 ```
-> **Description:** This command is useful to remove extra channels from datasets. In the above example, if both BHZ and HHZ channels of the same stations and events are present, the extra HHZ channel will be removed.
+> **Description:** This command is useful to remove redundant channels from datasets. In the above example, if both BHZ and HHZ channels of the same stations and events are present, the redundant HHZ channel will be removed.
 
 
 ```bash
@@ -303,14 +297,14 @@ $ gdp seismic sws init sacs/*/* --refmodel iasp91 --hdronly
 $ gdp gdp seismic sws init sacs/*/* --refmodel iasp91
 
 ```
-> **Description:** Similar to the previous example, this command will update sac headers with important arrival information for the purpose of shear wave splitting measurements. In addition (because '--hdronly' is not appended), it opens a GUI for QC of timeseries and selecting appropriate arrivals to generate specific copies in the dataset (e.g., 13240081122_SHEY_SKKS.{BHE,BHN,BHZ}).
+> **Description:** Similar to the previous example, this command will update sac headers with important arrival information for the purpose of shear wave splitting measurements. In addition (because '--hdronly' is not appended), it opens a GUI for QC of timeseries and selecting appropriate arrivals to generate specific copies in the dataset for phases of interest that the user has chosen (e.g., 13240081122_SHEY_SKKS.{BHE,BHN,BHZ}).
 
 
 ```bash
 $ gdp plot stations ./stations.dat --labels
 
 ```
-> **Description:** This command uses GMT to generate a station map from './stations.dat' that was previously downloaded using command '$ gdp seismic download stations'. By appending '--labels', station names will also be shown on the output map. The output file will be either './stations.pdf' or './stations.ps' (depends on if 'ghostscript' is installed on the current terminal environment)
+> **Description:** This command uses GMT to generate a station map from './stations.dat' that was previously downloaded using command '$ gdp seismic download stations'. By appending '--labels', station names will also be shown on the output map. The output file will be either './stations.pdf' or './stations.ps' (depends on if 'ghostscript' is installed on the current terminal environment). An optional '--glob' along with '--meridian' (specifying the central meridian) options can be appended to the above command to change the map projection to a global projection.
 
 
 ```bash
@@ -323,7 +317,7 @@ $ gdp plot events ./events.dat --lon -66 --lat 45
 ```bash
 $ gdp plot hist model_1.dat model_2.dat -v 3 -n 10 --legend model_1 model_2 --xlabel Velocity \(km/s\) --ylabel Number --title Model 1 versus Model 2 --mean --transparency 0.6
 ```
-> **Description:** Generate combine histogram plots (number of input data fields can vary). In this command, column 3 of 'model_1.dat' and 'model_2.dat' are read as data fields ('-v 3'), number of histogram bins is set to 10 ('-n 10'), legends are set to 'model 1' and 'model 2' ('--legend model_1 model_2'; note that underlines are considered as spaces as the number of items must match with the number of data fields), x-axis label is set to 'Velocity (km/s)' and 'Number' using flags '--xlabel' and '--ylabel' respectively (note that parenthesis must be entered using the escape character '\\' in a bash command), title of the plot is set using '--title Model 1 versus Model 2', the distribution means will be denoted by dashed lines as the flag '--mean' is appended, and the transparency of the histograms are set to 0.6 (must be >0 and <=1).
+> **Description:** Generate combined histogram plots (number of input data fields can vary). In this command, column 3 of 'model_1.dat' and 'model_2.dat' are read as data fields ('-v 3'), number of histogram bins is set to 10 ('-n 10'), legends are set to 'model 1' and 'model 2' ('--legend model_1 model_2'; note that underlines are considered as spaces as the number of items must match with the number of data fields), x-axis label is set to 'Velocity (km/s)' and y-axis label to 'Number' using flags '--xlabel' and '--ylabel' respectively (note that parentheses must be entered using the escape character '\\' in a bash command), title of the plot is set using '--title Model 1 versus Model 2', the distribution means will be denoted by dashed lines as the flag '--mean' is appended, and the transparency of the histograms is set to 0.6 (must be >0 and <=1).
 
 ```bash
 $ gdp plot features --point points_set1.shp  points_set2.dat --polygon polygons.shp --geotiff georeferenced.tiff
