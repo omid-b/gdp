@@ -239,28 +239,6 @@ def output_lines(lines, args):
         for x in lines_out:
             print(f"{x}")
 
-# def output_lines(lines, args):
-#     lines_out = []
-#     if args.uniq:
-#         for x in lines:
-#             if x not in lines_out:
-#                 lines_out.append(x)
-#     else:
-#         lines_out = lines
-#     if args.sort:
-#         lines_out = sorted(lines_out)
-#     # print to stdout or write to outfile
-#     if args.outfile:
-#         if args.append:
-#             fopen = open(args.outfile,'a')
-#         else:
-#             fopen = open(args.outfile,'w')
-#         for x in lines_out:
-#             fopen.write(f"{x}\n")
-#         fopen.close()
-#     else:
-#         for x in lines_out:
-#             print(f"{x}")
 
 def read_polygon_shp(polygon_file):
     import numpy as np
