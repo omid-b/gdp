@@ -944,7 +944,7 @@ def parse_args(*args, **kwargs):
         help='only output metadata'
     )
     gdp_nc2dat.add_argument(
-    	'-v',
+        '-v',
         '--data',
         nargs='*',
         type=str,

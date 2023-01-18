@@ -308,13 +308,17 @@ def nc2dat(args):
                 exit(1)
             else:
                 data_val.append(ds[df][:].data)
-        
+                data_val_shape = np.shape(ds[df][:].data)
+
+
         data_pos = []
         for key in all_fields:
-            if len(np.shape(ds[key][:])) == 1:
+            if len(np.shape(ds[key][:])) == 1 and\
+            np.shape(ds[key][:])[0] in data_val_shape:
                 data_pos.append([])
                 for x in ds[key][:]:
                     data_pos[-1].append(x)
+
 
         # match shapes for data_pos and data_val
         for iv in range(ndf):
@@ -331,7 +335,7 @@ def nc2dat(args):
                 if ntry == 100:
                     break
             if ntry == 100:
-                print(f"Error! Could not figure out data format for '{os.path.split(ncfile)[1]}'")
+                print(f"Error! Could not figure out data format for '{os.path.split(ncfile)[1]}'\n")
                 exit(1)
         
         out_lines = gen_nc_dataset_outlines(data_pos, data_val, fmt)
