@@ -642,8 +642,8 @@ def parse_args(*args, **kwargs):
         help='append to output')
 
     # gdp data add
-    gdp_add = subparsers.add_parser('add', help='add value comumn(s) of input data files',
-    description="Add value comumn(s) of input data files")
+    gdp_add = subparsers.add_parser('add', help='add value comumn(s) of the same coordinates for input data files',
+    description="Add value comumn(s) of the same coordinates for input data files")
     gdp_add.add_argument("input_files", nargs='+', help='input numerical data files (can use wildcards)')
     gdp_add.add_argument(
         '-x',
@@ -672,6 +672,11 @@ def parse_args(*args, **kwargs):
         type=str,
         action='store',
         help='output file')
+    gdp_add.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
     gdp_add.add_argument(
         '--sort',
         action='store_true',
