@@ -1836,6 +1836,16 @@ def parse_args(*args, **kwargs):
         default=0,
         help='for ascii files only: number of footer lines to ignore (default=0)')
     
+    #====ubc submodules=====#
+    ubc = subparsers.add_parser('ubc', help='UBC code data preparation and conversion tools',
+    description="UBC code data preparation and conversion tools")
+    ubc_subparsers = ubc.add_subparsers(dest='submodule')
+
+    # gdp ubc mod2xyz
+    ubc_mod2xyz = ubc_subparsers.add_parser('mod2xyz', help='convert UBC model to xyz using 3D mesh',
+    description="Convert UBC model to xyz using 3D mesh")
+    # ubc_mod2xyz.add_argument("stalist", type=str, help='input station list file')
+
     # return arguments
     return parser.parse_args()
 
