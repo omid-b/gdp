@@ -1840,12 +1840,14 @@ def parse_args(*args, **kwargs):
     ubc = subparsers.add_parser('ubc', help='UBC code data preparation and conversion tools',
     description="UBC code data preparation and conversion tools")
     ubc_subparsers = ubc.add_subparsers(dest='submodule')
+    ubc._positionals.title = "List of tools"
 
     # gdp ubc mod2xyz
     ubc_mod2xyz = ubc_subparsers.add_parser('mod2xyz', help='convert UBC model to xyz using 3D mesh',
     description="Convert UBC model to xyz using 3D mesh")
-    # ubc_mod2xyz.add_argument("stalist", type=str, help='input station list file')
-
+    ubc_mod2xyz.add_argument("mesh", type=str, help='3D mesh to be used for models', nargs=1)
+    ubc_mod2xyz.add_argument("models", type=str, help='inversion model file/files (can use wildcards)', nargs='+')
+    ubc_mod2xyz.add_argument('-o','--outdir', type=str, default='', help='by default, the output xyz files are placed in the same directory as the model files; this option can be used to change this behaviour')
     # return arguments
     return parser.parse_args()
 
@@ -2083,6 +2085,8 @@ def main(*args, **kwargs):
             exit(0)
         else:
             subprocess.call('gdp plot -h', shell=True)
+    elif args.module == 'ubc':
+        XXX
     else:
         subprocess.call('gdp -h', shell=True)
 
