@@ -1,0 +1,18 @@
+
+! GZINV3D started on: 12/07/2022  11:14:24
+
+!   7.6621E+07   !! initial norm S
+!   1.7672E-01   !! initial norm E
+!   0.0000E+00   !! initial norm N
+!   7.1238E+05   !! initial norm Z
+!   7.7333E+07   !! initial norm total
+!   5.7619E+07   !! initial misfit
+!  1.000E-04  1.00      1.00      1.00       !! alpha values
+
+! iter          beta   data misfit        norm S        norm E        norm N        norm Z    model norm  total objective  CG iterations  truncated cells
+     1  5.000000E+01  1.713144E+06  1.848114E+03  1.665204E+01  4.081390E+01  3.643265E+03  5.548846E+03    1.990586E+06            39             0
+     2  5.000000E+01  9.011766E+00  8.986281E+00  5.351076E+00  2.272425E+00  5.831777E+02  5.997875E+02    2.999839E+04           580             0
+     3  5.000000E+01  8.651862E+00  8.925469E+00  5.334050E+00  2.250256E+00  5.831702E+02  5.996799E+02    2.999265E+04           770             0
+
+! GZINV3D ended on: 12/07/2022  11:16:30
+

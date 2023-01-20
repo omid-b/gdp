@@ -210,9 +210,10 @@ def data_lines(datfile,args):
 
 
 def output_lines(lines, args):
-    len_line = len(lines[0])
+    len_line = []
     lines_strip = []
     for x in lines:
+        len_line.append(len(x))
         lines_strip.append(x.strip())
     lines_out = []
     if args.uniq:
@@ -222,10 +223,13 @@ def output_lines(lines, args):
     else:
         lines_out = lines_strip
     if args.sort:
-        lines_out = sorted(lines_out)
+        lines_out, len_line = zip(*sorted(zip(lines_out, len_line)))
+        lines_out = list(lines_out)
+        len_line = list(len_line)
+
     # undo strip
     for i,x in enumerate(lines_out):
-        lines_out[i] = f"%{len_line}s" %(x)
+        lines_out[i] = f"%{len_line[i]}s" %(x)
     # print to stdout or write to outfile
     if args.outfile:
         if args.append:

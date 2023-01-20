@@ -1845,9 +1845,29 @@ def parse_args(*args, **kwargs):
     # gdp ubc mod2xyz
     ubc_mod2xyz = ubc_subparsers.add_parser('mod2xyz', help='convert UBC model to xyz using 3D mesh',
     description="Convert UBC model to xyz using 3D mesh")
-    ubc_mod2xyz.add_argument("mesh", type=str, help='3D mesh to be used for models', nargs=1)
-    ubc_mod2xyz.add_argument("models", type=str, help='inversion model file/files (can use wildcards)', nargs='+')
-    ubc_mod2xyz.add_argument('-o','--outdir', type=str, default='', help='by default, the output xyz files are placed in the same directory as the model files; this option can be used to change this behaviour')
+    ubc_mod2xyz.add_argument("mesh", type=str,\
+        help='3D mesh to be used for models')
+    ubc_mod2xyz.add_argument("models", type=str,\
+        help='inversion model file/files (can use wildcards)', nargs='+')
+    ubc_mod2xyz.add_argument('-o','--outdir', type=str,\
+        help='by default, the output xyz files are placed in the same directory as the model files; this option can be used to change this behaviour')
+    ubc_mod2xyz.add_argument(
+        '--fmt',
+        nargs=2,
+        type=str,
+        action='store',
+        default=["10.2","13.8"],
+        help='float format for positional and model value columns respectively (default=["10.2","13.8"])')
+    ubc_mod2xyz.add_argument(
+        '--skipdummy',
+        action='store_true',
+        help='do not output dummy cells with a value of -100.0')
+    ubc_mod2xyz.add_argument(
+        '--label',
+        type=str,
+        default="Value",
+        help='model parameter label e.g. Susceptibility, Density etc.; default="Value"'
+    )
     # return arguments
     return parser.parse_args()
 
@@ -1867,6 +1887,7 @@ def main(*args, **kwargs):
     from . import download
     from . import mag
     from . import plot
+    from . import ubc
 
     if args.module == 'cat':
         from . import io
@@ -2086,7 +2107,11 @@ def main(*args, **kwargs):
         else:
             subprocess.call('gdp plot -h', shell=True)
     elif args.module == 'ubc':
-        XXX
+        if args.submodule == 'mod2xyz':
+            ubc.mod2xyz(args)
+            exit(0)
+        else:
+            subprocess.call('gdp ubc -h', shell=True)
     else:
         subprocess.call('gdp -h', shell=True)
 
