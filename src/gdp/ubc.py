@@ -2,6 +2,9 @@
 
 import os
 from . import io
+from . import dat
+from . import geographic
+
 
 def mod2xyz(args):
     # check inputs
@@ -46,20 +49,44 @@ def mod2xyz(args):
             outdir = os.path.abspath(args.outdir)
             if not os.path.isdir(outdir):
                 os.mkdir(outdir)
-        outlines = []
+        outlines = [f" X Y Z {args.label}"]
         index = -1
+        pos_cols = [[],[],[]]
+        val_cols = [[]]
         for ix, x in enumerate(X):
             for iy, y in enumerate(Y):
                 for iz, z in enumerate(Z):
                     index += 1
                     value = models[im][index]
-                    line = f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f" %(x, y, z, value)
                     if args.skipdummy and value == -100.0:
                         continue
                     else:
-                        outlines.append(line)
+                        pos_cols[0].append(x)
+                        pos_cols[1].append(y)
+                        pos_cols[2].append(z)
+                        val_cols[0].append(value)
+                        outlines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f" %(x, y, z, value))
         args.outfile = os.path.join(outdir, f"{os.path.splitext(os.path.split(args.models[im])[1])[0]}.xyz")
-        outlines.insert(0, f" X Y Z {args.label}")
+        args.uniq = False
+        args.sort = False
+        args.append = False
+        # apply point-in-polygon ?
+        if len(args.polygon):
+            outlines = [f" X Y Z {args.label}"]
+            polygons = []
+            for iply, ply in enumerate(args.polygon):
+                ply_data = io.read_numerical_data(ply, 0, 0,  args.fmt[0], [1,2], [], skipnan=False)
+                polygons.append(geographic.Polygon(ply_data[0][0], ply_data[0][1]))
+            for ip in range(len(pos_cols[0])): # loop over points
+                pip = True
+                point = geographic.Point(pos_cols[0][ip], pos_cols[1][ip])
+                for polygon in  polygons:
+                    if not polygon.is_point_in(point):
+                        pip = False
+                if pip:
+                   outlines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f" \
+                   %(pos_cols[0][ip], pos_cols[1][ip], pos_cols[2][ip], val_cols[0][ip]))
+
         io.output_lines(outlines, args)
         print(args.outfile)
 

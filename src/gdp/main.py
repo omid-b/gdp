@@ -1868,6 +1868,12 @@ def parse_args(*args, **kwargs):
         default="Value",
         help='model parameter label e.g. Susceptibility, Density etc.; default="Value"'
     )
+    ubc_mod2xyz.add_argument(
+        '--polygon',
+        nargs='+',
+        default=[],
+        help="polygon/polygons to apply point-in-polygon before output"
+    )
     # return arguments
     return parser.parse_args()
 
