@@ -15,7 +15,6 @@ def mod2xyz(args):
         if not os.path.isfile(mod):
             print(f"Error! Could not find model: '{mod}'")
             exit(1)
-    
     # read mesh
     X,Y,Z = read_mesh3D_xyz(args.mesh)
     nx, ny, nz = [len(X), len(Y), len(Z)]
@@ -73,10 +72,7 @@ def mod2xyz(args):
         # apply point-in-polygon ?
         if len(args.polygon):
             outlines = [f" X Y Z {args.label}"]
-            polygons = []
-            for iply, ply in enumerate(args.polygon):
-                ply_data = io.read_numerical_data(ply, 0, 0,  args.fmt[0], [1,2], [], skipnan=False)
-                polygons.append(geographic.Polygon(ply_data[0][0], ply_data[0][1]))
+            polygons = io.return_polygon_objects(args.polygon)
             for ip in range(len(pos_cols[0])): # loop over points
                 pip = True
                 point = geographic.Point(pos_cols[0][ip], pos_cols[1][ip])
@@ -86,12 +82,8 @@ def mod2xyz(args):
                 if pip:
                    outlines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f" \
                    %(pos_cols[0][ip], pos_cols[1][ip], pos_cols[2][ip], val_cols[0][ip]))
-
         io.output_lines(outlines, args)
         print(args.outfile)
-
-
-
 
 
 def read_mesh3D_xyz(mesh_file):
