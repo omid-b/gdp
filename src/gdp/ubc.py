@@ -86,6 +86,57 @@ def mod2xyz(args):
         print(args.outfile)
 
 
+def invcurves(args):
+    import matplotlib.pyplot as plt
+    invlogs = []
+    if args.outdir == None:
+        args.outdir = args.invdir
+    for f in os.listdir(args.invdir):
+        if os.path.splitext(f)[1] == '.out':
+            invlogs.append(f)
+    if len(invlogs) == 0:
+        print(f"Error! Could not find any '*.out' file in inversion directory: '{args.invdir}'")
+        exit(0)
+    invdata = []
+    for logfile in invlogs:
+        logdata = io.read_numerical_data(logfile, 12, 3,  ['.0','.4'], [1], range(2,12), skipnan=True)
+        invdata.append({
+            'iter':logdata[0][0],
+            'beta':logdata[1][0],
+            'data_misfit':logdata[1][1],
+            'norm_s':logdata[1][2],
+            'norm_e':logdata[1][3],
+            'norm_n':logdata[1][4],
+            'norm_z':logdata[1][5],
+            'model_norm':logdata[1][6],
+            'total_objective':logdata[1][7],
+            'cg_iterations':logdata[1][8],
+            'truncated_cells':logdata[1][9]
+        })
+    for i in range(len(invdata)):
+        fig = plt.figure(figsize=(7,7))
+        # ax1: model norm
+        ax1 = fig.add_subplot(311)
+        ax1.plot(invdata[i]['iter'], invdata[i]['data_misfit'])
+        ax1.scatter(invdata[i]['iter'], invdata[i]['data_misfit'])
+        ax1.set_xticks(range(1, int(max(invdata[i]['iter'])+1)))
+        ax1.set_xlabel("Iteration")
+        ax1.set_ylabel("Data misfit")
+        # ax: model norm
+        ax2 = ax1.twinx()
+        ax2.plot(invdata[i]['iter'], invdata[i]['model_norm'])
+        ax2.scatter(invdata[i]['iter'], invdata[i]['model_norm'])
+        ax2.set_xticks(range(1, int(max(invdata[i]['iter'])+1)))
+        ax2.set_xlabel("Iteration")
+        ax2.set_ylabel("Model Norm")
+        # ax3: L-curve
+        ax3 = fig.add_subplot(313)
+        ax3.plot(invdata[i]['model_norm'], invdata[i]['data_misfit'])
+        ax3.set_xlabel("Model Norm")
+        ax3.set_ylabel("Data misfit")
+        plt.tight_layout()
+        plt.show()
+
 def read_mesh3D_xyz(mesh_file):
     # Reads UBC mesh3D and outputs [[x],[y],[z]]
     fopen = open(mesh_file,'r')

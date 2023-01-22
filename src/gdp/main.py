@@ -1874,6 +1874,15 @@ def parse_args(*args, **kwargs):
         default=[],
         help="polygon/polygons to apply point-in-polygon before output"
     )
+
+    # gdp ubc invcurves
+    ubc_invcurves = ubc_subparsers.add_parser('invcurves', help='generate plots for inversion curves',
+    description="Generate plots for inversion curves")
+    ubc_invcurves.add_argument("invdir", type=str,\
+        help='inversion directory')
+    ubc_invcurves.add_argument('-o','--outdir', type=str,\
+        help='By default, the output plot are placed in the same inversion directory; this option can be used to change this behaviour')
+
     # return arguments
     return parser.parse_args()
 
@@ -2115,6 +2124,9 @@ def main(*args, **kwargs):
     elif args.module == 'ubc':
         if args.submodule == 'mod2xyz':
             ubc.mod2xyz(args)
+            exit(0)
+        elif args.submodule == 'invcurves':
+            ubc.invcurves(args)
             exit(0)
         else:
             subprocess.call('gdp ubc -h', shell=True)
