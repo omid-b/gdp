@@ -1,0 +1,622 @@
+>HEAD
+DATAID="abt001"
+ACQBY="GSC-UA"
+FILEBY="JIM"
+ACQDATE=06/01/93
+FILEDATE=10/22/07
+COUNTRY=CAN
+STATE="AB"
+COUNTY="ALL"
+STDVERS="SEG 1.0"
+PROGVERS="WINGLINK EDI 1.0.22"
+PROGDATE=04/23/02
+
+>INFO
+MAXINFO=1000
+This file came from abt93.edi
+  
+-
+Information block from data file...
+abt001.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:21 EDT 1996
+   abt001_2c.dat  abt001_3c.dat  abt001_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.4900
+LONGITUDE = -109.9975
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt002.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:23 EDT 1996
+   abt002_3c.dat  abt002_4c.dat
+ Pass bands:64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5668
+LONGITUDE = -110.1668
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt003.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:25 EDT 1996
+   abt003_2c.dat  abt003_3c.dat  abt003_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.4833
+LONGITUDE = -110.2944
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt004.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:27 EDT 1996
+   abt004_2c.dat  abt004_3c.dat  abt004_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5164
+LONGITUDE = -110.4492
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt005.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:30 EDT 1996
+   abt005_2c.dat  abt005_3c.dat  abt005_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5533
+LONGITUDE = -110.6694
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt006.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:32 EDT 1996
+   abt006_2c.dat  abt006_3c.dat  abt006_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.6069
+LONGITUDE = -110.8614
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt007.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:34 EDT 1996
+   abt007_2c.dat  abt007_3c.dat  abt007_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5006
+LONGITUDE = -111.1753
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt008.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:35 EDT 1996
+   abt008_2c.dat  abt008_3c.dat  abt008_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5450
+LONGITUDE = -111.3464
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt009.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:37 EDT 1996
+   abt009_2c.dat  abt009_3c.dat  abt009_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.6019
+LONGITUDE = -111.5422
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt010.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:39 EDT 1996
+   abt010_2c.dat  abt010_3c.dat  abt010_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.6028
+LONGITUDE = -111.7247
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt011.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:41 EDT 1996
+   abt011_2c.dat  abt011_3c.dat  abt011_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.3458
+LONGITUDE = -111.9700
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt012.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:43 EDT 1996
+   abt012_2c.dat  abt012_3c.dat  abt012_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.6822
+LONGITUDE = -112.0036
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt013.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:45 EDT 1996
+   abt013_2c.dat  abt013_3c.dat  abt013_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5331
+LONGITUDE = -112.2889
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt014.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:47 EDT 1996
+   abt014_2c.dat  abt014_3c.dat  abt014_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.4794
+LONGITUDE = -112.4075
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt015.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:48 EDT 1996
+   abt015_2c.dat  abt015_3c.dat  abt015_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5247
+LONGITUDE = -112.5217
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt016.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:50 EDT 1996
+   abt016_2c.dat  abt016_3c.dat  abt016_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.4669
+LONGITUDE = -112.7002
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt017.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:52 EDT 1996
+   abt017_2c.dat  abt017_3c.dat  abt017_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5567
+LONGITUDE = -112.8567
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt018.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:54 EDT 1996
+   abt018_3c.dat  abt018_4c.dat
+ Pass bands:64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.6539
+LONGITUDE = -113.1286
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt019.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:55 EDT 1996
+   abt019_2c.dat  abt019_3c.dat  abt019_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.5633
+LONGITUDE = -113.2214
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt020.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:57 EDT 1996
+   abt020_2c.dat  abt020_3c.dat  abt020_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.6306
+LONGITUDE = -113.3669
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt021.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:56:59 EDT 1996
+   abt021_2c.dat  abt021_3c.dat  abt021_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.6236
+LONGITUDE = -113.9233
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt022.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:01 EDT 1996
+   abt022_2c.dat  abt022_3c.dat  abt022_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.7119
+LONGITUDE = -114.0517
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt023.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:03 EDT 1996
+   abt023_2c.dat  abt023_3c.dat  abt023_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.8092
+LONGITUDE = -114.2358
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt024.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:05 EDT 1996
+   abt024_2c.dat  abt024_3c.dat  abt024_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.8994
+LONGITUDE = -114.2594
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt025.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:06 EDT 1996
+   abt025_2c.dat  abt025_3c.dat  abt025_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.9775
+LONGITUDE = -114.2425
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt026.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:09 EDT 1996
+   abt026_2c.dat  abt026_3c.dat  abt026_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 53.0656
+LONGITUDE = -114.6344
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt027.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:10 EDT 1996
+   abt027_2c.dat  abt027_3c.dat  abt027_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 53.0844
+LONGITUDE = -114.7719
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt028.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:12 EDT 1996
+   abt028_2c.dat  abt028_3c.dat  abt028_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 53.2658
+LONGITUDE = -114.7622
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt029.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:14 EDT 1996
+   abt029_2c.dat  abt029_3c.dat  abt029_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 53.3742
+LONGITUDE = -114.7222
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt030.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:16 EDT 1996
+   abt030_2c.dat  abt030_3c.dat  abt030_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 53.4264
+LONGITUDE = -114.8228
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt031.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:18 EDT 1996
+   abt031_2c.dat  abt031_3c.dat  abt031_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.1467
+LONGITUDE = -113.4811
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt032.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:20 EDT 1996
+   abt032_2c.dat  abt032_3c.dat  abt032_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 52.7025
+LONGITUDE = -114.4186
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt033.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:21 EDT 1996
+   abt033_3c.dat  abt033_4c.dat
+ Pass bands:64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 51.9500
+LONGITUDE = -112.8833
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt034.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:23 EDT 1996
+   abt034_2c.dat  abt034_3c.dat  abt034_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 51.8803
+LONGITUDE = -112.5078
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt035.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:25 EDT 1996
+   abt035_2c.dat  abt035_3c.dat  abt035_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 51.9097
+LONGITUDE = -112.1381
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt036.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:27 EDT 1996
+   abt036_2c.dat  abt036_3c.dat  abt036_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 45
+LATITUDE = 51.9947
+LONGITUDE = -113.3375
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt037.dat                                                                      
+ Written by mtmerge: Thu Sep 12 10:57:29 EDT 1996
+   abt037_2c.dat  abt037_3c.dat  abt037_4c.dat
+ Pass bands:1:64     64:1000     1000:40000
+AZIMUTH = 50
+LATITUDE = 52.2628
+LONGITUDE = -114.6067
+ELEVATION= 0.0
+ 
+-
+-
+Information block from data file...
+abt038.dat                                                                      
+AZIMUTH   =        45.0
+LATITUDE  =     51.9856
+LONGITUDE =   -113.0483
+ELEVATION =         0.0
+ 
+-
+  
+
+>=DEFINEMEAS
+MAXRUN=999
+MAXMEAS=1024
+UNITS=M
+REFTYPE=CART
+REFLOC="abt001"
+REFLAT=52:29:24.00
+REFLONG=-109:59:51.00
+REFELEV=0
+>HMEAS ID=13.001 CHTYPE=HX X=0.0 Y=0.0 Z=0.0 AZM=0.0 
+>HMEAS ID=14.001 CHTYPE=HY X=0.0 Y=0.0 Z=0.0 AZM=90.0 
+>HMEAS ID=15.001 CHTYPE=HZ X=0.0 Y=0.0 Z=0.0 AZM=0.0 
+>EMEAS ID=11.001 CHTYPE=EX X=-50.0 Y=0.0 Z=0.0 X2=50.0 Y2=0.0 
+>EMEAS ID=12.001 CHTYPE=EY X=0.0 Y=-50.0 Z=0.0 X2=0.0 Y2=50.0 
+
+>=MTSECT
+SECTID="ABT001"
+NFREQ=27
+HX=13.001
+HY=14.001
+HZ=15.001
+EX=11.001
+EY=12.001
+
+>!****FREQUENCIES****!
+>FREQ ORDER=INC //27
+ 3.255180e-05  4.882760e-05  6.510330e-05  9.765530e-05  1.302070e-04  1.953110e-04 
+ 2.604140e-04  3.906200e-04  5.208280e-04  7.812440e-04  1.171880e-03  1.562500e-03 
+ 2.343750e-03  3.125000e-03  4.687510e-03  6.250000e-03  9.374970e-03  1.250000e-02 
+ 1.562500e-02  2.343750e-02  3.125000e-02  4.687510e-02  6.250000e-02  9.374970e-02 
+ 1.250000e-01  1.875000e-01  2.500000e-01 
+>!****IMPEDANCE ROTATION ANGLES****!
+>ZROT //27
+ 4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01 
+ 4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01 
+ 4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01 
+ 4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01  4.500000e+01 
+ 4.500000e+01  4.500000e+01  4.500000e+01 
+>!****IMPEDANCES****!
+>ZXXR //27
+-6.929730e-03 -1.955080e-02 -5.711510e-02 -5.933070e-02 -8.318470e-02 -7.425260e-02 
+-9.231620e-02 -9.951960e-02 -9.730810e-02 -9.627920e-02 -8.408000e-02 -6.676020e-02 
+-2.735110e-02 -1.089730e-02  1.256680e-02  1.227510e-02 -1.233040e-02 -3.185150e-02 
+-1.588710e-02  1.048660e-02  5.965790e-02  8.584660e-02  6.363970e-02  2.199210e-02 
+ 2.124440e-02 -4.452930e-03 -1.804860e-02 
+>ZXXI //27
+-4.032100e-02 -7.031650e-03 -4.076380e-02 -3.929790e-02 -2.813840e-02 -3.927830e-02 
+-1.138270e-02 -5.235830e-04 -4.643010e-03  2.470770e-02  4.038170e-02  5.506370e-02 
+ 5.414590e-02  5.589940e-02  3.349980e-02  5.875510e-03 -1.693290e-02 -2.453910e-02 
+-3.436160e-02 -2.676450e-02 -7.636030e-03 -2.556120e-02 -3.423490e-02 -6.493310e-02 
+-6.090140e-02 -3.240690e-02 -2.369900e-02 
+>ZXX.VAR //27
+ 9.219340e-05  1.726970e-04  4.028400e-04  1.602350e-04  1.065750e-04  9.072160e-05 
+ 8.055610e-05  4.679400e-05  6.058010e-05  4.232540e-05  2.505900e-05  3.020900e-05 
+ 1.316860e-05  1.518420e-05  8.536580e-06  8.895400e-06  7.421180e-06  9.847360e-06 
+ 9.916980e-05  1.641120e-04  2.902560e-04  2.093620e-04  2.340650e-04  1.169140e-04 
+ 1.120000e-04  4.911500e-05  6.243150e-05 
+>ZXYR //27
+ 4.834150e-03  3.306560e-02  4.586620e-02  7.060700e-02  7.643050e-02  1.062350e-01 
+ 1.142330e-01  1.488960e-01  1.670340e-01  1.894310e-01  2.300460e-01  2.775020e-01 
+ 3.641300e-01  4.211280e-01  5.099170e-01  5.906270e-01  7.278550e-01  8.594920e-01 
+ 8.964320e-01  8.872730e-01  8.412610e-01  5.922150e-01  3.868770e-01  1.950710e-01 
+ 1.597140e-01  1.130390e-01  1.021900e-01 
+>ZXYI //27
+ 3.153870e-02  9.173130e-02  6.465840e-02  8.513680e-02  1.050820e-01  9.493430e-02 
+ 1.241270e-01  1.229540e-01  1.304840e-01  1.684870e-01  2.156930e-01  2.572130e-01 
+ 3.153410e-01  3.502590e-01  3.952900e-01  4.325350e-01  4.864030e-01  5.023530e-01 
+ 4.553650e-01  3.886100e-01  3.157230e-01  2.183110e-01  1.445650e-01  5.135760e-02 
+ 5.637800e-02  6.622080e-02  8.863500e-02 
+>ZXY.VAR //27
+ 1.700470e-04  2.301660e-04  3.763890e-04  2.406410e-04  1.145630e-04  8.539040e-05 
+ 9.177060e-05  4.866060e-05  6.101580e-05  3.596540e-05  2.781890e-05  3.552890e-05 
+ 1.863320e-05  2.125120e-05  1.401650e-05  1.205310e-05  8.137450e-06  1.103270e-05 
+ 1.289160e-04  1.838460e-04  3.666160e-04  2.684210e-04  2.952690e-04  1.238650e-04 
+ 1.176430e-04  5.283780e-05  6.688130e-05 
+>ZYXR //27
+-3.556830e-02 -6.097700e-02 -5.916270e-02 -9.105650e-02 -1.343030e-01 -1.496410e-01 
+-1.968150e-01 -2.443280e-01 -2.773550e-01 -3.556030e-01 -4.451770e-01 -5.081850e-01 
+-6.000550e-01 -6.628310e-01 -7.230120e-01 -7.586820e-01 -7.933770e-01 -8.159950e-01 
+-7.568520e-01 -7.171040e-01 -6.342120e-01 -4.888440e-01 -3.794980e-01 -2.005290e-01 
+-1.627930e-01 -1.407410e-01 -1.328670e-01 
+>ZYXI //27
+-7.926780e-02 -8.732670e-02 -9.660630e-02 -1.156360e-01 -1.375700e-01 -1.794490e-01 
+-1.937800e-01 -2.156600e-01 -2.483430e-01 -2.712920e-01 -3.038630e-01 -3.077050e-01 
+-2.923250e-01 -2.767730e-01 -2.400900e-01 -2.166010e-01 -2.034120e-01 -1.924260e-01 
+-1.873920e-01 -2.025860e-01 -2.023560e-01 -2.060840e-01 -2.103340e-01 -1.469580e-01 
+-1.261220e-01 -1.286460e-01 -1.509430e-01 
+>ZYX.VAR //27
+ 2.803290e-04  5.430660e-04  5.129750e-04  1.965610e-04  1.718200e-04  1.261860e-04 
+ 1.111410e-04  5.664530e-05  6.650560e-05  3.260990e-05  1.507520e-05  1.354140e-05 
+ 7.798990e-06  8.154940e-06  6.257350e-06  6.898600e-06  6.558040e-06  1.023650e-05 
+ 7.461050e-05  1.089590e-04  1.694790e-04  1.510000e-04  1.999950e-04  1.091900e-04 
+ 1.146670e-04  5.452480e-05  6.822730e-05 
+>ZYYR //27
+-2.439590e-02  3.157620e-02  6.318080e-02  6.584410e-02  3.788720e-02  8.990500e-02 
+ 8.762280e-02  9.784530e-02  1.047640e-01  1.080920e-01  9.673280e-02  9.914480e-02 
+ 8.890320e-02  9.096100e-02  9.518740e-02  9.584230e-02  1.001670e-01  9.236960e-02 
+ 9.349080e-02  3.186930e-02  1.495190e-02 -4.808230e-02 -6.404330e-02 -2.052990e-02 
+-8.081890e-03  3.553560e-03  4.022710e-03 
+>ZYYI //27
+ 4.013080e-02  4.491420e-02  1.665400e-02  6.643880e-02  5.429010e-02  3.619390e-02 
+ 4.145450e-02  2.814790e-02  1.681230e-02  2.900830e-03 -1.087570e-02 -1.245670e-02 
+ 4.193060e-03  5.277990e-03  1.746480e-02  1.289200e-02 -1.002300e-03  5.123560e-03 
+ 2.205780e-03 -1.058340e-02 -3.221000e-02 -6.512410e-02 -7.741730e-02 -7.115800e-02 
+-4.916240e-02 -4.040680e-02 -3.192340e-02 
+>ZYY.VAR //27
+ 3.921120e-04  5.013800e-04  4.532500e-04  2.295280e-04  1.689010e-04  1.319570e-04 
+ 1.874190e-04  5.771870e-05  6.600040e-05  2.750050e-05  1.694150e-05  1.592400e-05 
+ 1.070280e-05  1.137360e-05  9.591830e-06  9.484670e-06  7.579040e-06  1.111110e-05 
+ 9.191090e-05  1.180390e-04  1.932710e-04  1.672520e-04  2.110140e-04  1.109400e-04 
+ 1.093310e-04  5.395620e-05  6.771560e-05 
+>!****TIPPER PARAMETERS****!
+>TXR.EXP //27
+ 9.549940e-01  3.736750e-01  7.555130e-02  3.634100e-01  2.075200e-01  1.635670e-01 
+ 1.630190e-01  1.321050e-01  1.094270e-01  7.857630e-02  4.265760e-02  1.669670e-02 
+-1.728830e-02 -4.748620e-02 -6.386050e-02 -5.589920e-02 -3.327960e-02 -2.736410e-02 
+-2.806510e-02 -2.701670e-02 -6.335070e-03 -1.856190e-03  3.826790e-03  1.580750e-02 
+ 2.408490e-02  2.861460e-02  1.331340e-02 
+>TXI.EXP //27
+-2.862350e-01 -1.399610e-01 -4.344020e-01 -5.545580e-02 -1.622850e-01 -9.050280e-02 
+-1.236480e-01 -1.218920e-01 -9.612890e-02 -9.085530e-02 -7.840630e-02 -1.024360e-01 
+-7.640270e-02 -6.660520e-02 -2.134800e-02  7.913490e-03  1.333160e-02  8.357990e-03 
+ 1.083330e-02  2.921970e-05 -7.919430e-03 -2.774940e-03  1.196170e-03 -7.397120e-03 
+-2.174900e-02 -9.215440e-03 -5.651310e-04 
+>TXVAR.EXP //27
+ 9.824900e-02  3.986890e-02  1.094640e-02  1.187050e-02  7.319780e-03  1.758810e-03 
+ 1.447290e-03  6.265460e-04  5.552760e-04  2.443380e-04  7.773140e-05  6.380780e-05 
+ 2.542900e-05  1.831550e-05  6.176620e-06  4.231290e-06  1.975570e-06  2.490180e-06 
+ 3.415150e-05  5.353670e-05  8.662510e-05  1.053290e-04  1.781210e-04  1.436980e-04 
+ 1.687820e-04  1.006130e-04  9.708580e-05 
+>TYR.EXP //27
+-2.954040e-01 -8.478410e-02  5.185790e-02 -6.177830e-02 -1.008720e-02 -9.945580e-03 
+-4.604230e-02 -2.894450e-02  3.028800e-03  5.432050e-02  8.675270e-02  1.182700e-01 
+ 1.191370e-01  1.106630e-01  7.102200e-02  5.203290e-02  3.948950e-02  3.541860e-02 
+ 2.953730e-02  3.533440e-02  3.134860e-02  2.089840e-02  5.056370e-02  3.507410e-02 
+ 4.691320e-02  3.728920e-02  2.538540e-02 
+>TYI.EXP //27
+-1.899820e-01  1.564500e-01 -8.045190e-02  1.267770e-01 -4.012480e-03  1.081400e-01 
+ 6.239970e-02  9.061970e-02  1.148470e-01  1.267370e-01  1.087230e-01  7.623460e-02 
+ 2.277920e-02 -1.255300e-02 -3.659150e-02 -3.578600e-02 -1.634800e-02 -8.269000e-03 
+-5.548970e-03 -1.109340e-02 -1.367910e-02 -1.141890e-02 -8.750060e-03 -1.283710e-02 
+-1.748800e-02  2.496370e-03 -1.116920e-02 
+>TYVAR.EXP //27
+ 5.338920e-02  3.318040e-02  9.020140e-03  1.493500e-02  6.888500e-03  1.617870e-03 
+ 2.298290e-03  6.450740e-04  5.450920e-04  2.103110e-04  7.956590e-05  7.596030e-05 
+ 3.537380e-05  2.470410e-05  8.734150e-06  4.993120e-06  2.209890e-06  2.706650e-06 
+ 4.312880e-05  5.910700e-05  1.014110e-04  1.345860e-04  2.120290e-04  1.564250e-04 
+ 1.701930e-04  1.098200e-04  1.026150e-04 
+
+>END
