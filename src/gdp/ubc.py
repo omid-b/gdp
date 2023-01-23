@@ -21,20 +21,23 @@ def mod2xyz(args):
 
     # read models
     nom = len(args.models) # number of models
-    models = nom * [[]]
+    models = []
     for im in range(nom):
+        model = []
         fopen = open(args.models[im], 'r')
         flines = fopen.read().splitlines()
         fopen.close()
         try:
             for line in flines:
-                models[im].append(float(line))
+                model.append(float(line))
         except Exception as e:
             print(f"Model format error: '{args.models[im]}'.{e}")
             exit(1)
-        if len(models[im]) != (nx * ny * nz):
+        if len(model) != (nx * ny * nz):
             print(f"Model format error: '{args.models[im]}'.\nNumber of cells does not mtch with the input mesh.")
             exit(1)
+        else:
+            models.append(model)
 
     # output models
     args.uniq = False
