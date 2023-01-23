@@ -52,8 +52,8 @@ def mod2xyz(args):
         index = -1
         pos_cols = [[],[],[]]
         val_cols = [[]]
-        for ix, x in enumerate(X):
-            for iy, y in enumerate(Y):
+        for iy, y in enumerate(Y):
+            for ix, x in enumerate(X):
                 for iz, z in enumerate(Z):
                     index += 1
                     value = models[im][index]
