@@ -87,13 +87,14 @@ def mod2xyz(args):
 
 
 def invcurves(args):
+    import seaborn as sns
     import matplotlib.pyplot as plt
     invlogs = []
     if args.outdir == None:
         args.outdir = args.invdir
     for f in os.listdir(args.invdir):
         if os.path.splitext(f)[1] == '.out':
-            invlogs.append(f)
+            invlogs.append(os.path.abspath(os.path.join(args.invdir, f)))
     if len(invlogs) == 0:
         print(f"Error! Could not find any '*.out' file in inversion directory: '{args.invdir}'")
         exit(0)
@@ -114,28 +115,41 @@ def invcurves(args):
             'truncated_cells':logdata[1][9]
         })
     for i in range(len(invdata)):
-        fig = plt.figure(figsize=(7,7))
+        sns.set_context('notebook')
+        sns.set_style('ticks')
+        fig = plt.figure(figsize=(9,7))
+        plt.suptitle(f'{invlogs[i]}')
         # ax1: model norm
-        ax1 = fig.add_subplot(311)
-        ax1.plot(invdata[i]['iter'], invdata[i]['data_misfit'])
-        ax1.scatter(invdata[i]['iter'], invdata[i]['data_misfit'])
+        ax1 = fig.add_subplot(211)
+        ax1.plot(invdata[i]['iter'], invdata[i]['data_misfit'], color='#4169E1')
+        ax1.scatter(invdata[i]['iter'], invdata[i]['data_misfit'], s=20, c='#4169E1')
         ax1.set_xticks(range(1, int(max(invdata[i]['iter'])+1)))
         ax1.set_xlabel("Iteration")
         ax1.set_ylabel("Data misfit")
-        # ax: model norm
+        ax1.yaxis.label.set_color('#4169E1')
+        ax1.spines['right'].set_color('#4169E1')
+        ax1.tick_params(axis='y', colors='#4169E1')
+        # ax2: model norm
         ax2 = ax1.twinx()
-        ax2.plot(invdata[i]['iter'], invdata[i]['model_norm'])
-        ax2.scatter(invdata[i]['iter'], invdata[i]['model_norm'])
+        ax2.plot(invdata[i]['iter'], invdata[i]['model_norm'], color='#FF8C00')
+        ax2.scatter(invdata[i]['iter'], invdata[i]['model_norm'], s=20, c='#FF8C00')
         ax2.set_xticks(range(1, int(max(invdata[i]['iter'])+1)))
         ax2.set_xlabel("Iteration")
         ax2.set_ylabel("Model Norm")
+        ax2.yaxis.label.set_color('#FF8C00')
+        ax2.spines['right'].set_color('#FF8C00')
+        ax2.tick_params(axis='y', colors='#FF8C00')
         # ax3: L-curve
-        ax3 = fig.add_subplot(313)
-        ax3.plot(invdata[i]['model_norm'], invdata[i]['data_misfit'])
+        ax3 = fig.add_subplot(212)
+        ax3.plot(invdata[i]['model_norm'], invdata[i]['data_misfit'], color='#222')
+        ax3.scatter(invdata[i]['model_norm'], invdata[i]['data_misfit'], s=20, c='#222')
         ax3.set_xlabel("Model Norm")
         ax3.set_ylabel("Data misfit")
         plt.tight_layout()
-        plt.show()
+        outpdf = f'{os.path.splitext(invlogs[i])[0]}.pdf'
+        plt.savefig(outpdf, dpi=150)
+        plt.close()
+        print(outpdf)
 
 def read_mesh3D_xyz(mesh_file):
     # Reads UBC mesh3D and outputs [[x],[y],[z]]
