@@ -50,7 +50,7 @@ def mod2xyz(args):
         else:
             outdir = os.path.abspath(args.outdir)
             if not os.path.isdir(outdir):
-                os.mkdir(outdir)
+                os.makedirs(outdir, exist_ok=True)
         outlines = [f" X Y Z {args.label}"]
         index = -1
         pos_cols = [[],[],[]]
@@ -93,8 +93,6 @@ def invcurves(args):
     import seaborn as sns
     import matplotlib.pyplot as plt
     invlogs = []
-    if args.outdir == None:
-        args.outdir = args.invdir
     for f in os.listdir(args.invdir):
         if os.path.splitext(f)[1] == '.out':
             invlogs.append(os.path.abspath(os.path.join(args.invdir, f)))
@@ -130,8 +128,8 @@ def invcurves(args):
         ax1.set_xlabel("Iteration")
         ax1.set_ylabel("Data misfit")
         ax1.yaxis.label.set_color('#4169E1')
-        ax1.spines['right'].set_color('#4169E1')
         ax1.tick_params(axis='y', colors='#4169E1')
+        ax1.spines['left'].set_color('#4169E1')
         # ax2: model norm
         ax2 = ax1.twinx()
         ax2.plot(invdata[i]['iter'], invdata[i]['model_norm'], color='#FF8C00')
@@ -140,8 +138,8 @@ def invcurves(args):
         ax2.set_xlabel("Iteration")
         ax2.set_ylabel("Model Norm")
         ax2.yaxis.label.set_color('#FF8C00')
-        ax2.spines['right'].set_color('#FF8C00')
         ax2.tick_params(axis='y', colors='#FF8C00')
+        ax2.spines['right'].set_color('#FF8C00')
         # ax3: L-curve
         ax3 = fig.add_subplot(212)
         ax3.plot(invdata[i]['model_norm'], invdata[i]['data_misfit'], color='#222')
@@ -149,10 +147,20 @@ def invcurves(args):
         ax3.set_xlabel("Model Norm")
         ax3.set_ylabel("Data misfit")
         plt.tight_layout()
-        outpdf = f'{os.path.splitext(invlogs[i])[0]}.pdf'
-        plt.savefig(outpdf, dpi=150)
+        # outdir
+        if args.outdir == None:
+            outdir = os.path.abspath(args.invdir)
+            outfile = os.path.join(outdir, f'{os.path.basename(os.path.splitext(invlogs[i])[0])}.{args.ext}')
+        else:
+            outdir = os.path.abspath(args.outdir)
+            if not os.path.isdir(outdir):
+                os.makedirs(outdir, exist_ok=True)
+            fname = os.path.split(os.path.split(os.path.abspath(invlogs[i]))[0])[1]\
+            + '_' + os.path.basename(os.path.splitext(invlogs[i])[0])
+            outfile = os.path.join(outdir, f'{fname}.{args.ext}')
+        plt.savefig(outfile, dpi=args.dpi)
         plt.close()
-        print(outpdf)
+        print(outfile)
 
 def read_mesh3D_xyz(mesh_file):
     # Reads UBC mesh3D and outputs [[x],[y],[z]]

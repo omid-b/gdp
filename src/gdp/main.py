@@ -1881,7 +1881,10 @@ def parse_args(*args, **kwargs):
     ubc_invcurves.add_argument("invdir", type=str,\
         help='inversion directory')
     ubc_invcurves.add_argument('-o','--outdir', type=str,\
-        help='By default, the output plot are placed in the same inversion directory; this option can be used to change this behaviour')
+        help='by default, the output plot are placed in the same inversion directory; this option can be used to change this behaviour')
+    ubc_invcurves.add_argument('--ext', choices=['pdf', 'png', 'jpg'], default='pdf',\
+        help='output file extension; choices: pdf (default), jpg, png ')
+    ubc_invcurves.add_argument('--dpi', type=int, help='output dpi (dot per inch; default=150)', default=150)
 
     # return arguments
     return parser.parse_args()
