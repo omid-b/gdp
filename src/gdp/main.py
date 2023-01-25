@@ -1886,6 +1886,44 @@ def parse_args(*args, **kwargs):
         help='output file extension; choices: pdf (default), jpg, png ')
     ubc_invcurves.add_argument('--dpi', type=int, help='output dpi (dot per inch; default=150)', default=150)
 
+    #====anomaly submodules=====#
+    anomaly = subparsers.add_parser('anomaly', help='generate anomaly/perturbation model from absolute value model using a reference model',
+    description="Generate anomaly/perturbation model from absolute value model using a reference model")
+    anomaly_subparsers = anomaly.add_subparsers(dest='submodule')
+    anomaly._positionals.title = "List of options"
+
+    # gdp anomaly 1D
+    anomaly_1D = anomaly_subparsers.add_parser('1D', help='calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model',
+        description='Calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model')
+    anomaly_1D.add_argument('absmodel', type=str, help='input absolute value 1D model')
+    anomaly_1D.add_argument('--refmodel', required=True, type=str, help='REQUIRED: input 1D reference model; MUST only have two columns (depth, value)')
+    anomaly_1D.add_argument('-x','--depth', required=True, type=int, nargs=1, help='REQUIRED: column number for the depth column in ther input abosolute model')
+    anomaly_1D.add_argument('-v','--value', required=True, type=int, nargs=1, help='REQUIRED: column number for the value column (e.g., velocity) in ther input abosolute model')
+    anomaly_1D.add_argument('-o','--outfile', action='store', help='output file path')
+    anomaly_1D.add_argument('--ext', type=str, choices=['pdf','png','jpg'], default='pdf',\
+        help="output plot file extension/format; choices=['pdf' (default),'png','jpg']")
+    anomaly_1D.add_argument('--dpi', type=int, help='output plot dpi (dot per inch; default=150)', default=150)
+    anomaly_1D.add_argument('--header', type=int, default=0, help='number of header lines to be ignored in the input abosolute value model; default=0')
+    anomaly_1D.add_argument('--footer', type=int, default=0, help='number of footer lines to be ignored in the input abosolute value model; default=0')
+    anomaly_1D.add_argument('--fmt', type=str, nargs=2, default=['03.0', '8.4'],\
+     help="float format for output model; default=['03.0', '8.4']")
+    anomaly_1D.add_argument('--type', choices=['percentage','difference'], default='percentage',
+        help="output anomaly data type; choices=['percentage' (default), 'difference']")
+    anomaly_1D.add_argument('--markers', type=float, nargs='+', default=[],
+        help='mark position of specific values in 1D profiles (e.g., values between 1 and 2 percent perturbations are used to locate the  LAB depth)')
+    anomaly_1D.add_argument('--markers_depths', type=float, nargs=2,
+        help='depth range to search the given markers for')
+    anomaly_1D.add_argument('--markers_case', type=str, choices=['increase', 'decrease', 'both'], default='both', 
+        help='consider it a marker if the two consecutive values increase/decrease/both[default]')
+    anomaly_1D.add_argument('--vlabel', help='value label', default=['Value'], type=str, nargs='+')
+    anomaly_1D.add_argument('--depthlabel', help='depth label (default="Depth (km)")', default=['Depth','(km)'], type=str, nargs='+')
+    anomaly_1D.add_argument('--invert_yaxis', choices=['True','False'], default='True',
+        help="invert y-axis in the plot (default='True'); choices=[True,False]")
+    anomaly_1D.add_argument('--legend_loc', type=str, help='legend location', default='lower left', \
+        choices=['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'])    
+
+
+
     # return arguments
     return parser.parse_args()
 
@@ -2133,6 +2171,12 @@ def main(*args, **kwargs):
             exit(0)
         else:
             subprocess.call('gdp ubc -h', shell=True)
+    elif args.module == 'anomaly':
+        if args.submodule == '1D':
+            dat.anomaly_1D(args)
+            exit(0)
+        else:
+            subprocess.call('gdp anomaly -h', shell=True)
     else:
         subprocess.call('gdp -h', shell=True)
 

@@ -840,3 +840,156 @@ def calc_std(args):
     args.sort = False
     args.uniq = False
     io.output_lines(outdata_lines, args)
+
+
+#####################################################################
+
+
+def anomaly_1D(args):
+    import matplotlib.pyplot as plt
+    outfile_orig = args.outfile
+    # read models
+    [absmodel_x], [absmodel_v], _ = io.read_numerical_data(args.absmodel, args.header, args.footer,  [".10", ".10"], args.depth, args.value, skipnan=True)
+    [refmodel_x], [refmodel_v], _ = io.read_numerical_data(args.refmodel, 0, 0,  [".10", ".10"], [1], [2], skipnan=True)
+    # check if reference model covers the abs model positional data range
+    if min(absmodel_x) < min(refmodel_x) or max(absmodel_x) > max(refmodel_x):
+        print("Error: reference model does not fully cover the absolute model positional range:\n")
+        print(f"  absmodel range (positional column): {min(absmodel_x)} to {max(absmodel_x)}")
+        print(f"  refmodel range (positional column): {min(refmodel_x)} to {max(refmodel_x)}\n")
+        exit(1)
+    # linear interpolation and convert python lists to numpy arrays for easier processing
+    refmodel_x_interp = np.array(absmodel_x, dtype=float)
+    refmodel_v_interp = np.interp(refmodel_x_interp, refmodel_x, refmodel_v)
+    absmodel_x = np.array(absmodel_x, dtype=float)
+    absmodel_v = np.array(absmodel_v, dtype=float)
+    refmodel_x = np.array(refmodel_x, dtype=float)
+    refmodel_v = np.array(refmodel_v, dtype=float)
+
+    anomaly_model_x = absmodel_x
+    anomaly_model_v = absmodel_v - refmodel_v_interp # args.type == 'difference'
+    if args.type == 'percentage':
+        anomaly_model_v = (anomaly_model_v / refmodel_v_interp) * 100
+
+    # Calculate markers
+    markers = {}
+    if args.markers_depths == None:
+        args.markers_depths = [min(absmodel_x), max(absmodel_x)]
+    elif args.markers_depths[0] > args.markers_depths[1]:
+        args.markers_depths = args.markers_depths[::-1]
+
+    for mv in args.markers: # mv: marker value
+        markers[f"{mv}"] = []
+        for idep, dep in enumerate(anomaly_model_x[1:len(anomaly_model_x)+1], start=1):
+            if dep < args.markers_depths[0] or dep > args.markers_depths[1]:
+                continue
+            
+            if args.markers_case == 'both':
+                if (anomaly_model_v[idep] <= mv and anomaly_model_v[idep-1] >= mv) \
+                or (anomaly_model_v[idep] >= mv and anomaly_model_v[idep-1] <= mv):
+                    markers[f"{mv}"].append((anomaly_model_x[idep-1] + anomaly_model_x[idep]) / 2)
+            else:
+                if args.markers_case == 'increase' \
+                and anomaly_model_v[idep] >= mv and anomaly_model_v[idep-1] <= mv:
+                    markers[f"{mv}"].append((anomaly_model_x[idep-1] + anomaly_model_x[idep]) / 2)
+                elif args.markers_case == 'decrease' \
+                and anomaly_model_v[idep] <= mv and anomaly_model_v[idep-1] >= mv:
+                    markers[f"{mv}"].append((anomaly_model_x[idep-1] + anomaly_model_x[idep]) / 2)
+
+    # Generate Plot
+    fig = plt.figure(figsize=(6,7))
+
+    # subplot 1: absolute model and reference model profiles
+    ax1 = fig.add_subplot(121)
+    if args.invert_yaxis == 'True':
+        ax1.invert_yaxis()
+    ax1.plot(refmodel_v, refmodel_x, color='#D2691E', label="ref model")
+    ax1.scatter(refmodel_v, refmodel_x, c='#D2691E', s=5)
+    ax1.plot(absmodel_v, absmodel_x, color='#4169E1', label="abs model")
+    ax1.scatter(absmodel_v, absmodel_x, c='#4169E1', s=5)
+    ax1.legend(loc=f"{args.legend_loc}")
+    ax1.set_xlabel(' '.join(args.vlabel))
+    ax1.set_ylabel(' '.join(args.depthlabel))
+
+    # subplot 2: anomaly model profile and markers
+    ax2 = fig.add_subplot(122)
+    if args.invert_yaxis == 'True':
+        ax2.invert_yaxis()
+    if args.type == 'percentage':
+        anomaly_vlabel = f"{args.vlabel[0]} anomaly (%)"
+    else:
+        anomaly_vlabel = f"{args.vlabel[0]} anomaly (abs diff)"
+    ax2.plot(anomaly_model_v, anomaly_model_x, color='#4169E1')
+    ax2.scatter(anomaly_model_v, anomaly_model_x, c='#4169E1', s=5)
+    ax2.set_xlabel(anomaly_vlabel)
+    ax2.plot([0,0], ax1.get_ylim(), color='#555', linewidth=0.5, linestyle='--')
+    ax2.set_ylim(ax1.get_ylim())
+    ax2.set_yticks([])
+
+    # subplot 2: add markers
+    any_marker_found = False
+    for mv in markers.keys(): # marker value
+        for md in  markers[f"{mv}"]: # marker depth
+            any_marker_found = True
+            if args.type == 'percentage':
+                marker_label = f"{mv}%"
+            else:
+                marker_label = f"{mv} (abs diff)"
+            ax2.plot([min(anomaly_model_v), max(anomaly_model_v)], 2*[md], linestyle='--', label=marker_label)
+
+    if any_marker_found:
+        ax2.legend(loc=f"{args.legend_loc}")
+
+    plt.suptitle(f"{os.path.split(args.absmodel)[1]}")
+    plt.tight_layout()
+
+    # output to stdout/screen or to files
+
+    args.append = False
+    args.sort = False
+    args.uniq = False
+    if any_marker_found:
+        outlines_markers = ["value depth"]
+        for mv in markers.keys(): # marker value
+            for md in  markers[f"{mv}"]: # marker depth
+                outlines_markers.append(f"{mv} {md}")
+        if outfile_orig == None:
+            args.outfile = None
+            outlines_markers.insert(0,f"Markers found for '{os.path.split(args.absmodel)[1]}'")
+            outlines_markers.append("")
+        else:
+            args.outfile = f"{os.path.splitext(outfile_orig)[0]}_markers{os.path.splitext(outfile_orig)[1]}"
+        io.output_lines(outlines_markers, args)
+
+    outline_anomaly = [f"depth abs_model ref_model anomaly_model"]
+    for idep, dep in enumerate(anomaly_model_x):
+        outline_anomaly.append(\
+        f"%{args.fmt[0]}f %{args.fmt[1]}f %{args.fmt[1]}f %{args.fmt[1]}f" %(dep, absmodel_v[idep], refmodel_v_interp[idep], anomaly_model_v[idep]))
+    if outfile_orig == None: # output anomaly data and plot to stdout and screen
+        # anomaly data
+        args.outfile = None
+        outline_anomaly.insert(0,f"Anomaly data for '{os.path.split(args.absmodel)[1]}'")
+        io.output_lines(outline_anomaly, args)
+        # plot
+        plt.show()
+    else: # output anomaly data and plot to files
+        # anomaly data
+        args.outfile = outfile_orig
+        io.output_lines(outline_anomaly, args)
+        # plot
+        outplot = os.path.abspath(f"{os.path.splitext(outfile_orig)[0]}.{args.ext}")
+        plt.savefig(outplot, dpi=args.dpi, format=args.ext)
+    plt.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
