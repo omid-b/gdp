@@ -30,6 +30,7 @@ $ sudo apt-get install python3-tk
 $ sudo apt install tk-dev
 $ sudo apt install libgdal-dev
 $ pip install gdal==`gdal-config --version`
+$ sudo apt-get install python3-pyqt5 # pyqt5 dependency
 ```
 
 Fedora:

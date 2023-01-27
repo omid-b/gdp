@@ -16,6 +16,13 @@ def plot_features(args):
     import seaborn as sns
     import matplotlib.pyplot as plt
     from mpl_toolkits.basemap import Basemap
+    import matplotlib
+    matplotlib.use('qt5agg')
+    # if os.environ.get('DISPLAY','') == '':
+    #     print('no $DISPLAY found. Using non-interactive Agg backend')
+    #     matplotlib.use('Agg')
+    # else:
+    #     matplotlib.use('qt5agg')
 
     if args.padding <= -0.25:
         print("Error! Parameter 'padding' cannot be smaller than (or equal to) -0.5")
@@ -384,6 +391,9 @@ def plot_stations(input_stalist, labels=False, GMT='auto'):
     if len(stalist['lon']) == 0:
         print(f"\nError! No station is listed in the station file!\n")
         exit(1)
+    elif len(stalist['lon']) == 1:
+        print(f"\nError! Cannot calculate the map region as only one station is listed in the station file!\nUse flag '--glob' to generate the plot.\n")
+        exit(1)
 
     print(f"station list: {input_stalist}\n")
 
@@ -533,20 +543,20 @@ def ps2pdf(input_ps, outdir):
     fname, _ = os.path.splitext(os.path.split(input_ps)[1])
     fname_ext_out = f"{fname}.pdf"
     if sys.platform in ["linux","linux2","darwin"]:
-        # method 1: works on MacOS and Ubuntu
-        if subprocess.call('ps2eps --version',shell=True,
-        stderr=subprocess.STDOUT,
-        stdout=subprocess.DEVNULL) == 0:
-            script = [f"ps2eps {fname}.ps --quiet -f",
-            f"epstopdf {fname}.eps --outfile={os.path.join(outdir,fname)}.pdf --quiet"]
-            subprocess.call('\n'.join(script), shell=True)
-        # method 2: works on CentOS
+        # method 1
         if subprocess.call('ps2epsi --version',shell=True,
         stderr=subprocess.STDOUT,
-        stdout=subprocess.DEVNULL) == 0\
-        and not os.path.isfile(f"{fname}.eps"):
+        stdout=subprocess.DEVNULL) == 0:
             script = [f"ps2epsi {fname}.ps {fname}.epsi",
             f"epstopdf {fname}.epsi --outfile={os.path.join(outdir,fname)}.pdf"]
+            subprocess.call('\n'.join(script), shell=True)
+        # method 2 (if method 1 didn't work)
+        if subprocess.call('ps2eps --version',shell=True,
+        stderr=subprocess.STDOUT,
+        stdout=subprocess.DEVNULL) == 0\
+        and not os.path.isfile(f"{fname}.epsi"):
+            script = [f"ps2eps {fname}.ps --quiet -f",
+            f"epstopdf {fname}.eps --outfile={os.path.join(outdir,fname)}.pdf --quiet"]
             subprocess.call('\n'.join(script), shell=True)
     if not os.path.isfile(os.path.join(outdir,f'{fname}.pdf')):
         shutil.copyfile(input_ps,os.path.join(outdir,fname_ext_out))

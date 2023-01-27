@@ -139,7 +139,7 @@ class SWS_Dataset_App(tk.Frame):
                 if self.SAC == 'auto':
                     self.SAC = dependency.find_sac_path()
                 if len(self.SAC) == 0 or not os.path.isfile(self.SAC):
-                    print("Error! Could not find SAC software in the following path:\n{SAC}\n")
+                    print(f"Error! Could not find SAC software.\n")
                     exit(1)
                 for comp in ['N','E','Z']:
                     sacfile = list(self.sws_dataset[event][station][comp].keys())[0]
