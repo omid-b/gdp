@@ -92,6 +92,9 @@ def get_sacfiles_info(sacfiles, header=False, read_headers=False, read_data=Fals
         except:
             print(f"WARNING! Could not read sacfile headers/data: {sacfile}")
             warnings += 1
+    if warnings == len(sacfiles):
+        print('\nError! All sacfiles were skipped due to header/data issue.\nHint: make sure all station and event-related headers are written into sacfiles (use "saclst").\n')
+        exit()
     if warnings > 0:
         uans = input("\nSome sacfiles could not be read (those will be skipped).\nDo you want to continue (y/n)? ")
         if uans.lower() in ['y', 'yes']:
