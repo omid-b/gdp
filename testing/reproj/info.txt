@@ -1,0 +1,4 @@
+info:
+
+projected CS: SWEREF99 TM, EPSG: 3006
+geographic CS: WGS84,      EPSG: 4326

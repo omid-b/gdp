@@ -46,7 +46,7 @@ def parse_args(*args, **kwargs):
     
     #===== Modules =====#
     
-    # gdp data cat
+    # gdp cat
     gdp_cat = subparsers.add_parser('cat', help='concatenate and reformat input data files',
     description="Concatenate and reformat input data files")
     gdp_cat.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -115,7 +115,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     
-    # gdp data union
+    # gdp union
     gdp_union = subparsers.add_parser('union', help='generate the union of input data files',
     description="Generate the union of input data files")
     gdp_union.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -189,7 +189,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     
-    # gdp data intersect
+    # gdp intersect
     gdp_intersect = subparsers.add_parser('intersect', help='generate the intersect of input data files',
     description="Generate the intersect of input data files")
     gdp_intersect.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -263,7 +263,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     
-    # gdp data difference
+    # gdp difference
     gdp_difference = subparsers.add_parser('difference', help='generate the difference of input data files',
     description="Generate the difference of input data files")
     gdp_difference.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -337,7 +337,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     
-    # gdp data split
+    # gdp split
     gdp_split = subparsers.add_parser('split', help='split concatenated dataset',
     description="Split a concatenated dataset into multiple data files")
     gdp_split._positionals.title = 'required positional arguments'
@@ -389,7 +389,7 @@ def parse_args(*args, **kwargs):
         default=0,
         help='number of footer lines to ignore (default=0)')
 
-    # gdp data min
+    # gdp min
     gdp_min = subparsers.add_parser('min', help='calculate min of numerical column(s)',
     description="Calculate minimum of values in numerical column(s)")
     gdp_min.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -431,7 +431,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
-    # gdp data max
+    # gdp max
     gdp_max = subparsers.add_parser('max', help='calculate max of numerical column(s)',
     description="Calculate maximum of values in numerical column(s)")
     gdp_max.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -473,7 +473,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
-    # gdp data sum
+    # gdp sum
     gdp_sum = subparsers.add_parser('sum', help='calculate sum of numerical column(s)',
     description="Calculate summation of values in numerical column(s)")
     gdp_sum.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -515,7 +515,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     
-    # gdp data mean
+    # gdp mean
     gdp_mean = subparsers.add_parser('mean', help='calculate mean of numerical column(s)',
     description="Calculate mean of values in numerical column(s)")
     gdp_mean.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -557,7 +557,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     
-    # gdp data median
+    # gdp median
     gdp_median = subparsers.add_parser('median', help='calculate median of numerical column(s)',
     description="Calculate median of values in numerical column(s)")
     gdp_median.add_argument("input_files", nargs='+',help='input ascii files (can use wildcards)')
@@ -599,7 +599,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
     
-    # gdp data std
+    # gdp std
     gdp_std = subparsers.add_parser('std', help='calculate std of numerical column(s)',
     description="Calculate standard deviation of values in numerical column(s)")
     gdp_std.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -641,7 +641,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
-    # gdp data add
+    # gdp add
     gdp_add = subparsers.add_parser('add', help='add value comumn(s) of the same coordinates for input data files',
     description="Add value comumn(s) of the same coordinates for input data files")
     gdp_add.add_argument("input_files", nargs='+', help='input numerical data files (can use wildcards)')
@@ -698,8 +698,46 @@ def parse_args(*args, **kwargs):
         default=0,
         help='number of footer lines to ignore (default=0)')
 
+    # gdp reproj
+    gdp_reproj = subparsers.add_parser('reproj', help='reproject coordinate systems',
+    description="Reproject/convert coordinate systems")
+    gdp_reproj.add_argument(
+        'input_files',
+        nargs='+',
+        help='input ascii files (can use wildcards)')
+    gdp_reproj.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        required=True,
+        help='REQUIRED: x/lon and y/lat column numbers e.g., "1 2"')
+    gdp_reproj.add_argument(
+        '--from',
+        type=str,
+        required=True,
+        help='input coordinate system EPSG or UTM Zone code')
+    gdp_reproj.add_argument(
+        '--to',
+        type=str,
+        required=True,
+        help='output coordinate system EPSG or UTM Zone code')
+    gdp_reproj.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    gdp_reproj.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
 
-    # gdp data pip
+
+
+
+    # gdp pip
     gdp_pip = subparsers.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method).")
     gdp_pip.add_argument(
@@ -763,7 +801,7 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
-    # gdp data gridder
+    # gdp gridder
     gdp_gridder = subparsers.add_parser('gridder', help='gridding/interpolation of 2D/map data',
     description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
     gdp_gridder.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
@@ -851,7 +889,7 @@ def parse_args(*args, **kwargs):
     )
 
 
-    # gdp data chull
+    # gdp chull
     gdp_chull = subparsers.add_parser('chull', help='convex-hull/minimum bounding polygon',
     description="convex-hull / minimum bounding polygon for a set of points")
     gdp_chull._positionals.title = 'required arguments'
@@ -2031,6 +2069,9 @@ def main(*args, **kwargs):
         exit(0)
     elif args.module == 'add':
         dat.add_intersect_values(args)
+        exit(0)
+    elif args.module == 'reproj':
+        dat.reproject(args)
         exit(0)
     elif args.module == '1Dto2D':
         conv.datasets_1Dto2D(args)
