@@ -10,13 +10,60 @@ from . import io
 #####################################################################
 
 
-def reproject_data(args):
-    from . import epsg
-    epsg_from = return_epsg_code(args.cs[0])
-    epsg_to = return_epsg_code(args.cs[1])
+def csproj_ascii(args):
+    for input_file in args.input_files:
+        pos, _, extra = io.read_numerical_data(input_file, args.header, args.footer,  ".10", args.x, [], skipnan=True)
+        nop = len(pos[0]) # number of points
+        for ip in range(nop):
+            x, y = [pos[0][ip], pos[1][ip]]
+            xnew, ynew = csproj_point(x, y, args.cs[0], args.cs[1])
+            print(x, y, xnew, ynew, extra[ip])
+
+
+def csproj_point(x, y, cs_from, cs_to):
+    import pyproj
+    try:
+        from osgeo import ogr, osr
+    except Exception as e:
+        print(f"{e}. Hint: install and test GDAL.")
+        print("install GDAL: $ pip install GDAL")
+        print("   test GDAL: $ python3 -c 'from osgeo import ogr, osr'")
+        exit(1)
+    epsg_from = return_epsg_code(cs_from)
+    epsg_to = return_epsg_code(cs_to)
     if epsg_from == epsg_to:
         print('Error! The input-output coordinate systems are the same!')
         exit(1)
+
+    print("Not developed yet!")
+    exit(1)
+
+    # # generate point object
+    # point = ogr.Geometry(ogr.wkbPoint)
+    # point.AddPoint(x, y)
+    # # generate spatial reference objects
+    # inSpatialRef = osr.SpatialReference()
+    # inSpatialRef.ImportFromEPSG(epsg_from)
+    # outSpatialRef = osr.SpatialReference()
+    # outSpatialRef.ImportFromEPSG(epsg_to)
+    # # cs trandform
+    # cstransform = osr.CoordinateTransformation(inSpatialRef, outSpatialRef)
+    # point.Transform(cstransform)
+
+    # xnew, ynew = [point.GetX(), point.GetY()]
+
+    # epsg3006 = "+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
+    # epsg4326 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" 
+
+    # # projected to wgs84
+    # p = pyproj.Proj(epsg3006)
+    # xnew, ynew = p(x, y, inverse=True)
+    # return [xnew, ynew]
+
+    # # wgs 84 to projected
+    # p = pyproj.Proj(epsg3006)
+    # xnew, ynew = p(x, y, inverse=False)
+    # return [xnew, ynew]
 
 
 def return_epsg_code(cs_code):

@@ -706,32 +706,32 @@ def parse_args(*args, **kwargs):
         nargs='+',
         help='keywords to be used in searching offline/online databases')
 
-    # gdp reproj
-    gdp_reproj = subparsers.add_parser('reproj', help='reproject coordinate systems',
-    description="Reproject/convert coordinate systems")
-    gdp_reproj.add_argument(
+    # gdp csproj
+    gdp_csproj = subparsers.add_parser('csproj', help='convert coordinate system projections (ascii data)',
+    description="Convert coordinate system projections (ascii data)")
+    gdp_csproj.add_argument(
         'input_files',
         nargs='+',
         help='input ascii files (can use wildcards)')
-    gdp_reproj.add_argument(
+    gdp_csproj.add_argument(
         '-x',
         nargs=2,
         type=int,
         required=True,
         help='REQUIRED: x/lon and y/lat column numbers e.g., "1 2"')
-    gdp_reproj.add_argument(
+    gdp_csproj.add_argument(
         '--cs',
         type=str,
         required=True,
         nargs=2,
         help='REQUIRED: input and output coordinate systems: INPUT_CS OUTPUT_CS')
-    gdp_reproj.add_argument(
+    gdp_csproj.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_reproj.add_argument(
+    gdp_csproj.add_argument(
         '--footer',
         type=int,
         action='store',
@@ -2078,8 +2078,8 @@ def main(*args, **kwargs):
         from . import epsg
         epsg.get_csinfo(args)
         exit(0)
-    elif args.module == 'reproj':
-        dat.reproject_data(args)
+    elif args.module == 'csproj':
+        dat.csproj_ascii(args)
         exit(0)
     elif args.module == '1Dto2D':
         conv.datasets_1Dto2D(args)
