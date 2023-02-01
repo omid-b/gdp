@@ -698,6 +698,14 @@ def parse_args(*args, **kwargs):
         default=0,
         help='number of footer lines to ignore (default=0)')
 
+    # gdp csinfo
+    gdp_csinfo = subparsers.add_parser('csinfo', help='get coordinate system information',
+    description="Get coordinate system information. For more information visit https://spatialreference.org/ref/epsg/")
+    gdp_csinfo.add_argument(
+        'keywords',
+        nargs='+',
+        help='keywords to be used in searching offline/online databases')
+
     # gdp reproj
     gdp_reproj = subparsers.add_parser('reproj', help='reproject coordinate systems',
     description="Reproject/convert coordinate systems")
@@ -712,15 +720,11 @@ def parse_args(*args, **kwargs):
         required=True,
         help='REQUIRED: x/lon and y/lat column numbers e.g., "1 2"')
     gdp_reproj.add_argument(
-        '--from',
+        '--cs',
         type=str,
         required=True,
-        help='input coordinate system EPSG or UTM Zone code')
-    gdp_reproj.add_argument(
-        '--to',
-        type=str,
-        required=True,
-        help='output coordinate system EPSG or UTM Zone code')
+        nargs=2,
+        help='REQUIRED: input and output coordinate systems: INPUT_CS OUTPUT_CS')
     gdp_reproj.add_argument(
         '--header',
         type=int,
@@ -2070,8 +2074,12 @@ def main(*args, **kwargs):
     elif args.module == 'add':
         dat.add_intersect_values(args)
         exit(0)
+    elif args.module == 'csinfo':
+        from . import epsg
+        epsg.get_csinfo(args)
+        exit(0)
     elif args.module == 'reproj':
-        dat.reproject(args)
+        dat.reproject_data(args)
         exit(0)
     elif args.module == '1Dto2D':
         conv.datasets_1Dto2D(args)

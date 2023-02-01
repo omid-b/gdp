@@ -10,8 +10,39 @@ from . import io
 #####################################################################
 
 
-def reproject(args):
-    print("Hello from reproject")
+def reproject_data(args):
+    from . import epsg
+    epsg_from = return_epsg_code(args.cs[0])
+    epsg_to = return_epsg_code(args.cs[1])
+    if epsg_from == epsg_to:
+        print('Error! The input-output coordinate systems are the same!')
+        exit(1)
+
+
+def return_epsg_code(cs_code):
+    # return integer EPSG code or exit program
+    from . import epsg
+    # initialize variables
+    epsg_code, utm_zone = [None, None]
+    try:
+        epsg_code = int(cs_code)
+    except:
+        utm_zone = cs_code
+    # find epsg_code
+    if epsg_code != None:
+        if epsg.get_epsg_info(str(epsg_code)) == None:
+            print(f"Error! Could not find entry for EPSG: {epsg_code}")
+            exit(1)
+    elif utm_zone.lower() == 'wgs84':
+        epsg_code = 4326
+    else:
+        epsg_code = epsg.get_epsg(utm_zone.upper())
+        if epsg_code == None:
+            print(f"Error! Could not figure out the EPSG code for: '{cs_code}'")
+            exit(1)
+    return epsg_code
+
+
 
 def add_intersect_values(args):
     args.nan = False
