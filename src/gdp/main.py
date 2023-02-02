@@ -823,9 +823,73 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='append to output')
 
+    # gdp_nodes
+    gdp_nodes = subparsers.add_parser('nodes', help='output a 2D/3D list of regularly spaced nodes',
+        description="Output a 2D/3D list of regularly spaced nodes")
+    gdp_nodes.add_argument(
+        '--xrange',
+        type=float,
+        nargs=2,
+        required=True,
+        help='REQUIRED: x/longitude min & max values',
+    )
+    gdp_nodes.add_argument(
+        '--xstep',
+        type=float,
+        required=True,
+        help='REQUIRED: x/longitude step size/interval',
+    )
+    gdp_nodes.add_argument(
+        '--yrange',
+        type=float,
+        nargs=2,
+        required=True,
+        help='REQUIRED: y/latitude min & max values',
+    )
+    gdp_nodes.add_argument(
+        '--ystep',
+        type=float,
+        required=True,
+        help='REQUIRED: y/latitude step size/interval',
+    )
+    gdp_nodes.add_argument(
+        '--zrange',
+        type=float,
+        nargs=2,
+        required=False,
+        help='z/depth min & max values',
+    )
+    gdp_nodes.add_argument(
+        '--zstep',
+        type=float,
+        required=False,
+        help='REQUIRED: z/depth step size/interval',
+    )
+    gdp_nodes.add_argument(
+        '--polygon',
+        type=str,
+        action='store',
+        help='polygon to run "points-in-polygon" process before outputing the results'
+    )
+    gdp_nodes.add_argument(
+        '--fmt',
+        nargs=3,
+        type=str,
+        default=["","",""],
+        help='output x y z float format',
+    )
+    gdp_nodes.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file name/path',
+    )
+
+
     # gdp gridder
     gdp_gridder = subparsers.add_parser('gridder', help='gridding/interpolation of 2D/map data',
-    description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
+        description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
     gdp_gridder.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
     gdp_gridder.add_argument(
         '--spacing',
@@ -1620,7 +1684,93 @@ def parse_args(*args, **kwargs):
     # # gdp mag sphere
     # mag_sphere = mag_subparsers.add_parser('sphere', help='forward modeling of uniformly magnetized sphere(s)',
     # description="forward modeling of uniformly magnetized sphere(s) over a local grid")
-        
+    
+
+    #====ubc submodules=====#
+    ubc = subparsers.add_parser('ubc', help='UBC code data preparation and conversion tools',
+    description="UBC code data preparation and conversion tools")
+    ubc_subparsers = ubc.add_subparsers(dest='submodule')
+    ubc._positionals.title = "List of tools"
+
+    # gdp ubc mod2xyz
+    ubc_mod2xyz = ubc_subparsers.add_parser('mod2xyz', help='convert UBC model to xyz using 3D mesh',
+    description="Convert UBC model to xyz using 3D mesh")
+    ubc_mod2xyz.add_argument("mesh", type=str,\
+        help='3D mesh to be used for models')
+    ubc_mod2xyz.add_argument("models", type=str,\
+        help='inversion model file/files (can use wildcards)', nargs='+')
+    ubc_mod2xyz.add_argument('-o','--outdir', type=str,\
+        help='by default, the output xyz files are placed in the same directory as the model files; this option can be used to change this behaviour')
+    ubc_mod2xyz.add_argument(
+        '--fmt',
+        nargs=2,
+        type=str,
+        action='store',
+        default=["10.2","13.8"],
+        help='float format for positional and model value columns respectively (default=["10.2","13.8"])')
+    ubc_mod2xyz.add_argument(
+        '--skipdummy',
+        action='store_true',
+        help='do not output dummy cells with a value of -100.0')
+    ubc_mod2xyz.add_argument(
+        '--label',
+        type=str,
+        default="Value",
+        help='model parameter label e.g. Susceptibility, Density etc.; default="Value"'
+    )
+    ubc_mod2xyz.add_argument(
+        '--polygon',
+        nargs='+',
+        default=[],
+        help="polygon/polygons to apply point-in-polygon before output"
+    )
+
+    # gdp ubc invcurves
+    ubc_invcurves = ubc_subparsers.add_parser('invcurves', help='generate plots for inversion curves',
+    description="Generate plots for inversion curves")
+    ubc_invcurves.add_argument("invdir", type=str,\
+        help='inversion directory')
+    ubc_invcurves.add_argument('-o','--outdir', type=str,\
+        help='by default, the output plot are placed in the same inversion directory; this option can be used to change this behaviour')
+    ubc_invcurves.add_argument('--ext', choices=['pdf', 'png', 'jpg'], default='pdf',\
+        help='output file extension; choices: pdf (default), jpg, png ')
+    ubc_invcurves.add_argument('--dpi', type=int, help='output dpi (dot per inch; default=150)', default=150)
+
+    #====anomaly submodules=====#
+    anomaly = subparsers.add_parser('anomaly', help='generate anomaly/perturbation model from absolute value model using a reference model',
+    description="Generate anomaly/perturbation model from absolute value model using a reference model")
+    anomaly_subparsers = anomaly.add_subparsers(dest='submodule')
+    anomaly._positionals.title = "List of options"
+
+    # gdp anomaly 1D
+    anomaly_1D = anomaly_subparsers.add_parser('1D', help='calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model',
+        description='Calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model')
+    anomaly_1D.add_argument('absmodel', type=str, help='input absolute value 1D model')
+    anomaly_1D.add_argument('--refmodel', required=True, type=str, help='REQUIRED: input 1D reference model; MUST only have two columns (depth, value)')
+    anomaly_1D.add_argument('-x','--depth', required=True, type=int, nargs=1, help='REQUIRED: column number for the depth column in ther input abosolute model')
+    anomaly_1D.add_argument('-v','--value', required=True, type=int, nargs=1, help='REQUIRED: column number for the value column (e.g., velocity) in ther input abosolute model')
+    anomaly_1D.add_argument('-o','--outfile', action='store', help='output file path')
+    anomaly_1D.add_argument('--ext', type=str, choices=['pdf','png','jpg'], default='pdf',\
+        help="output plot file extension/format; choices=['pdf' (default),'png','jpg']")
+    anomaly_1D.add_argument('--dpi', type=int, help='output plot dpi (dot per inch; default=150)', default=150)
+    anomaly_1D.add_argument('--header', type=int, default=0, help='number of header lines to be ignored in the input abosolute value model; default=0')
+    anomaly_1D.add_argument('--footer', type=int, default=0, help='number of footer lines to be ignored in the input abosolute value model; default=0')
+    anomaly_1D.add_argument('--fmt', type=str, nargs=2, default=['03.0', '8.4'],\
+     help="float format for output model; default=['03.0', '8.4']")
+    anomaly_1D.add_argument('--type', choices=['percentage','difference'], default='percentage',
+        help="output anomaly data type; choices=['percentage' (default), 'difference']")
+    anomaly_1D.add_argument('--markers', type=float, nargs='+', default=[],
+        help='mark position of specific values in 1D profiles (e.g., values between 1 and 2 percent perturbations are used to locate the  LAB depth)')
+    anomaly_1D.add_argument('--markers_depths', type=float, nargs=2,
+        help='depth range to search the given markers for')
+    anomaly_1D.add_argument('--markers_case', type=str, choices=['increase', 'decrease', 'both'], default='both', 
+        help='consider it a marker if the two consecutive values increase/decrease/both[default]')
+    anomaly_1D.add_argument('--vlabel', help='value label', default=['Value'], type=str, nargs='+')
+    anomaly_1D.add_argument('--depthlabel', help='depth label (default="Depth (km)")', default=['Depth','(km)'], type=str, nargs='+')
+    anomaly_1D.add_argument('--invert_yaxis', choices=['True','False'], default='True',
+        help="invert y-axis in the plot (default='True'); choices=[True,False]")
+    anomaly_1D.add_argument('--legend_loc', type=str, help='legend location', default='lower left', \
+        choices=['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'])        
     
 
     #====plot submodules=====#
@@ -1895,93 +2045,6 @@ def parse_args(*args, **kwargs):
         action='store',
         default=0,
         help='for ascii files only: number of footer lines to ignore (default=0)')
-    
-    #====ubc submodules=====#
-    ubc = subparsers.add_parser('ubc', help='UBC code data preparation and conversion tools',
-    description="UBC code data preparation and conversion tools")
-    ubc_subparsers = ubc.add_subparsers(dest='submodule')
-    ubc._positionals.title = "List of tools"
-
-    # gdp ubc mod2xyz
-    ubc_mod2xyz = ubc_subparsers.add_parser('mod2xyz', help='convert UBC model to xyz using 3D mesh',
-    description="Convert UBC model to xyz using 3D mesh")
-    ubc_mod2xyz.add_argument("mesh", type=str,\
-        help='3D mesh to be used for models')
-    ubc_mod2xyz.add_argument("models", type=str,\
-        help='inversion model file/files (can use wildcards)', nargs='+')
-    ubc_mod2xyz.add_argument('-o','--outdir', type=str,\
-        help='by default, the output xyz files are placed in the same directory as the model files; this option can be used to change this behaviour')
-    ubc_mod2xyz.add_argument(
-        '--fmt',
-        nargs=2,
-        type=str,
-        action='store',
-        default=["10.2","13.8"],
-        help='float format for positional and model value columns respectively (default=["10.2","13.8"])')
-    ubc_mod2xyz.add_argument(
-        '--skipdummy',
-        action='store_true',
-        help='do not output dummy cells with a value of -100.0')
-    ubc_mod2xyz.add_argument(
-        '--label',
-        type=str,
-        default="Value",
-        help='model parameter label e.g. Susceptibility, Density etc.; default="Value"'
-    )
-    ubc_mod2xyz.add_argument(
-        '--polygon',
-        nargs='+',
-        default=[],
-        help="polygon/polygons to apply point-in-polygon before output"
-    )
-
-    # gdp ubc invcurves
-    ubc_invcurves = ubc_subparsers.add_parser('invcurves', help='generate plots for inversion curves',
-    description="Generate plots for inversion curves")
-    ubc_invcurves.add_argument("invdir", type=str,\
-        help='inversion directory')
-    ubc_invcurves.add_argument('-o','--outdir', type=str,\
-        help='by default, the output plot are placed in the same inversion directory; this option can be used to change this behaviour')
-    ubc_invcurves.add_argument('--ext', choices=['pdf', 'png', 'jpg'], default='pdf',\
-        help='output file extension; choices: pdf (default), jpg, png ')
-    ubc_invcurves.add_argument('--dpi', type=int, help='output dpi (dot per inch; default=150)', default=150)
-
-    #====anomaly submodules=====#
-    anomaly = subparsers.add_parser('anomaly', help='generate anomaly/perturbation model from absolute value model using a reference model',
-    description="Generate anomaly/perturbation model from absolute value model using a reference model")
-    anomaly_subparsers = anomaly.add_subparsers(dest='submodule')
-    anomaly._positionals.title = "List of options"
-
-    # gdp anomaly 1D
-    anomaly_1D = anomaly_subparsers.add_parser('1D', help='calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model',
-        description='Calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model')
-    anomaly_1D.add_argument('absmodel', type=str, help='input absolute value 1D model')
-    anomaly_1D.add_argument('--refmodel', required=True, type=str, help='REQUIRED: input 1D reference model; MUST only have two columns (depth, value)')
-    anomaly_1D.add_argument('-x','--depth', required=True, type=int, nargs=1, help='REQUIRED: column number for the depth column in ther input abosolute model')
-    anomaly_1D.add_argument('-v','--value', required=True, type=int, nargs=1, help='REQUIRED: column number for the value column (e.g., velocity) in ther input abosolute model')
-    anomaly_1D.add_argument('-o','--outfile', action='store', help='output file path')
-    anomaly_1D.add_argument('--ext', type=str, choices=['pdf','png','jpg'], default='pdf',\
-        help="output plot file extension/format; choices=['pdf' (default),'png','jpg']")
-    anomaly_1D.add_argument('--dpi', type=int, help='output plot dpi (dot per inch; default=150)', default=150)
-    anomaly_1D.add_argument('--header', type=int, default=0, help='number of header lines to be ignored in the input abosolute value model; default=0')
-    anomaly_1D.add_argument('--footer', type=int, default=0, help='number of footer lines to be ignored in the input abosolute value model; default=0')
-    anomaly_1D.add_argument('--fmt', type=str, nargs=2, default=['03.0', '8.4'],\
-     help="float format for output model; default=['03.0', '8.4']")
-    anomaly_1D.add_argument('--type', choices=['percentage','difference'], default='percentage',
-        help="output anomaly data type; choices=['percentage' (default), 'difference']")
-    anomaly_1D.add_argument('--markers', type=float, nargs='+', default=[],
-        help='mark position of specific values in 1D profiles (e.g., values between 1 and 2 percent perturbations are used to locate the  LAB depth)')
-    anomaly_1D.add_argument('--markers_depths', type=float, nargs=2,
-        help='depth range to search the given markers for')
-    anomaly_1D.add_argument('--markers_case', type=str, choices=['increase', 'decrease', 'both'], default='both', 
-        help='consider it a marker if the two consecutive values increase/decrease/both[default]')
-    anomaly_1D.add_argument('--vlabel', help='value label', default=['Value'], type=str, nargs='+')
-    anomaly_1D.add_argument('--depthlabel', help='depth label (default="Depth (km)")', default=['Depth','(km)'], type=str, nargs='+')
-    anomaly_1D.add_argument('--invert_yaxis', choices=['True','False'], default='True',
-        help="invert y-axis in the plot (default='True'); choices=[True,False]")
-    anomaly_1D.add_argument('--legend_loc', type=str, help='legend location', default='lower left', \
-        choices=['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'])    
-
 
 
     # return arguments
@@ -2064,7 +2127,9 @@ def main(*args, **kwargs):
         else:
             dat.gridder(args)
         exit(0)
-        
+    elif args.module == 'nodes':
+        dat.nodes(args)
+        exit(0)
     elif args.module == 'chull':
         dat.convex_hull(args)
         exit(0)

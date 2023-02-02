@@ -20,6 +20,9 @@ def csproj_ascii(args):
         output_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f %{args.fmt[1]}f %s" %(xnew, ynew, x, y, extra[ip]))
     args.sort = False
     args.uniq = False
+    if len(output_lines) == 0:
+        print("Error! Number of calculated nodes is zero!")
+        exit(1)
     io.output_lines(output_lines, args)
 
 
@@ -45,7 +48,6 @@ def transform_point_coordinates(x, y, cs_from, cs_to):
     elif epsg.get_epsg_proj(epsg_to) == None and epsg_to != 4326:
         print(f'Error! The Proj4 transformation codes not available for: "{cs_to}"')
         exit(1)
-
     # calculate the transformed coordinates
     if epsg_from == 4326:
         proj = pyproj.Proj(epsg.get_epsg_proj(epsg_to))
@@ -66,7 +68,7 @@ def transform_point_coordinates(x, y, cs_from, cs_to):
 
 
 def return_epsg_code(cs_code):
-    # return integer EPSG code or exit program
+    # return integer EPSG code or give an error and exit program
     from . import epsg
     # initialize variables
     epsg_code, utm_zone = [None, None]
@@ -127,7 +129,93 @@ def add_intersect_values(args):
             intersect.append(f"{intersect_pos[-1]} {intersect_add_vals[-1]}")
 
     args.uniq = False # it's already uniq!
+    if len(intersect) == 0:
+        print("Error! Number of calculated nodes is zero!")
+        exit(1)
     io.output_lines(intersect, args)
+
+
+def nodes(args):
+    try:
+        from . import _geographic as geographic
+    except ImportError:
+        print("WARNING! Could not use cythonized module: geographic")
+        from . import geographic
+    # check arguments
+    if args.xrange[0] >= args.xrange[1]:
+        print(f"Error! Argument 'xrange' should be entered in [min_x, max_x] format.")
+        exit(1)
+    elif args.xstep <= 0.0:
+        print(f"Error! Argument 'xstep' should have a positive value!")
+        exit(1)
+
+    if args.yrange[0] >= args.yrange[1]:
+        print(f"Error! Argument 'yrange' should be entered in [min_y, max_y] format.")
+        exit(1)
+    elif args.ystep <= 0.0:
+        print(f"Error! Argument 'ystep' should have a positive value!")
+        exit(1)
+
+    x_vals, y_vals, z_vals, output_lines = [[],[],[],[]]
+    if args.zrange != None: # 3D
+        if args.zrange[0] >= args.zrange[1]:
+            print(f"Error! Argument 'zrange' should be entered in [min_z, max_z] format.")
+            exit(1)
+        elif args.zstep == None:
+            print(f"Error! Argument 'zstep' is required.")
+            exit(1)
+        elif args.zstep <= 0.0:
+            print(f"Error! Argument 'zstep' should have a positive value!")
+            exit(1)
+
+        # calculate nodes (3D)
+        for z in np.arange(args.zrange[0], args.zrange[1] + args.zstep, args.zstep):
+            for x in np.arange(args.xrange[0], args.xrange[1] + args.xstep, args.xstep):
+                for y in np.arange(args.yrange[0], args.yrange[1] + args.ystep, args.ystep):
+                    x_vals.append(round(x, 10))
+                    y_vals.append(round(y, 10))
+                    z_vals.append(round(z, 10))
+
+    else: # 2D
+        # calculate nodes (2D)
+        for x in np.arange(args.xrange[0], args.xrange[1] + args.xstep, args.xstep):
+            for y in np.arange(args.yrange[0], args.yrange[1] + args.ystep, args.ystep):
+                    x_vals.append(round(x, 10))
+                    y_vals.append(round(y, 10))
+
+    # store calculated node in output_lines
+    if args.polygon:
+        if os.path.splitext(args.polygon)[1] == ".shp":
+            # if args.polygon is *.shp
+            polygons = io.read_polygon_shp(args.polygon)
+        else:
+            # else if args.polygon is not *.shp (ascii file)
+            polygon_data = io.read_numerical_data(args.polygon, 0, 0, [".10",".10"], [1,2], [])
+            polygons = [[polygon_data[0][0], polygon_data[0][1]]]
+    else:
+        include_point = True
+
+    for i, x in enumerate(x_vals):
+        include_point = True
+        if args.polygon:
+            point = geographic.Point(x, y_vals[i])
+            for iply in range(len(polygons)):
+                polygon = geographic.Polygon(polygons[iply][0], polygons[iply][1])
+                if not polygon.is_point_in(point):
+                    include_point = False
+
+        if include_point:
+            if args.zrange != None: # 3D
+                output_lines.append(f"%{args.fmt[0]}f %{args.fmt[1]}f %{args.fmt[2]}f" %(x, y_vals[i], z_vals[i]))
+            else:
+                output_lines.append(f"%{args.fmt[0]}f %{args.fmt[1]}f" %(x, y_vals[i]))
+    args.sort = False
+    args.uniq = False
+    args.append = False
+    if len(output_lines) == 0:
+        print("Error! Number of calculated nodes is zero!")
+        exit(1)
+    io.output_lines(output_lines, args)
 
 
 
@@ -383,6 +471,9 @@ def gridder(args):
         else:
             args.outfile = outfile_orig
 
+        if len(out_lines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(out_lines, args)
 
 #####################################################################
@@ -576,6 +667,9 @@ def gridder_utm(args):
         else:
             args.outfile = outfile_orig
 
+        if len(out_lines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(out_lines, args)
 
 #####################################################################
@@ -607,8 +701,14 @@ def union(args):
             for j in range(nol):
                 if datlines[i][j] not in union:
                     union_inv.append(datlines[i][j])
+        if len(union_inv) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(union_inv, args)
     else:
+        if len(union) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(union, args)
 
 #####################################################################
@@ -641,8 +741,14 @@ def intersect(args):
                 line = datlines[i][j]
                 if line not in intersect:
                     intersect_inv.append(line)
+        if len(intersect_inv) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(intersect_inv, args)
     else:
+        if len(intersect) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(intersect, args)
 
 #####################################################################
@@ -675,8 +781,14 @@ def difference(args):
                 line = datlines[i][j]
                 if line not in difference:
                     difference_inv.append(line)
+        if len(difference_inv) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(difference_inv, args)
     else:
+        if len(difference) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(difference, args)
 
 #####################################################################
@@ -724,6 +836,9 @@ def convex_hull(args):
             outlines.append(line)
     outlines.append(outlines[0])
     args.append = False
+    if len(outlines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
     io.output_lines(outlines, args)
 
 
@@ -806,7 +921,7 @@ def points_in_polygon(args):
                     print(f"\nFile: '{os.path.split(points_file)[1]}'")
                 io.output_lines(outdata_lines, args)
             elif not outfile_orig:
-                print(f"Warning! Zero output lines for data: '{os.path.split(points_file)[1]}'")
+                print(f"Warning! No output lines for data: '{os.path.split(points_file)[1]}'")
         else:
             print(f"Error in reading points_file: {points_file}\nNote that 'nan' columns will be ignored")
             continue
@@ -839,6 +954,9 @@ def calc_min(args):
         outdata_lines.append(' '.join([inpfile] + min_column))
     args.sort = False
     args.uniq = False
+    if len(outdata_lines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
     io.output_lines(outdata_lines, args)
 
 
@@ -856,6 +974,9 @@ def calc_max(args):
         outdata_lines.append(' '.join([inpfile] + max_column))
     args.sort = False
     args.uniq = False
+    if len(outdata_lines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
     io.output_lines(outdata_lines, args)
 
 
@@ -873,6 +994,9 @@ def calc_sum(args):
         outdata_lines.append(' '.join([inpfile] + sum_column))
     args.sort = False
     args.uniq = False
+    if len(outdata_lines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
     io.output_lines(outdata_lines, args)
 
 #####################################################################
@@ -888,6 +1012,9 @@ def calc_mean(args):
         outdata_lines.append(' '.join([inpfile] + mean_column))
     args.sort = False
     args.uniq = False
+    if len(outdata_lines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
     io.output_lines(outdata_lines, args)
 
 #####################################################################
@@ -904,6 +1031,9 @@ def calc_median(args):
         outdata_lines.append(' '.join([inpfile] + median_column))
     args.sort = False
     args.uniq = False
+    if len(outdata_lines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
     io.output_lines(outdata_lines, args)
 
 #####################################################################
@@ -919,6 +1049,9 @@ def calc_std(args):
         outdata_lines.append(' '.join([inpfile] + std_column))
     args.sort = False
     args.uniq = False
+    if len(outdata_lines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
     io.output_lines(outdata_lines, args)
 
 
@@ -1038,6 +1171,9 @@ def anomaly_1D(args):
             outlines_markers.append("")
         else:
             args.outfile = f"{os.path.splitext(outfile_orig)[0]}_markers{os.path.splitext(outfile_orig)[1]}"
+        if len(outlines_markers) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(outlines_markers, args)
 
     outline_anomaly = [f"depth abs_model ref_model anomaly_model"]
@@ -1048,28 +1184,23 @@ def anomaly_1D(args):
         # anomaly data
         args.outfile = None
         outline_anomaly.insert(0,f"Anomaly data for '{os.path.split(args.absmodel)[1]}'")
+        if len(outline_anomaly) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(outline_anomaly, args)
         # plot
         plt.show()
     else: # output anomaly data and plot to files
         # anomaly data
         args.outfile = outfile_orig
+        if len(outline_anomaly) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
         io.output_lines(outline_anomaly, args)
         # plot
         outplot = os.path.abspath(f"{os.path.splitext(outfile_orig)[0]}.{args.ext}")
         plt.savefig(outplot, dpi=args.dpi, format=args.ext)
     plt.close()
-
-
-
-
-
-
-
-
-
-
-
 
 
 
