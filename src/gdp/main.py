@@ -707,12 +707,12 @@ def parse_args(*args, **kwargs):
         help='keywords to be used in searching offline/online databases')
 
     # gdp csproj
-    gdp_csproj = subparsers.add_parser('csproj', help='convert coordinate system projections (ascii data)',
-    description="Convert coordinate system projections (ascii data)")
+    gdp_csproj = subparsers.add_parser('csproj', help='transform/reproject coordinate system (ascii data)',
+    description="Transform/reproject coordinate system (ascii data)")
     gdp_csproj.add_argument(
-        'input_files',
-        nargs='+',
-        help='input ascii files (can use wildcards)')
+        'input_file',
+        type=str,
+        help='input file (ascii format)')
     gdp_csproj.add_argument(
         '-x',
         nargs=2,
@@ -726,6 +726,13 @@ def parse_args(*args, **kwargs):
         nargs=2,
         help='REQUIRED: input and output coordinate systems: INPUT_CS OUTPUT_CS')
     gdp_csproj.add_argument(
+        '--fmt',
+        nargs=2,
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for transformed and original coordinates respectively (default=[".4",".4"])')
+    gdp_csproj.add_argument(
         '--header',
         type=int,
         action='store',
@@ -737,6 +744,17 @@ def parse_args(*args, **kwargs):
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
+    gdp_csproj.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    gdp_csproj.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
 
 
 

@@ -11,16 +11,20 @@ from . import io
 
 
 def csproj_ascii(args):
-    for input_file in args.input_files:
-        pos, _, extra = io.read_numerical_data(input_file, args.header, args.footer,  ".10", args.x, [], skipnan=True)
-        nop = len(pos[0]) # number of points
-        for ip in range(nop):
-            x, y = [pos[0][ip], pos[1][ip]]
-            xnew, ynew = csproj_point(x, y, args.cs[0], args.cs[1])
-            print(x, y, xnew, ynew, extra[ip])
+    pos, _, extra = io.read_numerical_data(args.input_file, args.header, args.footer,  ".10", args.x, [], skipnan=True)
+    nop = len(pos[0]) # number of points
+    output_lines = []
+    for ip in range(nop):
+        x, y = [pos[0][ip], pos[1][ip]]
+        xnew, ynew = transform_point_coordinates(x, y, args.cs[0], args.cs[1])
+        output_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f %{args.fmt[1]}f %s" %(xnew, ynew, x, y, extra[ip]))
+    args.sort = False
+    args.uniq = False
+    io.output_lines(output_lines, args)
 
 
-def csproj_point(x, y, cs_from, cs_to):
+def transform_point_coordinates(x, y, cs_from, cs_to):
+    from . import epsg
     import pyproj
     try:
         from osgeo import ogr, osr
@@ -35,35 +39,30 @@ def csproj_point(x, y, cs_from, cs_to):
         print('Error! The input-output coordinate systems are the same!')
         exit(1)
 
-    print("Not developed yet!")
-    exit(1)
+    if epsg.get_epsg_proj(epsg_from) == None and epsg_from != 4326:
+        print(f'Error! The Proj4 transformation codes not available for: "{cs_from}"')
+        exit(1)
+    elif epsg.get_epsg_proj(epsg_to) == None and epsg_to != 4326:
+        print(f'Error! The Proj4 transformation codes not available for: "{cs_to}"')
+        exit(1)
 
-    # # generate point object
-    # point = ogr.Geometry(ogr.wkbPoint)
-    # point.AddPoint(x, y)
-    # # generate spatial reference objects
-    # inSpatialRef = osr.SpatialReference()
-    # inSpatialRef.ImportFromEPSG(epsg_from)
-    # outSpatialRef = osr.SpatialReference()
-    # outSpatialRef.ImportFromEPSG(epsg_to)
-    # # cs trandform
-    # cstransform = osr.CoordinateTransformation(inSpatialRef, outSpatialRef)
-    # point.Transform(cstransform)
+    # calculate the transformed coordinates
+    if epsg_from == 4326:
+        proj = pyproj.Proj(epsg.get_epsg_proj(epsg_to))
+        xnew, ynew = proj(x, y, inverse=False)
+    elif epsg_to == 4326:
+        proj = pyproj.Proj(epsg.get_epsg_proj(epsg_from))
+        xnew, ynew = proj(x, y, inverse=True)
+    else:
+        # first transform to wgs84
+        proj = pyproj.Proj(epsg.get_epsg_proj(epsg_from))
+        xtemp, ytemp = proj(x, y, inverse=True)
+        # now transform to final coordinate system
+        proj = pyproj.Proj(epsg.get_epsg_proj(epsg_to))
+        xnew, ynew = proj(xtemp, ytemp, inverse=False)
 
-    # xnew, ynew = [point.GetX(), point.GetY()]
+    return [xnew, ynew]
 
-    # epsg3006 = "+proj=utm +zone=33 +ellps=GRS80 +towgs84=0,0,0,0,0,0,0 +units=m +no_defs"
-    # epsg4326 = "+proj=longlat +ellps=WGS84 +datum=WGS84 +no_defs" 
-
-    # # projected to wgs84
-    # p = pyproj.Proj(epsg3006)
-    # xnew, ynew = p(x, y, inverse=True)
-    # return [xnew, ynew]
-
-    # # wgs 84 to projected
-    # p = pyproj.Proj(epsg3006)
-    # xnew, ynew = p(x, y, inverse=False)
-    # return [xnew, ynew]
 
 
 def return_epsg_code(cs_code):
