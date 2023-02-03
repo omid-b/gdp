@@ -5,7 +5,7 @@ import sys
 import argparse
 import subprocess
 
-version = "0.1.2"
+version = "0.2.0a"
 about = """\
 gdp: Geophysical Data Processing
 \nContact information:
