@@ -4,9 +4,8 @@ import os
 import sys
 import argparse
 import subprocess
-from time import time
 
-version = "0.1.2b"
+version = "0.1.2"
 about = """\
 gdp: Geophysical Data Processing
 \nContact information:
@@ -39,6 +38,11 @@ def parse_args(*args, **kwargs):
         '--about',
         action='store_true',
         help='about this package and contact information'
+    )
+    parser.add_argument(
+        '--test',
+        action='store_true',
+        help='test all dependencies'
     )
     parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
     parser._positionals.title = 'list of tools'
@@ -1283,17 +1287,8 @@ def parse_args(*args, **kwargs):
         default = 'dat',
         help='output file extension (default="dat")')
     
-    # # gdp 2Dto3D
-    # gdp_2Dto3D = subparsers.add_parser('2Dto3D', help='2Dto3D',
-    # description="2Dto3D")
-    
-    # # gdp 3Dto1D
-    # gdp_3Dto1D = subparsers.add_parser('3Dto1D', help='3Dto1D',
-    # description="3Dto1D")
-    
-    # # gdp 3Dto2D
-    # gdp_3Dto2D = subparsers.add_parser('3Dto2D', help='3Dto2D',
-    # description="3Dto2D")
+
+    #====gdp georef=====#
 
     gdp_georef = subparsers.add_parser('georef', help='georeference maps',
     description="Georeference maps. Coordinate system could be defined using the EPSG code (visit 'epsg.io' for more information).")
@@ -2058,6 +2053,9 @@ def main(*args, **kwargs):
         clear_screen()
         print(f"{about}\n")
         exit(0)
+    elif args.test:
+        from . import dependency
+        dependency.check_all()
         
     from . import dat
     from . import nan
