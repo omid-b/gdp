@@ -45,844 +45,655 @@ def parse_args(*args, **kwargs):
         help='test all dependencies'
     )
     parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
-    parser._positionals.title = 'list of tools'
+    parser._positionals.title = 'list of modules'
     subparsers = parser.add_subparsers(dest='module')
     
-    #===== Modules =====#
+    #=====MODULE: DATA=====#
+
+    data = subparsers.add_parser('data',
+        help='general data manipulation and processing module',
+        description="General data manipulation and processing module")
+    data_subparsers = data.add_subparsers(dest='submodule')
     
-    # gdp cat
-    gdp_cat = subparsers.add_parser('cat', help='concatenate and reformat input data files',
+    # $> gdp data cat
+    data_cat = data_subparsers.add_parser('cat', help='concatenate and reformat input data files',
     description="Concatenate and reformat input data files")
-    gdp_cat.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_cat.add_argument(
+    data_cat.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    data_cat.add_argument(
         '--nan',
         action='store_true',
         help='not a numerical data type')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '-x',
         nargs='*',
         type=int,
         action='store',
         default=[1, 2],
         help='positional column number(s) (default=[1, 2]; [] is also accepted)')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '-v',
         nargs='*',
         type=int,
         action='store',
         default=[3],
         help='value/data column number(s) (default=[3]; [] is also accepted)')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"])')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '--sort',
         action='store_true',
         help='apply sort to output lines')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '--uniq',
         action='store_true',
         help='apply uniq to output lines')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s)')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file')
-    gdp_cat.add_argument(
+    data_cat.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
     
-    # gdp union
-    gdp_union = subparsers.add_parser('union', help='generate the union of input data files',
-    description="Generate the union of input data files")
-    gdp_union.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_union.add_argument(
+    # $> gdp data union
+    data_union = data_subparsers.add_parser('union', help='generate the union of input data files',
+        description="Generate the union of input data files")
+    data_union.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    data_union.add_argument(
         '--nan',
         action='store_true',
         help='not a numerical data type')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '-x',
         nargs='+',
         type=int,
         action='store',
         default=[1, 2],
         help='positional column number(s) (default=[1, 2]; [] is also accepted)')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '-v',
         nargs='*',
         type=int,
         action='store',
         default=[3],
         help='value/data column number(s) (default=[3]; [] is also accepted)')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"])')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '--sort',
         action='store_true',
         help='apply sort to output lines')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '--uniq',
         action='store_true',
         help='apply uniq to output lines')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s)')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file')
-    gdp_union.add_argument(
+    data_union.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
     
-    # gdp intersect
-    gdp_intersect = subparsers.add_parser('intersect', help='generate the intersect of input data files',
+    # $> gdp data intersect
+    data_intersect = data_subparsers.add_parser('intersect', help='generate the intersect of input data files',
     description="Generate the intersect of input data files")
-    gdp_intersect.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    data_intersect.add_argument(
         '--nan',
         action='store_true',
         help='not a numerical data type')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '-x',
         nargs='+',
         type=int,
         action='store',
         default=[1, 2],
         help='positional column number(s) (default=[1, 2]; [] is also accepted)')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '-v',
         nargs='*',
         type=int,
         action='store',
         default=[3],
         help='value/data column number(s) (default=[3]; [] is also accepted)')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"])')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '--sort',
         action='store_true',
         help='apply sort to output lines')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '--uniq',
         action='store_true',
         help='apply uniq to output lines')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s)')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file')
-    gdp_intersect.add_argument(
+    data_intersect.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
     
-    # gdp difference
-    gdp_difference = subparsers.add_parser('difference', help='generate the difference of input data files',
+    # $> gdp data difference
+    data_difference = data_subparsers.add_parser('difference', help='generate the difference of input data files',
     description="Generate the difference of input data files")
-    gdp_difference.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_difference.add_argument(
+    data_difference.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    data_difference.add_argument(
         '--nan',
         action='store_true',
         help='not a numerical data type')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '-x',
         nargs='+',
         type=int,
         action='store',
         default=[1, 2],
         help='positional column number(s) (default=[1, 2]; [] is also accepted)')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '-v',
         nargs='*',
         type=int,
         action='store',
         default=[3],
         help='value/data column number(s) (default=[3]; [] is also accepted)')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"])')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '--sort',
         action='store_true',
         help='apply sort to output lines')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '--uniq',
         action='store_true',
         help='apply uniq to output lines')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s)')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation')
-    gdp_difference.add_argument(
+    data_difference.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file')
-    gdp_difference.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    
-    # gdp split
-    gdp_split = subparsers.add_parser('split', help='split concatenated dataset',
-    description="Split a concatenated dataset into multiple data files")
-    gdp_split._positionals.title = 'required positional arguments'
-    gdp_split._optionals.title = 'optional/required arguments'
-    gdp_split.add_argument("input_file", nargs=1, help='input ascii file')
-    gdp_split.add_argument(
-        '--method',
-        choices=['nrow','ncol'],
-        required=True,
-        help='REQUIRED: split method (choices: nrow/ncol); nrow: split data based on fixed number of rows/lines; ncol: split data based on fixed number of columns')
-    gdp_split.add_argument(
-        '-n',
-        '--number',
-        type=int,
-        required=True,
-        help='REQUIRED: number of rows (method=nrow), or columns (method=ncol) to identify data split')
-    gdp_split.add_argument(
-        '-o',
-        '--outdir',
-        type=str,
-        action='store',
-        help='output directory')
-    gdp_split.add_argument(
-        '--ext',
-        type=str,
-        action='store',
-        default = 'dat',
-        help='Output files extension (default=dat)')
-    gdp_split.add_argument(
-        '--name',
-        type=int,
-        default=1,
-        help='output file name row/line in each split data (default=1)')
-    gdp_split.add_argument(
-        '--start',
-        type=int,
-        default=0,
-        help='only for method=ncol; start row from the reference row (default=0)')
-    gdp_split.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_split.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-
-    # gdp min
-    gdp_min = subparsers.add_parser('min', help='calculate min of numerical column(s)',
-    description="Calculate minimum of values in numerical column(s)")
-    gdp_min.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_min.add_argument(
-        '-v',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[3],
-        help='value/data column number(s) (default=[3])')
-    gdp_min.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_min.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    gdp_min.add_argument(
-        '--decimal',
-        nargs=1,
-        type=int,
-        action='store',
-        default=[2],
-        help='number of decimals (default=2)')
-    gdp_min.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    gdp_min.add_argument(
+    data_difference.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
 
-    # gdp max
-    gdp_max = subparsers.add_parser('max', help='calculate max of numerical column(s)',
-    description="Calculate maximum of values in numerical column(s)")
-    gdp_max.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_max.add_argument(
-        '-v',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[3],
-        help='value/data column number(s) (default=[3])')
-    gdp_max.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_max.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    gdp_max.add_argument(
-        '--decimal',
-        nargs=1,
-        type=int,
-        action='store',
-        default=[2],
-        help='number of decimals (default=2)')
-    gdp_max.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    gdp_max.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-
-    # gdp sum
-    gdp_sum = subparsers.add_parser('sum', help='calculate sum of numerical column(s)',
-    description="Calculate summation of values in numerical column(s)")
-    gdp_sum.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_sum.add_argument(
-        '-v',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[3],
-        help='value/data column number(s) (default=[3])')
-    gdp_sum.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_sum.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    gdp_sum.add_argument(
-        '--decimal',
-        nargs=1,
-        type=int,
-        action='store',
-        default=[2],
-        help='number of decimals (default=2)')
-    gdp_sum.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    gdp_sum.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    
-    # gdp mean
-    gdp_mean = subparsers.add_parser('mean', help='calculate mean of numerical column(s)',
-    description="Calculate mean of values in numerical column(s)")
-    gdp_mean.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_mean.add_argument(
-        '-v',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[3],
-        help='value/data column number(s) (default=[3])')
-    gdp_mean.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_mean.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    gdp_mean.add_argument(
-        '--decimal',
-        nargs=1,
-        type=int,
-        action='store',
-        default=[2],
-        help='number of decimals (default=2)')
-    gdp_mean.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    gdp_mean.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    
-    # gdp median
-    gdp_median = subparsers.add_parser('median', help='calculate median of numerical column(s)',
-    description="Calculate median of values in numerical column(s)")
-    gdp_median.add_argument("input_files", nargs='+',help='input ascii files (can use wildcards)')
-    gdp_median.add_argument(
-        '-v',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[3],
-        help='value/data column number(s) (default=[3])')
-    gdp_median.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_median.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    gdp_median.add_argument(
-        '--decimal',
-        nargs=1,
-        type=int,
-        action='store',
-        default=[2],
-        help='number of decimals (default=2)')
-    gdp_median.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    gdp_median.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-    
-    # gdp std
-    gdp_std = subparsers.add_parser('std', help='calculate std of numerical column(s)',
-    description="Calculate standard deviation of values in numerical column(s)")
-    gdp_std.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_std.add_argument(
-        '-v',
-        nargs='+',
-        type=int,
-        action='store',
-        default=[3],
-        help='value/data column number(s) (default=[3])')
-    gdp_std.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_std.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    gdp_std.add_argument(
-        '--decimal',
-        nargs=1,
-        type=int,
-        action='store',
-        default=[2],
-        help='number of decimals (default=2)')
-    gdp_std.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file')
-    gdp_std.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output')
-
-    # gdp add
-    gdp_add = subparsers.add_parser('add', help='add value comumn(s) of the same coordinates for input data files',
+    # $> gdp data add
+    data_add = data_subparsers.add_parser('add', help='add value comumn(s) of the same coordinates for input data files',
     description="Add value comumn(s) of the same coordinates for input data files")
-    gdp_add.add_argument("input_files", nargs='+', help='input numerical data files (can use wildcards)')
-    gdp_add.add_argument(
+    data_add.add_argument("input_files", nargs='+', help='input numerical data files (can use wildcards)')
+    data_add.add_argument(
         '-x',
         nargs='+',
         type=int,
         action='store',
         default=[1, 2],
         help='positional column number(s) (default=[1, 2]; [] is also accepted)')
-    gdp_add.add_argument(
+    data_add.add_argument(
         '-v',
         nargs='+',
         type=int,
         action='store',
         default=[3],
         help='value/data column number(s) (default=[3]; [] is also accepted)')
-    gdp_add.add_argument(
+    data_add.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"]); the first value is specially important')
-    gdp_add.add_argument(
+    data_add.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file')
-    gdp_add.add_argument(
+    data_add.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
-    gdp_add.add_argument(
+    data_add.add_argument(
         '--sort',
         action='store_true',
         help='sort output lines')
-    gdp_add.add_argument(
+    data_add.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s)')
-    gdp_add.add_argument(
+    data_add.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_add.add_argument(
+    data_add.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
 
-    # gdp csinfo
-    gdp_csinfo = subparsers.add_parser('csinfo', help='get coordinate system information',
-    description="Get coordinate system information. For more information visit https://spatialreference.org/ref/epsg/")
-    gdp_csinfo.add_argument(
-        'keywords',
-        nargs='+',
-        help='keywords to be used in searching offline/online databases')
+    # $> gdp data split
+    data_split = data_subparsers.add_parser('split', help='split concatenated dataset',
+    description="Split a concatenated dataset into multiple data files")
+    data_split._positionals.title = 'required positional arguments'
+    data_split._optionals.title = 'optional/Required arguments'
+    data_split.add_argument("input_file", nargs=1, help='input ascii file')
+    data_split.add_argument(
+        '--method',
+        choices=['nrow','ncol'],
+        required=True,
+        help='REQUIRED: split method (choices: nrow/ncol); nrow: split data based on fixed number of rows/lines; ncol: split data based on fixed number of columns')
+    data_split.add_argument(
+        '-n',
+        '--number',
+        type=int,
+        required=True,
+        help='REQUIRED: number of rows (method=nrow), or columns (method=ncol) to identify data split')
+    data_split.add_argument(
+        '-o',
+        '--outdir',
+        type=str,
+        action='store',
+        help='output directory')
+    data_split.add_argument(
+        '--ext',
+        type=str,
+        action='store',
+        default = 'dat',
+        help='Output files extension (default=dat)')
+    data_split.add_argument(
+        '--name',
+        type=int,
+        default=1,
+        help='output file name row/line in each split data (default=1)')
+    data_split.add_argument(
+        '--start',
+        type=int,
+        default=0,
+        help='only for method=ncol; start row from the reference row (default=0)')
+    data_split.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_split.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
 
-    # gdp csproj
-    gdp_csproj = subparsers.add_parser('csproj', help='transform/reproject coordinate system (ascii data)',
-    description="Transform/reproject coordinate system (ascii data)")
-    gdp_csproj.add_argument(
+    #=====MODULE: XYZ=====#
+
+    xyz = subparsers.add_parser('xyz',
+        help='geographic data manipulation and processing module',
+        description="Geographic data manipulation and processing module")
+    xyz_subparsers = xyz.add_subparsers(dest='submodule')
+
+    xyz_cs = xyz_subparsers.add_parser('cs',
+        help='coordinate systems information and transformation module',
+        description='Coordinate systems information and transformation module')
+    xyz_cs_subparsers = xyz_cs.add_subparsers(dest='subsubmodule')
+    #------------------------#
+    # $> gdp xyz cs info
+    xyz_cs_info = xyz_cs_subparsers.add_parser('info',
+        help='get coordinate system information',
+        description='Get coordinate system information. For more information visit https://spatialreference.org/ref/epsg/')
+    xyz_cs_info.add_argument(
+        '--keywords',
+        nargs='+',
+        required=True,
+        help='keywords to be used in searching offline/online databases')
+    #------------------------#
+    # $> gdp xyz cs transform
+    xyz_cs_transform = xyz_cs_subparsers.add_parser('transform', help='transform/reproject coordinate system',
+    description="Transform/reproject coordinate system")
+    xyz_cs_transform.add_argument(
         'input_file',
         type=str,
         help='input file (ascii format)')
-    gdp_csproj.add_argument(
+    xyz_cs_transform.add_argument(
         '-x',
         nargs=2,
         type=int,
         required=True,
         help='REQUIRED: x/lon and y/lat column numbers e.g., "1 2"')
-    gdp_csproj.add_argument(
+    xyz_cs_transform.add_argument(
         '--cs',
         type=str,
         required=True,
         nargs=2,
         help='REQUIRED: input and output coordinate systems: INPUT_CS OUTPUT_CS')
-    gdp_csproj.add_argument(
+    xyz_cs_transform.add_argument(
         '--fmt',
         nargs=2,
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for transformed and original coordinates respectively (default=[".4",".4"])')
-    gdp_csproj.add_argument(
+    xyz_cs_transform.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_csproj.add_argument(
+    xyz_cs_transform.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_csproj.add_argument(
+    xyz_cs_transform.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file')
-    gdp_csproj.add_argument(
+    xyz_cs_transform.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
-
-
-
-
-    # gdp pip
-    gdp_pip = subparsers.add_parser('pip', help='points-in-polygon',
-    description="Points-in-polygon (ray tracing method).")
-    gdp_pip.add_argument(
+    #------------------------#
+    # $> gdp xyz chull
+    xyz_chull = xyz_subparsers.add_parser('chull', help='convex-hull/minimum bounding polygon',
+    description="convex-hull / minimum bounding polygon for a set of points")
+    xyz_chull._positionals.title = 'Required arguments'
+    xyz_chull.add_argument("points_file", type=str, help="path to points_file")
+    xyz_chull.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='[x/lon, y/lat] column number(s) (default=[1, 2])')
+    xyz_chull.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    xyz_chull.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    xyz_chull.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file/folder')
+    xyz_chull.add_argument(
+        '--smooth',
+        type=int,
+        action='store',
+        default=0,
+        help='number of Bezier points to smooth the output convex-hull polygon')
+    xyz_chull.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for output convex-hull (default=".4")'
+    )
+    #------------------------#
+    # $> gdp xyz pip
+    xyz_pip = xyz_subparsers.add_parser('pip', help='points-in-polygon',
+    description="Points-in-polygon (ray tracing method)")
+    xyz_pip._positionals.title = 'Required arguments'
+    xyz_pip.add_argument(
         '--point',
         type=str,
         nargs='+',
         action='store',
         help='path to points file (single or multiple allowed)')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '--polygon',
         type=str,
         action='store',
         help='path to polygon file (ascii or shape file)')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '-x',
         nargs=2,
         type=int,
         action='store',
         default=[1, 2],
         help='positional column number(s) (default=[1, 2]); does not apply to ascii polygon')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation: points outside polygon (only if one polygon is given)')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '--xrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
         help='x/longitude range: [minX/minlon, maxX/maxlon]; this option could be used to specify polygon region if a polygon file is not available.')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '--yrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
         help='y/latitude range: [minY/minlat, maxY/maxlat]; this option could be used to specify polygon region if a polygon file is not available.')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file/folder')
-    gdp_pip.add_argument(
+    xyz_pip.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
-
-    # gdp_nodes
-    gdp_nodes = subparsers.add_parser('nodes', help='output a 2D/3D list of regularly spaced nodes',
-        description="Output a 2D/3D list of regularly spaced nodes")
-    gdp_nodes.add_argument(
+    #------------------------#
+    # $> gdp xyz nodes
+    xyz_nodes = xyz_subparsers.add_parser('nodes', help='output a 2D/3D list of regularly spaced nodes',
+    description="Output a 2D/3D list of regularly spaced nodes")
+    xyz_nodes._positionals.title = 'Required arguments'
+    xyz_nodes.add_argument(
         '--xrange',
         type=float,
         nargs=2,
         required=True,
         help='REQUIRED: x/longitude min & max values',
     )
-    gdp_nodes.add_argument(
+    xyz_nodes.add_argument(
         '--xstep',
         type=float,
         required=True,
         help='REQUIRED: x/longitude step size/interval',
     )
-    gdp_nodes.add_argument(
+    xyz_nodes.add_argument(
         '--yrange',
         type=float,
         nargs=2,
         required=True,
         help='REQUIRED: y/latitude min & max values',
     )
-    gdp_nodes.add_argument(
+    xyz_nodes.add_argument(
         '--ystep',
         type=float,
         required=True,
         help='REQUIRED: y/latitude step size/interval',
     )
-    gdp_nodes.add_argument(
+    xyz_nodes.add_argument(
         '--zrange',
         type=float,
         nargs=2,
         required=False,
         help='z/depth min & max values',
     )
-    gdp_nodes.add_argument(
+    xyz_nodes.add_argument(
         '--zstep',
         type=float,
         required=False,
         help='REQUIRED: z/depth step size/interval',
     )
-    gdp_nodes.add_argument(
+    xyz_nodes.add_argument(
         '--polygon',
         type=str,
         action='store',
         help='polygon to run "points-in-polygon" process before outputing the results'
     )
-    gdp_nodes.add_argument(
+    xyz_nodes.add_argument(
         '--fmt',
         nargs=3,
         type=str,
         default=["","",""],
         help='output x y z float format',
     )
-    gdp_nodes.add_argument(
+    xyz_nodes.add_argument(
         '-o',
         '--outfile',
         type=str,
@@ -890,12 +701,13 @@ def parse_args(*args, **kwargs):
         help='output file name/path',
     )
 
-
-    # gdp gridder
-    gdp_gridder = subparsers.add_parser('gridder', help='gridding/interpolation of 2D/map data',
-        description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
-    gdp_gridder.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    gdp_gridder.add_argument(
+    #------------------------#
+    # $> gdp xyz gridder
+    xyz_gridder = xyz_subparsers.add_parser('gridder', help='gridding/interpolation of 2D/map data',
+    description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
+    xyz_gridder._positionals.title = 'Required arguments'
+    xyz_gridder.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    xyz_gridder.add_argument(
         '--spacing',
         nargs='+',
         type=float,
@@ -903,1143 +715,1412 @@ def parse_args(*args, **kwargs):
         required=True,
         help='REQUIRED: grid spacing along [longitude, latitude]'
     )
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--smoothing',
         type=float,
         required=True,
         help='REQUIRED: grid smoothing length (km)'
     )
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--utm',
         action='store_true',
         help='specify if data is given in UTM/Cartesian format (default=False)')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--xrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
         help='grid x/longitude range: [minX/minlon, minY/maxlon] (default=Auto)')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--yrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
         help='grid y/latitude range: [minY/minlat, minY/maxlat] (default=Auto)')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '-x',
         nargs=2,
         type=int,
         action='store',
         default=[1, 2],
         help='[x/longitude, y/latitude] column number(s) (default=[1, 2])')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '-v',
         nargs='+',
         type=int,
         action='store',
         default=[3],
         help='value/data column number(s) (default=[3])')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"])')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s)')
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file/folder'
     )
-    gdp_gridder.add_argument(
+    xyz_gridder.add_argument(
         '--polygon',
         type=str,
         action='store',
         help='polygon to run "points-in-polygon" process before outputing the results'
     )
 
+    #------------------------#
+    # $> gdp xyz plot
+    xyz_plot = xyz_subparsers.add_parser('plot', help='plot module for geographic/xyz data types',
+    description="Plot module for geographic/xyz data types")
+    xyz_plot._positionals.title = 'Required arguments'
+    
+    # XXX xyz_plot subsubmodules not developed yet
 
-    # gdp chull
-    gdp_chull = subparsers.add_parser('chull', help='convex-hull/minimum bounding polygon',
-    description="convex-hull / minimum bounding polygon for a set of points")
-    gdp_chull._positionals.title = 'required arguments'
-    gdp_chull.add_argument("points_file", type=str, help="path to points_file")
-    gdp_chull.add_argument(
-        '-x',
-        nargs=2,
+    #=====MODULE: STATS=====#
+
+    stats = subparsers.add_parser('stats',
+        help='statistics module',
+        description="Statistics module")
+    stats_subparsers = stats.add_subparsers(dest='submodule')
+
+    #------------------------#
+    # $> gdp stats min
+    stats_min = stats_subparsers.add_parser('min', help='calculate min of numerical column(s)',
+        description="Calculate minimum of values in numerical column(s)")
+    stats_min.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    stats_min.add_argument(
+        '-v',
+        nargs='+',
         type=int,
         action='store',
-        default=[1, 2],
-        help='[x/lon, y/lat] column number(s) (default=[1, 2])')
-    gdp_chull.add_argument(
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    stats_min.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_chull.add_argument(
+    stats_min.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_chull.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output file/folder')
-    gdp_chull.add_argument(
-        '--smooth',
+    stats_min.add_argument(
+        '--decimal',
+        nargs=1,
         type=int,
         action='store',
-        default=0,
-        help='number of Bezier points to smooth the output convex-hull polygon')
-    # gdp_chull.add_argument(
-    #     '--offset',
-    #     type=float,
-    #     action='store',
-    #     default=0,
-    #     help='inflate (positive float) or deflate (negative float) the output convex-hull polygon')
-
-    gdp_chull.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for output convex-hull (default=".4")'
-    )
-
-    # gdp convert shp2dat
-    gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
-    description="Convert shape file to dat (ascii)")
-    gdp_shp2dat.add_argument(
-        '--point',
-        type=str,
-        nargs='+',
-        action='store',
-        help='point(s): shape file(s)')
-    gdp_shp2dat.add_argument(
-        '--polygon',
-        type=str,
-        nargs='+',
-        action='store',
-        help='polygon(s): shape file(s)')
-    gdp_shp2dat.add_argument(
-        '-o',
-        '--outdir',
-        type=str,
-        required=True,
-        action='store',
-        help='REQUIRED: output directory')
-    gdp_shp2dat.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for output convex-hull (default=".4")'
-    )
-    
-    # gdp convert nc2dat
-    gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
-    description="Convert nc data to dat/ascii")
-    gdp_nc2dat.add_argument(
-        "input_file",
-        type=str,
-        action='store',
-        nargs=1,
-        help='input nc file')
-    gdp_nc2dat.add_argument(
-        '--metadata',
-        action='store_true',
-        help='only output metadata'
-    )
-    gdp_nc2dat.add_argument(
-        '-v',
-        '--data',
-        nargs='*',
-        type=str,
-        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
-    )
-    gdp_nc2dat.add_argument(
+        default=[2],
+        help='number of decimals (default=2)')
+    stats_min.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
-        help='output data to file')
-    gdp_nc2dat.add_argument(
+        help='output file')
+    stats_min.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
-    gdp_nc2dat.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for positional and value columns respectively (default=[".4",".4"])')
 
-    # gdp convert dat2nc
-    gdp_dat2nc = subparsers.add_parser('dat2nc', help='convert dat/ascii (gridded) to nc format',
-    description="Convert dat/ascii (must be gridded) to nc format")
-    gdp_dat2nc._positionals.title = 'required arguments'
-    gdp_dat2nc.add_argument("input_file", type=str, action='store', help='input ascii file')
-    gdp_dat2nc.add_argument(
-        'output_file',
-        type=str,
-        action='store',
-        help='output nc file')
-    gdp_dat2nc.add_argument(
-        '-x',
-        nargs=2,
-        type=int,
-        action='store',
-        default=[1, 2],
-        help='[x, y] column number(s) (default=[1, 2])')
-    gdp_dat2nc.add_argument(
+    #------------------------#
+    # $> gdp stats max
+    stats_max = stats_subparsers.add_parser('max', help='calculate max of numerical column(s)',
+    description="Calculate maximum of values in numerical column(s)")
+    stats_max.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    stats_max.add_argument(
         '-v',
-        '--data',
-        nargs=1,
+        nargs='+',
         type=int,
         action='store',
         default=[3],
-        help="data/value column (default=3)"
-    )
-    gdp_dat2nc.add_argument(
-        '--polygon',
-        type=str,
-        action='store',
-        help='polygon to apply points-in-polygon')
-    gdp_dat2nc.add_argument(
-        '--xrange',
-        nargs=2,
-        type=float,
-        action='store',
-        default=[-0.999, 0.999],
-        help='grid x/longitude range: [minX/minlon, minY/maxlon] (default=Auto)')
-    gdp_dat2nc.add_argument(
-        '--yrange',
-        nargs=2,
-        type=float,
-        action='store',
-        default=[-0.999, 0.999],
-        help='grid y/latitude range: [minY/minlat, minY/maxlat] (default=Auto)')
-    gdp_dat2nc.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format (to store) for positional and value columns respectively (default=[".4",".4"])')
-    
-    # gdp convert 1Dto2D
-    gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='combine/convert 1D datasets into 2D datasets',
-    description="Combine/convert 1D datasets into 2D datasets. Example use cases:\
-     (1) building phase velocity map datasets from point/1D dispersion curve datasets,\
-     (2) building shear velocity map datasets from 1D shear velocity profiles.")
-    gdp_1Dto2D.add_argument("datalist", type=str, action='store', help='1D dataset datalist')
-    gdp_1Dto2D.add_argument(
-        '-o',
-        '--outdir',
-        type=str,
-        action='store',
-        required=True,
-        help='REQUIRED: output directory')
-    gdp_1Dto2D.add_argument(
-        '-x',
-        nargs=1,
+        help='value/data column number(s) (default=[3])')
+    stats_max.add_argument(
+        '--header',
         type=int,
         action='store',
-        default=[1],
-        help='positional column number in 1D data files (default=1)')
-    gdp_1Dto2D.add_argument(
-        '-v',
-        nargs='+',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    stats_max.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    stats_max.add_argument(
+        '--decimal',
+        nargs=1,
         type=int,
         action='store',
         default=[2],
-        help="value column(s) in 1D data files (default=[2])"
-    )
-    gdp_1Dto2D.add_argument(
-        '--skipnan',
-        action='store_true',
-        help='do not output lines with nan value(s)')
-    gdp_1Dto2D.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4", "03.0"],
-        help='float format (to store) for positional, value, and the identifier columns respectively (default=[".4",".4","03.0"])')
-    gdp_1Dto2D.add_argument(
-        '--header',
-        type=int,
-        action='store',
-        default=0,
-        help='number of header lines to ignore (default=0)')
-    gdp_1Dto2D.add_argument(
-        '--footer',
-        type=int,
-        action='store',
-        default=0,
-        help='number of footer lines to ignore (default=0)')
-    gdp_1Dto2D.add_argument(
-        '--prefix',
-        type=str,
-        action='store',
-        default = 'model_',
-        help='output file name prefix (default="model_")')
-    gdp_1Dto2D.add_argument(
-        '--suffix',
-        type=str,
-        action='store',
-        default = '',
-        help='output file name suffix (default="")')
-    gdp_1Dto2D.add_argument(
-        '--ext',
-        type=str,
-        action='store',
-        default = 'dat',
-        help='output file extension (default="dat")')
-    
-    # # gdp 1Dto3D
-    # gdp_1Dto3D = subparsers.add_parser('1Dto3D', help='1Dto3D',
-    # description="1Dto3D")
-    
-    # gdp 2Dto1D
-    gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='extract/convert 2D datasets into 1D datasets',
-    description="Extract/convert 2D datasets into 1D datasets. Example use cases:\
-     (1) extracting point dispersion curves from phase velocity maps,\
-     (2) extracing 1D shear velocity profiles from shear velocity map datasets")
-    gdp_2Dto1D.add_argument("datalist", type=str, action='store', help='2D dataset datalist')
-    gdp_2Dto1D.add_argument(
+        help='number of decimals (default=2)')
+    stats_max.add_argument(
         '-o',
-        '--outdir',
+        '--outfile',
         type=str,
         action='store',
-        required=True,
-        help='REQUIRED: output directory')
-    gdp_2Dto1D.add_argument(
-        '-x',
-        nargs=2,
-        type=int,
-        action='store',
-        default=[1,2],
-        help='positional column number in 2D data files (default=[1,2])')
-    gdp_2Dto1D.add_argument(
+        help='output file')
+    stats_max.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+
+    #------------------------#
+    # $> gdp stats sum
+    stats_sum = stats_subparsers.add_parser('sum', help='calculate sum of numerical column(s)',
+    description="Calculate summation of values in numerical column(s)")
+    stats_sum.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    stats_sum.add_argument(
         '-v',
         nargs='+',
         type=int,
         action='store',
         default=[3],
-        help="value column(s) in 2D data files (default=[3])"
-    )
-    gdp_2Dto1D.add_argument(
-        '--skipnan',
-        action='store_true',
-        help='do not output lines with nan value(s)')
-    gdp_2Dto1D.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4", "03.0"],
-        help='float format (to store) for positional, value, and the identifier columns respectively (default=[".4",".4","03.0"])')
-    gdp_2Dto1D.add_argument(
+        help='value/data column number(s) (default=[3])')
+    stats_sum.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    gdp_2Dto1D.add_argument(
+    stats_sum.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    gdp_2Dto1D.add_argument(
-        '--ext',
-        type=str,
-        action='store',
-        default = 'dat',
-        help='output file extension (default="dat")')
-    
-
-    #====gdp georef=====#
-
-    gdp_georef = subparsers.add_parser('georef', help='georeference maps',
-    description="Georeference maps. Coordinate system could be defined using the EPSG code (visit 'epsg.io' for more information).")
-    gdp_georef.add_argument(
-        '--epsg',
+    stats_sum.add_argument(
+        '--decimal',
+        nargs=1,
         type=int,
         action='store',
-        default=4326,
-        help='EPSG coordinate system and trasfomation code (default=4326; WGS84)')
-
-
-    #====gdp seismic=====#
-    seismic = subparsers.add_parser('seismic', help='seismic data acquisition and processing module (requires SAC)',
-    description="seismic data acquisition and processing module (requires SAC)")
-    seismic_subparsers = seismic.add_subparsers(dest='submodule')
-
-    # gdp seismic download
-    seismic_download = seismic_subparsers.add_parser('download', help='seismic data acquisition module',
-    description="seismic data acquisition module")
-    download_subparsers = seismic_download.add_subparsers(dest='subsubmodule')
-
-    # gdp seismic download init
-    download_init = download_subparsers.add_parser('init', help='initialize download project',
-    description='initialize download project and create "download.config" file')
-    download_init.add_argument(
-        '--maindir',
-        type=str,
-        default='./',
-        help="path to maindir containing 'download.config' (default='./')"
-    )
-
-    # gdp seismic download events
-    download_events = download_subparsers.add_parser('events', help='download list of events',
-    description="download list of events")
-    download_events.add_argument(
-        '--maindir',
-        type=str,
-        default='./',
-        help="path to maindir containing 'download.config' (default='./')"
-    )
-
-    # gdp seismic download stations
-    download_stations = download_subparsers.add_parser('stations', help='download list of stations',
-    description="download list of stations")
-    download_stations.add_argument(
-        '--maindir',
-        type=str,
-        default='./',
-        help="path to maindir containing 'download.config' (default='./')"
-    )
-
-    # gdp seismic download metadata
-    download_metadata = download_subparsers.add_parser('metadata', help='download station metadata',
-    description="download station metadata")
-    download_metadata.add_argument(
-        '--maindir',
-        type=str,
-        default='./',
-        help="path to maindir containing 'download.config' (default='./')"
-    )
-    download_metadata.add_argument(
-        '--metadata',
-        type=str,
-        default='./metadata',
-        help="path to output metadata directory' (default='./metadata')"
-    )
-
-    # gdp seismic download mseeds
-    download_mseeds = download_subparsers.add_parser('mseeds', help='download mseed files',
-    description="download mseed files")
-    download_mseeds.add_argument(
-        '--maindir',
-        type=str,
-        default='./',
-        help="path to maindir containing 'download.config' (default='./')"
-    )
-    download_mseeds.add_argument(
-        '--duration',
-        type=int,
-        required=True,
-        help="REQUIRED: timeseries length/duration in seconds."
-    )
-    download_mseeds.add_argument(
-        '--offset',
-        type=int,
-        default=0,
-        help="Timeseries starttime offset (relative to events) in seconds (default=0)."
-    )
-    download_mseeds.add_argument(
-        '--mseeds',
-        type=str,
-        default='./mseeds',
-        help="Path to output mseeds directory (default=./mseeds)."
-    )
-    download_mseeds.add_argument(
-        '--ant',
-        action='store_true',
-        help='download for ambient-noise-tomography; do not read events list (default=False)'
-    )
-
-
-    # gdp seismic mseed2sac
-
-    seismic_mseed2sac = seismic_subparsers.add_parser('mseed2sac', help='convert mseed to sac',
-    description="Convert mseed to sac. This script also handles data fragmentation issue. ")
-    seismic_mseed2sac.add_argument("input_files", nargs='+', help='input mseed files (can use wildcards e.g., mseeds/*/*)')
-    seismic_mseed2sac.add_argument(
-        '-o',
-        '--outdir',
-        type=str,
-        required=True,
-        help='REQUIRED: path to output directory'
-    )
-    seismic_mseed2sac.add_argument(
-        '--reformat',
-        action='store_true',
-        help='reformat output sac files: rename and output to related directories based on mseed start time, station & channel information'
-    )
-    seismic_mseed2sac.add_argument(
-        '--offset',
-        type=float,
-        default=0,
-        help='output event starttime offset in seconds (only if "reformat" is enabled; default=0); same offset value that was used for data acquisition'
-    )
-    seismic_mseed2sac.add_argument(
-        '--resample',
-        type=float,
-        default=999,
-        help='output sac files sampling frequency'
-    )
-    seismic_mseed2sac.add_argument(
-        '--noprocess',
-        action='store_true',
-        help='by default, detrend(spline degree 4) and taper(percentage=0.005) are applied; enabling this option will skip these processes (not recommended!)'
-    )
-    
-    
-    # gdp seismic sac2dat
-    seismic_sac2dat = seismic_subparsers.add_parser('sac2dat', help='convert sac to dat (ascii)',
-    description="Convert sac to dat (ascii); output format: time, amplitude")
-    seismic_sac2dat.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
-    seismic_sac2dat.add_argument(
-        '-o',
-        '--outdir',
-        type=str,
-        required=True,
-        help='REQUIRED: path to output directory'
-    )
-    seismic_sac2dat.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".2",".2"],
-        help='float format for time and value columns respectively (default=[".2",".2"])')
-    seismic_sac2dat.add_argument(
-        '--timerange',
-        nargs=2,
-        type=float,
-        action='store',
-        default=[999, 999],
-        help='time range limit')
-
-
-    # gdp seismic writehdr
-    seismic_writehdr = seismic_subparsers.add_parser('writehdr', help='write sac headers using xml metadata',
-    description="Write sac headers using xml metadata")
-    seismic_writehdr.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
-    seismic_writehdr.add_argument(
-        '--metadata',
-        type=str,
-        default='./metadata',
-        help="path to xml (metadata) dataset directory (default='./metadata')"
-    )
-    seismic_writehdr.add_argument(
-        '--refmodel',
-        type=str,
-        choices=['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'],
-        default=None,
-        help="reference model to write theoretical arrivals into headers (default: None)"
-    )
-    seismic_writehdr.add_argument(
-        '--maindir',
-        type=str,
-        default='./',
-        help="path to maindir containing 'download.config' (default='./')"
-    )
-    seismic_writehdr.add_argument(
-        '--ant',
-        action='store_true',
-        help='ambient noise tomography dataset: do not update events information (default=False)'
-    )
-    seismic_writehdr.add_argument(
-        '--sac',
-        type=str,
-        default='auto',
-        help='path to sac software executable (default=auto)'
-    )
-
-    # gdp seismic remresp
-    seismic_remresp = seismic_subparsers.add_parser('remresp', help='remove sac instrument response using xml metadata',
-    description="Remove instrument response of sacfiles using xml metadata (see obspy documentation for 'unit' (output), 'pre_filt', and 'water_level' information)")
-    seismic_remresp.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
-    seismic_remresp.add_argument(
-        '--metadata',
-        type=str,
-        default='./metadata',
-        help="path to xml (metadata) dataset directory (default='./metadata')"
-    )
-    seismic_remresp.add_argument(
-        '--unit',
-        type=str,
-        choices=['DISP','VEL','ACC'],
-        default='VEL',
-        help="output unit; (default='VEL')"
-    )
-    seismic_remresp.add_argument(
-        '--pre_filt',
-        type=float,
-        nargs=4,
-        default=(0.005, 0.006, 30.0, 35.0),
-        help="deconvolution prefilter;  default=(0.005, 0.006, 30.0, 35.0); enter 4 zeros for 'pre_filt=None'"
-    )
-    seismic_remresp.add_argument(
-        '--water_level',
-        type=int,
-        default=60,
-        help="deconvolution water level; default=60"
-    )
-
-
-    # gdp seismic resample
-    seismic_resample = seismic_subparsers.add_parser('resample', help='resample sac files',
-    description="Resample sac files using obspy")
-    seismic_resample.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
-    seismic_resample.add_argument(
-        '--sf',
-        type=int,
-        required=True,
-        help='REQUIRED: output sampling frequency (Hz)'
-    )
-    seismic_resample.add_argument(
-        '--sac',
-        type=str,
-        default='auto',
-        help='path to sac software executable (default=auto)'
-    )
-
-
-    # gdp seismic bandpass
-    seismic_bandpass = seismic_subparsers.add_parser('bandpass', help='apply bandpass filter to sac files',
-    description="Apply bandpass filter to sac files")
-    seismic_bandpass.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
-    seismic_bandpass.add_argument(
-        '-u',
-        '--unit',
-        type=str,
-        required=True,
-        choices=['p','f'],
-        help='REQUIRED: corner unit; choices=("p": period, "f":frequency)'
-    )
-    seismic_bandpass.add_argument(
-        '--c1',
-        type=float,
-        required=True,
-        help='REQUIRED: corner period (s) / frequency (Hz) 1'
-    )
-    seismic_bandpass.add_argument(
-        '--c2',
-        type=float,
-        required=True,
-        help='REQUIRED: corner period (s) / frequency (Hz) 2'
-    )
-    seismic_bandpass.add_argument(
-        '-n',
-        type=int,
-        default=3,
-        help='number of poles (default: n=3)'
-    )
-    seismic_bandpass.add_argument(
-        '-p',
-        type=int,
-        default=2,
-        help='number of passes (default: p=2)'
-    )
-    seismic_bandpass.add_argument(
-        '--sac',
-        type=str,
-        default='auto',
-        help='path to sac software executable (default=auto)'
-    )
-
-    # gdp seismic cut
-    seismic_cut = seismic_subparsers.add_parser('cut', help='cut sac files (also applies cutter fillz)',
-    description="Cut sac files (also applies cutter fillz)")
-    seismic_cut.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
-    seismic_cut.add_argument(
-        '--begin',
-        type=float,
-        required=True,
-        help='REQUIRED: cut begin time (s)'
-    )
-    seismic_cut.add_argument(
-        '--end',
-        type=float,
-        required=True,
-        help='REQUIRED: cut end time (s)'
-    )
-    seismic_cut.add_argument(
-        '--relative',
-        type=str,
-        default=None,
-        help='cut relative to header ... e.g. t1-t9 (default=None)'
-    )
-    seismic_cut.add_argument(
-        '--sac',
-        type=str,
-        default='auto',
-        help='path to sac software executable (default=auto)'
-    )
-
-
-    # gdp seismic remchan
-    seismic_remchan = seismic_subparsers.add_parser('remchan', help='remove extra channels from event directories',
-    description="remove extra channels from event directories")
-    seismic_remchan.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
-    seismic_remchan.add_argument(
-        '--channels',
-        type=str,
-        required=True,
-        nargs='+',
-        help='REQUIRED: list of similar channels'
-    )
-    seismic_remchan.add_argument(
-        '--onlykeep',
-        type=str,
-        required=True,
-        nargs='+',
-        help='REQUIRED: if all similar channels are available, only keep these channels'
-    )
-
-
-    # gdp seismic sws
-    seismic_sws = seismic_subparsers.add_parser('sws', help='shear wave splitting (sws) processing module',
-    description="shear wave splitting (sws) processing module")
-    sws_subparsers = seismic_sws.add_subparsers(dest='subsubmodule')
-
-    # gdp seismic sws init
-    sws_init = sws_subparsers.add_parser('init', help='initialize sws project: write XKS phase travel times, make copies, and initial QC',
-    description='initialize sws project: write XKS phase travel times using "obspy.taup()", make copies, and initial QC')
-    sws_init.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
-
-    sws_init.add_argument(
-        '--hdronly',
-        action='store_true',
-        help='only update header information')
-
-    sws_init.add_argument(
-        '--refmodel',
-        type=str,
-        choices=['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'],
-        default='iasp91',
-        help="reference model (default: 'iasp91')"
-    )
-
-    sws_init.add_argument(
-        '--sac',
-        type=str,
-        default='auto',
-        help='path to sac software executable (default=auto)'
-    )
-
-
-
-    #====mag submodules=====#
-    # mag = subparsers.add_parser('mag', help='geomagnetic data processing and modeling module',
-    # description="geomagnetic data processing and modeling module")
-    # mag_subparsers = mag.add_subparsers(dest='submodule')
-
-    # # gdp mag igrf
-    # mag_igrf = mag_subparsers.add_parser('igrf', help='calculate igrf',
-    # description="calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)")
-
-    # # gdp mag gem2dat
-    # mag_gem2dat = mag_subparsers.add_parser('gem2dat', help='convert raw data format from a GEM proton magnetometer to ascii format',
-    # description="convert raw data format from a GEM proton magnetometer to ascii format")
-
-    # # gdp mag sphere
-    # mag_sphere = mag_subparsers.add_parser('sphere', help='forward modeling of uniformly magnetized sphere(s)',
-    # description="forward modeling of uniformly magnetized sphere(s) over a local grid")
-    
-
-    #====ubc submodules=====#
-    ubc = subparsers.add_parser('ubc', help='UBC code data preparation and conversion tools',
-    description="UBC code data preparation and conversion tools")
-    ubc_subparsers = ubc.add_subparsers(dest='submodule')
-    ubc._positionals.title = "List of tools"
-
-    # gdp ubc mod2xyz
-    ubc_mod2xyz = ubc_subparsers.add_parser('mod2xyz', help='convert UBC model to xyz using 3D mesh',
-    description="Convert UBC model to xyz using 3D mesh")
-    ubc_mod2xyz.add_argument("mesh", type=str,\
-        help='3D mesh to be used for models')
-    ubc_mod2xyz.add_argument("models", type=str,\
-        help='inversion model file/files (can use wildcards)', nargs='+')
-    ubc_mod2xyz.add_argument('-o','--outdir', type=str,\
-        help='by default, the output xyz files are placed in the same directory as the model files; this option can be used to change this behaviour')
-    ubc_mod2xyz.add_argument(
-        '--fmt',
-        nargs=2,
-        type=str,
-        action='store',
-        default=["10.2","13.8"],
-        help='float format for positional and model value columns respectively (default=["10.2","13.8"])')
-    ubc_mod2xyz.add_argument(
-        '--skipdummy',
-        action='store_true',
-        help='do not output dummy cells with a value of -100.0')
-    ubc_mod2xyz.add_argument(
-        '--label',
-        type=str,
-        default="Value",
-        help='model parameter label e.g. Susceptibility, Density etc.; default="Value"'
-    )
-    ubc_mod2xyz.add_argument(
-        '--polygon',
-        nargs='+',
-        default=[],
-        help="polygon/polygons to apply point-in-polygon before output"
-    )
-
-    # gdp ubc invcurves
-    ubc_invcurves = ubc_subparsers.add_parser('invcurves', help='generate plots for inversion curves',
-    description="Generate plots for inversion curves")
-    ubc_invcurves.add_argument("invdir", type=str,\
-        help='inversion directory')
-    ubc_invcurves.add_argument('-o','--outdir', type=str,\
-        help='by default, the output plot are placed in the same inversion directory; this option can be used to change this behaviour')
-    ubc_invcurves.add_argument('--ext', choices=['pdf', 'png', 'jpg'], default='pdf',\
-        help='output file extension; choices: pdf (default), jpg, png ')
-    ubc_invcurves.add_argument('--dpi', type=int, help='output dpi (dot per inch; default=150)', default=150)
-
-    #====anomaly submodules=====#
-    anomaly = subparsers.add_parser('anomaly', help='generate anomaly/perturbation model from absolute value model using a reference model',
-    description="Generate anomaly/perturbation model from absolute value model using a reference model")
-    anomaly_subparsers = anomaly.add_subparsers(dest='submodule')
-    anomaly._positionals.title = "List of options"
-
-    # gdp anomaly 1D
-    anomaly_1D = anomaly_subparsers.add_parser('1D', help='calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model',
-        description='Calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model')
-    anomaly_1D.add_argument('absmodel', type=str, help='input absolute value 1D model')
-    anomaly_1D.add_argument('--refmodel', required=True, type=str, help='REQUIRED: input 1D reference model; MUST only have two columns (depth, value)')
-    anomaly_1D.add_argument('-x','--depth', required=True, type=int, nargs=1, help='REQUIRED: column number for the depth column in ther input abosolute model')
-    anomaly_1D.add_argument('-v','--value', required=True, type=int, nargs=1, help='REQUIRED: column number for the value column (e.g., velocity) in ther input abosolute model')
-    anomaly_1D.add_argument('-o','--outfile', action='store', help='output file path')
-    anomaly_1D.add_argument('--ext', type=str, choices=['pdf','png','jpg'], default='pdf',\
-        help="output plot file extension/format; choices=['pdf' (default),'png','jpg']")
-    anomaly_1D.add_argument('--dpi', type=int, help='output plot dpi (dot per inch; default=150)', default=150)
-    anomaly_1D.add_argument('--header', type=int, default=0, help='number of header lines to be ignored in the input abosolute value model; default=0')
-    anomaly_1D.add_argument('--footer', type=int, default=0, help='number of footer lines to be ignored in the input abosolute value model; default=0')
-    anomaly_1D.add_argument('--fmt', type=str, nargs=2, default=['03.0', '8.4'],\
-     help="float format for output model; default=['03.0', '8.4']")
-    anomaly_1D.add_argument('--type', choices=['percentage','difference'], default='percentage',
-        help="output anomaly data type; choices=['percentage' (default), 'difference']")
-    anomaly_1D.add_argument('--markers', type=float, nargs='+', default=[],
-        help='mark position of specific values in 1D profiles (e.g., values between 1 and 2 percent perturbations are used to locate the  LAB depth)')
-    anomaly_1D.add_argument('--markers_depths', type=float, nargs=2,
-        help='depth range to search the given markers for')
-    anomaly_1D.add_argument('--markers_case', type=str, choices=['increase', 'decrease', 'both'], default='both', 
-        help='consider it a marker if the two consecutive values increase/decrease/both[default]')
-    anomaly_1D.add_argument('--vlabel', help='value label', default=['Value'], type=str, nargs='+')
-    anomaly_1D.add_argument('--depthlabel', help='depth label (default="Depth (km)")', default=['Depth','(km)'], type=str, nargs='+')
-    anomaly_1D.add_argument('--invert_yaxis', choices=['True','False'], default='True',
-        help="invert y-axis in the plot (default='True'); choices=[True,False]")
-    anomaly_1D.add_argument('--legend_loc', type=str, help='legend location', default='lower left', \
-        choices=['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'])        
-    
-
-    #====plot submodules=====#
-    plot = subparsers.add_parser('plot', help='plot module (requires GMT)',
-    description="Plot module (requires GMT)")
-    plot_subparsers = plot.add_subparsers(dest='submodule')
-
-    # gdp plot stations
-    plot_stations = plot_subparsers.add_parser('stations', help='plot seismic stations on a map',
-    description="Plot seismic stations on a map")
-    plot_stations.add_argument("stalist", type=str, help='input station list file')
-    plot_stations.add_argument(
-        '--labels',
-        action='store_true',
-        help='print station labels on the output map (if not global scale map)')
-    plot_stations.add_argument(
-        '--boundaries',
-        action='store_true',
-        help='plot major tectonic boundaries')
-    plot_stations.add_argument(
-        '-g',
-        '--glob',
-        action='store_true',
-        help='enable global scale map')
-    plot_stations.add_argument(
-        '--meridian',
-        type=float,
-        default=0,
-        help='map central meridian (only if global scale map)')
-    plot_stations.add_argument(
-        '--gmt',
-        type=str,
-        default='auto',
-        help='path to GMT software executable (default=auto)'
-    )
-
-    # gdp plot events
-    plot_events = plot_subparsers.add_parser('events', help='plot seismic events on a map',
-    description="Plot seismic events on a map")
-    plot_events.add_argument("eventlist", type=str, help='input event list file')
-    plot_events.add_argument(
-        '--lon',
-        type=float,
-        required=True,
-        help='REQUIRED: study region longitude')
-    plot_events.add_argument(
-        '--lat',
-        type=float,
-        required=True,
-        help='REQUIRED: study region latitude')
-    plot_events.add_argument(
-        '--gmt',
-        type=str,
-        default='auto',
-        help='path to GMT software executable (default=auto)'
-    )
-
-    # gdp plot hist
-    plot_hist = plot_subparsers.add_parser('hist', help='generate histogram plots',
-    description="Generate histogram plots")
-    plot_hist.add_argument(
-        "input_files",
-        type=str,
-        nargs='+',
-        help='input data files (can use wildcards)'
-    )
-    plot_hist.add_argument(
+        default=[2],
+        help='number of decimals (default=2)')
+    stats_sum.add_argument(
         '-o',
         '--outfile',
         type=str,
-        help='output file name')
-    plot_hist.add_argument(
+        action='store',
+        help='output file')
+    stats_sum.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+
+    #------------------------#
+    # $> gdp stats mean
+    stats_mean = stats_subparsers.add_parser('mean', help='calculate mean of numerical column(s)',
+    description="Calculate mean of values in numerical column(s)")
+    stats_mean.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    stats_mean.add_argument(
         '-v',
         nargs='+',
         type=int,
         action='store',
-        default=[1],
-        help='value/data column number(s) (default=[1])')
-    plot_hist.add_argument(
-        '-n',
-        '--nbins',
-        type=int,
-        default=999,
-        help='number of bins (default=auto)')
-    plot_hist.add_argument(
-        '--legend',
-        type=str,
-        nargs='+',
-        action='store',
-        default=[],
-        help='legend text; number of elements must be equal to input data items (note: use underline for space)')
-    plot_hist.add_argument(
-        '--xlabel',
-        type=str,
-        nargs='*',
-        action='store',
-        default=['Values'],
-        help='x-axis label')
-    plot_hist.add_argument(
-        '--ylabel',
-        type=str,
-        nargs='*',
-        action='store',
-        default=['Count'],
-        help='y-axis label')
-    plot_hist.add_argument(
-        '--title',
-        type=str,
-        nargs='*',
-        action='store',
-        default=[],
-        help='plot title')
-    plot_hist.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for positional and value columns respectively (default=0.4)')
-    plot_hist.add_argument(
-        '--mean',
-        action='store_true',
-        help='enable plotting distribution mean (dashed line)')
-    plot_hist.add_argument(
-        '--median',
-        action='store_true',
-        help='enable plotting distribution median (dashed line)')
-    plot_hist.add_argument(
-        '--palette',
-        type=str,
-        default='Set1',
-        choices=['BrBG','PRGn','PiYG','PuOr','RdBu','RdGy','RdYlBu',
-                 'RdYlGn','Spectral','Accent','Dark2','Paired',
-                 'Pastel1','Pastel2','Set1','Set2','Set3',
-                 'Blues','BuGn','BuPu','GnBu','Greens','Greys',
-                 'OrRd','Oranges','PuBu','PuBuGn','PuRd','Purples',
-                 'RdPu','Reds','YlGn','YlGnBu','YlGnBu','YlOrBr','YlOrRd'],
-        help="color palette (see https://www.codecademy.com/article/seaborn-design-ii)"
-    )
-    plot_hist.add_argument(
-        '--figsize',
-        type=float,
-        nargs=2,
-        default=[8,6],
-        help="output plot size dimention along x and y (default=[8,6])"
-    )
-    plot_hist.add_argument(
-        '--transparency',
-        type=float,
-        default=0.75,
-        help='transparency value (between 0 and 1; default=0.75)')
-    plot_hist.add_argument(
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    stats_mean.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    plot_hist.add_argument(
+    stats_mean.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-
-    # gdp plot features
-    plot_features = plot_subparsers.add_parser('features', help='plot geographical features (e.g., points, polygons)',
-    description="Plot geographical features (e.g., points, polygons)")
-    plot_features.add_argument(
-        '--point',
-        type=str,
-        nargs='+',
-        action='store',
-        help='point(s): ascii or shape file(s)')
-    plot_features.add_argument(
-        '--polygon',
-        type=str,
-        nargs='+',
-        action='store',
-        help='polygon(s): ascii or shape file(s)')
-    plot_features.add_argument(
-        '--geotiff',
-        type=str,
+    stats_mean.add_argument(
+        '--decimal',
         nargs=1,
-        default=None,
+        type=int,
         action='store',
-        help='GeoTiff (georeferenced map)')
-    plot_features.add_argument(
+        default=[2],
+        help='number of decimals (default=2)')
+    stats_mean.add_argument(
         '-o',
         '--outfile',
         type=str,
-        help='output file name')
-    plot_features.add_argument(
-        '--epsg',
+        action='store',
+        help='output file')
+    stats_mean.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+    
+    #------------------------#
+    # $> gdp stats median
+    stats_median = stats_subparsers.add_parser('median', help='calculate median of numerical column(s)',
+    description="Calculate median of values in numerical column(s)")
+    stats_median.add_argument("input_files", nargs='+',help='input ascii files (can use wildcards)')
+    stats_median.add_argument(
+        '-v',
+        nargs='+',
         type=int,
         action='store',
-        default=4326,
-        help='EPSG coordinate system and trasfomation code (default=4326; WGS84)')
-    plot_features.add_argument(
-        '-x',
-        nargs=2,
-        type=int,
-        action='store',
-        default=[1,2],
-        help='for ascii files only: positional column numbers ([lon, lat]; default=[1,2])')
-    plot_features.add_argument(
-        '--palette',
-        type=str,
-        default='Set1',
-        choices=['Black','BrBG','PRGn','PiYG','PuOr','RdBu','RdGy','RdYlBu',
-                 'RdYlGn','Spectral','Accent','Dark2','Paired',
-                 'Pastel1','Pastel2','Set1','Set2','Set3',
-                 'Blues','BuGn','BuPu','GnBu','Greens','Greys',
-                 'OrRd','Oranges','PuBu','PuBuGn','PuRd','Purples',
-                 'RdPu','Reds','YlGn','YlGnBu','YlGnBu','YlOrBr','YlOrRd'],
-        help="color palette (default='Set1'; see https://www.codecademy.com/article/seaborn-design-ii)"
-    )
-    plot_features.add_argument(
-        '--landcolor',
-        type=str,
-        default='lightgrey',
-        help="land color; choose among standrad matplotlib colors (default='lightgrey')"
-    )
-    plot_features.add_argument(
-        '--pointsize',
-        type=float,
-        default=20,
-        help="points marker size (default=20)")
-    plot_features.add_argument(
-        '--linewidth',
-        type=float,
-        default=2,
-        help="polygons line width (default=2)")
-    plot_features.add_argument(
-        '--ticks',
-        type=float,
-        nargs=2,
-        default=[999, 999],
-        help="meridians and parallels tick spacing (default=Auto; [0, 0] to disable)")
-    plot_features.add_argument(
-        '--figsize',
-        type=float,
-        nargs=2,
-        default=[8,6],
-        help="output plot size dimention along x and y (default=[8,6])"
-    )
-    plot_features.add_argument(
-        '--transparency',
-        type=float,
-        default=1,
-        help="transparency value (between 0 and 1; default=1)")
-    plot_features.add_argument(
-        '--area',
-        type=int,
-        default=1000,
-        help="area threshold size to plot (default=1000)"
-    )
-    plot_features.add_argument(
-        '--padding',
-        type=float,
-        default=0.1,
-        help="map padding factor (default=0.1)"
-    )
-    plot_features.add_argument(
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    stats_median.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
-        help='for ascii files only: number of header lines to ignore (default=0)')
-    plot_features.add_argument(
+        help='number of header lines to ignore (default=0)')
+    stats_median.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
-        help='for ascii files only: number of footer lines to ignore (default=0)')
+        help='number of footer lines to ignore (default=0)')
+    stats_median.add_argument(
+        '--decimal',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[2],
+        help='number of decimals (default=2)')
+    stats_median.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    stats_median.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+
+    #------------------------#
+    # $> gdp stats std
+    stats_std = stats_subparsers.add_parser('std', help='calculate std of numerical column(s)',
+    description="Calculate standard deviation of values in numerical column(s)")
+    stats_std.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    stats_std.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help='value/data column number(s) (default=[3])')
+    stats_std.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    stats_std.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    stats_std.add_argument(
+        '--decimal',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[2],
+        help='number of decimals (default=2)')
+    stats_std.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    stats_std.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
+
+    #------------------------#
+    # $> gdp stats plot
+    stats_plot = stats_subparsers.add_parser('plot',
+        help='plot module for statiscal analysis of data',
+        description='Plot module for statiscal analysis of data')
+
+    #=====MODULE: RASTER=====#
+
+    raster = subparsers.add_parser('raster',
+        help='raster data processing module',
+        description="Raster data processing module")
+    raster_subparsers = raster.add_subparsers(dest='submodule')
+
+    #=====MODULE: CONVERT=====#
+
+    convert = subparsers.add_parser('convert',
+        help='data conversion module',
+        description="Data conversion module")
+    convert_subparsers = convert.add_subparsers(dest='submodule')
+
+    #=====MODULE: SEISMIC=====#
+
+    seismic = subparsers.add_parser('seismic',
+        help='seismic data acquisition and processing module',
+        description="Seismic data acquisition and processing module")
+    seismic_subparsers = seismic.add_subparsers(dest='submodule')
+
+    #=====MODULE: UBC=====#
+
+    ubc = subparsers.add_parser('ubc',
+        help='UBC code data processing and illustration module',
+        description="UBC code data processing and illustration module")
+    ubc_subparsers = ubc.add_subparsers(dest='submodule')
+
+    
+
+    
+
+    
+
+    #
+
+
+    
+
+
+
+    
+
+    # # gdp convert shp2dat
+    # gdp_shp2dat = subparsers.add_parser('shp2dat', help='convert shp to dat (ascii)',
+    # description="Convert shape file to dat (ascii)")
+    # gdp_shp2dat.add_argument(
+    #     '--point',
+    #     type=str,
+    #     nargs='+',
+    #     action='store',
+    #     help='point(s): shape file(s)')
+    # gdp_shp2dat.add_argument(
+    #     '--polygon',
+    #     type=str,
+    #     nargs='+',
+    #     action='store',
+    #     help='polygon(s): shape file(s)')
+    # gdp_shp2dat.add_argument(
+    #     '-o',
+    #     '--outdir',
+    #     type=str,
+    #     required=True,
+    #     action='store',
+    #     help='REQUIRED: output directory')
+    # gdp_shp2dat.add_argument(
+    #     '--fmt',
+    #     nargs='+',
+    #     type=str,
+    #     action='store',
+    #     default=[".4",".4"],
+    #     help='float format for output convex-hull (default=".4")'
+    # )
+    
+    # # gdp convert nc2dat
+    # gdp_nc2dat = subparsers.add_parser('nc2dat', help='convert nc to dat (ascii)',
+    # description="Convert nc data to dat/ascii")
+    # gdp_nc2dat.add_argument(
+    #     "input_file",
+    #     type=str,
+    #     action='store',
+    #     nargs=1,
+    #     help='input nc file')
+    # gdp_nc2dat.add_argument(
+    #     '--metadata',
+    #     action='store_true',
+    #     help='only output metadata'
+    # )
+    # gdp_nc2dat.add_argument(
+    #     '-v',
+    #     '--data',
+    #     nargs='*',
+    #     type=str,
+    #     help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information"
+    # )
+    # gdp_nc2dat.add_argument(
+    #     '-o',
+    #     '--outfile',
+    #     type=str,
+    #     action='store',
+    #     help='output data to file')
+    # gdp_nc2dat.add_argument(
+    #     '-a',
+    #     '--append',
+    #     action='store_true',
+    #     help='append to output')
+    # gdp_nc2dat.add_argument(
+    #     '--fmt',
+    #     nargs='+',
+    #     type=str,
+    #     action='store',
+    #     default=[".4",".4"],
+    #     help='float format for positional and value columns respectively (default=[".4",".4"])')
+
+    # # gdp convert dat2nc
+    # gdp_dat2nc = subparsers.add_parser('dat2nc', help='convert dat/ascii (gridded) to nc format',
+    # description="Convert dat/ascii (must be gridded) to nc format")
+    # gdp_dat2nc._positionals.title = 'Required arguments'
+    # gdp_dat2nc.add_argument("input_file", type=str, action='store', help='input ascii file')
+    # gdp_dat2nc.add_argument(
+    #     'output_file',
+    #     type=str,
+    #     action='store',
+    #     help='output nc file')
+    # gdp_dat2nc.add_argument(
+    #     '-x',
+    #     nargs=2,
+    #     type=int,
+    #     action='store',
+    #     default=[1, 2],
+    #     help='[x, y] column number(s) (default=[1, 2])')
+    # gdp_dat2nc.add_argument(
+    #     '-v',
+    #     '--data',
+    #     nargs=1,
+    #     type=int,
+    #     action='store',
+    #     default=[3],
+    #     help="data/value column (default=3)"
+    # )
+    # gdp_dat2nc.add_argument(
+    #     '--polygon',
+    #     type=str,
+    #     action='store',
+    #     help='polygon to apply points-in-polygon')
+    # gdp_dat2nc.add_argument(
+    #     '--xrange',
+    #     nargs=2,
+    #     type=float,
+    #     action='store',
+    #     default=[-0.999, 0.999],
+    #     help='grid x/longitude range: [minX/minlon, minY/maxlon] (default=Auto)')
+    # gdp_dat2nc.add_argument(
+    #     '--yrange',
+    #     nargs=2,
+    #     type=float,
+    #     action='store',
+    #     default=[-0.999, 0.999],
+    #     help='grid y/latitude range: [minY/minlat, minY/maxlat] (default=Auto)')
+    # gdp_dat2nc.add_argument(
+    #     '--fmt',
+    #     nargs='+',
+    #     type=str,
+    #     action='store',
+    #     default=[".4",".4"],
+    #     help='float format (to store) for positional and value columns respectively (default=[".4",".4"])')
+    
+    # # gdp convert 1Dto2D
+    # gdp_1Dto2D = subparsers.add_parser('1Dto2D', help='combine/convert 1D datasets into 2D datasets',
+    # description="Combine/convert 1D datasets into 2D datasets. Example use cases:\
+    #  (1) building phase velocity map datasets from point/1D dispersion curve datasets,\
+    #  (2) building shear velocity map datasets from 1D shear velocity profiles.")
+    # gdp_1Dto2D.add_argument("datalist", type=str, action='store', help='1D dataset datalist')
+    # gdp_1Dto2D.add_argument(
+    #     '-o',
+    #     '--outdir',
+    #     type=str,
+    #     action='store',
+    #     required=True,
+    #     help='REQUIRED: output directory')
+    # gdp_1Dto2D.add_argument(
+    #     '-x',
+    #     nargs=1,
+    #     type=int,
+    #     action='store',
+    #     default=[1],
+    #     help='positional column number in 1D data files (default=1)')
+    # gdp_1Dto2D.add_argument(
+    #     '-v',
+    #     nargs='+',
+    #     type=int,
+    #     action='store',
+    #     default=[2],
+    #     help="value column(s) in 1D data files (default=[2])"
+    # )
+    # gdp_1Dto2D.add_argument(
+    #     '--skipnan',
+    #     action='store_true',
+    #     help='do not output lines with nan value(s)')
+    # gdp_1Dto2D.add_argument(
+    #     '--fmt',
+    #     nargs='+',
+    #     type=str,
+    #     action='store',
+    #     default=[".4",".4", "03.0"],
+    #     help='float format (to store) for positional, value, and the identifier columns respectively (default=[".4",".4","03.0"])')
+    # gdp_1Dto2D.add_argument(
+    #     '--header',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='number of header lines to ignore (default=0)')
+    # gdp_1Dto2D.add_argument(
+    #     '--footer',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='number of footer lines to ignore (default=0)')
+    # gdp_1Dto2D.add_argument(
+    #     '--prefix',
+    #     type=str,
+    #     action='store',
+    #     default = 'model_',
+    #     help='output file name prefix (default="model_")')
+    # gdp_1Dto2D.add_argument(
+    #     '--suffix',
+    #     type=str,
+    #     action='store',
+    #     default = '',
+    #     help='output file name suffix (default="")')
+    # gdp_1Dto2D.add_argument(
+    #     '--ext',
+    #     type=str,
+    #     action='store',
+    #     default = 'dat',
+    #     help='output file extension (default="dat")')
+    
+    # # # gdp 1Dto3D
+    # # gdp_1Dto3D = subparsers.add_parser('1Dto3D', help='1Dto3D',
+    # # description="1Dto3D")
+    
+    # # gdp 2Dto1D
+    # gdp_2Dto1D = subparsers.add_parser('2Dto1D', help='extract/convert 2D datasets into 1D datasets',
+    # description="Extract/convert 2D datasets into 1D datasets. Example use cases:\
+    #  (1) extracting point dispersion curves from phase velocity maps,\
+    #  (2) extracing 1D shear velocity profiles from shear velocity map datasets")
+    # gdp_2Dto1D.add_argument("datalist", type=str, action='store', help='2D dataset datalist')
+    # gdp_2Dto1D.add_argument(
+    #     '-o',
+    #     '--outdir',
+    #     type=str,
+    #     action='store',
+    #     required=True,
+    #     help='REQUIRED: output directory')
+    # gdp_2Dto1D.add_argument(
+    #     '-x',
+    #     nargs=2,
+    #     type=int,
+    #     action='store',
+    #     default=[1,2],
+    #     help='positional column number in 2D data files (default=[1,2])')
+    # gdp_2Dto1D.add_argument(
+    #     '-v',
+    #     nargs='+',
+    #     type=int,
+    #     action='store',
+    #     default=[3],
+    #     help="value column(s) in 2D data files (default=[3])"
+    # )
+    # gdp_2Dto1D.add_argument(
+    #     '--skipnan',
+    #     action='store_true',
+    #     help='do not output lines with nan value(s)')
+    # gdp_2Dto1D.add_argument(
+    #     '--fmt',
+    #     nargs='+',
+    #     type=str,
+    #     action='store',
+    #     default=[".4",".4", "03.0"],
+    #     help='float format (to store) for positional, value, and the identifier columns respectively (default=[".4",".4","03.0"])')
+    # gdp_2Dto1D.add_argument(
+    #     '--header',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='number of header lines to ignore (default=0)')
+    # gdp_2Dto1D.add_argument(
+    #     '--footer',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='number of footer lines to ignore (default=0)')
+    # gdp_2Dto1D.add_argument(
+    #     '--ext',
+    #     type=str,
+    #     action='store',
+    #     default = 'dat',
+    #     help='output file extension (default="dat")')
+    
+
+    # #====gdp georef=====#
+
+    # gdp_georef = subparsers.add_parser('georef', help='georeference maps',
+    # description="Georeference maps. Coordinate system could be defined using the EPSG code (visit 'epsg.io' for more information).")
+    # gdp_georef.add_argument(
+    #     '--epsg',
+    #     type=int,
+    #     action='store',
+    #     default=4326,
+    #     help='EPSG coordinate system and trasfomation code (default=4326; WGS84)')
+
+
+    # #====gdp seismic=====#
+    # seismic = subparsers.add_parser('seismic', help='seismic data acquisition and processing module (requires SAC)',
+    # description="seismic data acquisition and processing module (requires SAC)")
+    # seismic_subparsers = seismic.add_subparsers(dest='submodule')
+
+    # # gdp seismic download
+    # seismic_download = seismic_subparsers.add_parser('download', help='seismic data acquisition module',
+    # description="seismic data acquisition module")
+    # download_subparsers = seismic_download.add_subparsers(dest='subsubmodule')
+
+    # # gdp seismic download init
+    # download_init = download_subparsers.add_parser('init', help='initialize download project',
+    # description='initialize download project and create "download.config" file')
+    # download_init.add_argument(
+    #     '--maindir',
+    #     type=str,
+    #     default='./',
+    #     help="path to maindir containing 'download.config' (default='./')"
+    # )
+
+    # # gdp seismic download events
+    # download_events = download_subparsers.add_parser('events', help='download list of events',
+    # description="download list of events")
+    # download_events.add_argument(
+    #     '--maindir',
+    #     type=str,
+    #     default='./',
+    #     help="path to maindir containing 'download.config' (default='./')"
+    # )
+
+    # # gdp seismic download stations
+    # download_stations = download_subparsers.add_parser('stations', help='download list of stations',
+    # description="download list of stations")
+    # download_stations.add_argument(
+    #     '--maindir',
+    #     type=str,
+    #     default='./',
+    #     help="path to maindir containing 'download.config' (default='./')"
+    # )
+
+    # # gdp seismic download metadata
+    # download_metadata = download_subparsers.add_parser('metadata', help='download station metadata',
+    # description="download station metadata")
+    # download_metadata.add_argument(
+    #     '--maindir',
+    #     type=str,
+    #     default='./',
+    #     help="path to maindir containing 'download.config' (default='./')"
+    # )
+    # download_metadata.add_argument(
+    #     '--metadata',
+    #     type=str,
+    #     default='./metadata',
+    #     help="path to output metadata directory' (default='./metadata')"
+    # )
+
+    # # gdp seismic download mseeds
+    # download_mseeds = download_subparsers.add_parser('mseeds', help='download mseed files',
+    # description="download mseed files")
+    # download_mseeds.add_argument(
+    #     '--maindir',
+    #     type=str,
+    #     default='./',
+    #     help="path to maindir containing 'download.config' (default='./')"
+    # )
+    # download_mseeds.add_argument(
+    #     '--duration',
+    #     type=int,
+    #     required=True,
+    #     help="REQUIRED: timeseries length/duration in seconds."
+    # )
+    # download_mseeds.add_argument(
+    #     '--offset',
+    #     type=int,
+    #     default=0,
+    #     help="Timeseries starttime offset (relative to events) in seconds (default=0)."
+    # )
+    # download_mseeds.add_argument(
+    #     '--mseeds',
+    #     type=str,
+    #     default='./mseeds',
+    #     help="Path to output mseeds directory (default=./mseeds)."
+    # )
+    # download_mseeds.add_argument(
+    #     '--ant',
+    #     action='store_true',
+    #     help='download for ambient-noise-tomography; do not read events list (default=False)'
+    # )
+
+
+    # # gdp seismic mseed2sac
+
+    # seismic_mseed2sac = seismic_subparsers.add_parser('mseed2sac', help='convert mseed to sac',
+    # description="Convert mseed to sac. This script also handles data fragmentation issue. ")
+    # seismic_mseed2sac.add_argument("input_files", nargs='+', help='input mseed files (can use wildcards e.g., mseeds/*/*)')
+    # seismic_mseed2sac.add_argument(
+    #     '-o',
+    #     '--outdir',
+    #     type=str,
+    #     required=True,
+    #     help='REQUIRED: path to output directory'
+    # )
+    # seismic_mseed2sac.add_argument(
+    #     '--reformat',
+    #     action='store_true',
+    #     help='reformat output sac files: rename and output to related directories based on mseed start time, station & channel information'
+    # )
+    # seismic_mseed2sac.add_argument(
+    #     '--offset',
+    #     type=float,
+    #     default=0,
+    #     help='output event starttime offset in seconds (only if "reformat" is enabled; default=0); same offset value that was used for data acquisition'
+    # )
+    # seismic_mseed2sac.add_argument(
+    #     '--resample',
+    #     type=float,
+    #     default=999,
+    #     help='output sac files sampling frequency'
+    # )
+    # seismic_mseed2sac.add_argument(
+    #     '--noprocess',
+    #     action='store_true',
+    #     help='by default, detrend(spline degree 4) and taper(percentage=0.005) are applied; enabling this option will skip these processes (not recommended!)'
+    # )
+    
+    
+    # # gdp seismic sac2dat
+    # seismic_sac2dat = seismic_subparsers.add_parser('sac2dat', help='convert sac to dat (ascii)',
+    # description="Convert sac to dat (ascii); output format: time, amplitude")
+    # seismic_sac2dat.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
+    # seismic_sac2dat.add_argument(
+    #     '-o',
+    #     '--outdir',
+    #     type=str,
+    #     required=True,
+    #     help='REQUIRED: path to output directory'
+    # )
+    # seismic_sac2dat.add_argument(
+    #     '--fmt',
+    #     nargs='+',
+    #     type=str,
+    #     action='store',
+    #     default=[".2",".2"],
+    #     help='float format for time and value columns respectively (default=[".2",".2"])')
+    # seismic_sac2dat.add_argument(
+    #     '--timerange',
+    #     nargs=2,
+    #     type=float,
+    #     action='store',
+    #     default=[999, 999],
+    #     help='time range limit')
+
+
+    # # gdp seismic writehdr
+    # seismic_writehdr = seismic_subparsers.add_parser('writehdr', help='write sac headers using xml metadata',
+    # description="Write sac headers using xml metadata")
+    # seismic_writehdr.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
+    # seismic_writehdr.add_argument(
+    #     '--metadata',
+    #     type=str,
+    #     default='./metadata',
+    #     help="path to xml (metadata) dataset directory (default='./metadata')"
+    # )
+    # seismic_writehdr.add_argument(
+    #     '--refmodel',
+    #     type=str,
+    #     choices=['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'],
+    #     default=None,
+    #     help="reference model to write theoretical arrivals into headers (default: None)"
+    # )
+    # seismic_writehdr.add_argument(
+    #     '--maindir',
+    #     type=str,
+    #     default='./',
+    #     help="path to maindir containing 'download.config' (default='./')"
+    # )
+    # seismic_writehdr.add_argument(
+    #     '--ant',
+    #     action='store_true',
+    #     help='ambient noise tomography dataset: do not update events information (default=False)'
+    # )
+    # seismic_writehdr.add_argument(
+    #     '--sac',
+    #     type=str,
+    #     default='auto',
+    #     help='path to sac software executable (default=auto)'
+    # )
+
+    # # gdp seismic remresp
+    # seismic_remresp = seismic_subparsers.add_parser('remresp', help='remove sac instrument response using xml metadata',
+    # description="Remove instrument response of sacfiles using xml metadata (see obspy documentation for 'unit' (output), 'pre_filt', and 'water_level' information)")
+    # seismic_remresp.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
+    # seismic_remresp.add_argument(
+    #     '--metadata',
+    #     type=str,
+    #     default='./metadata',
+    #     help="path to xml (metadata) dataset directory (default='./metadata')"
+    # )
+    # seismic_remresp.add_argument(
+    #     '--unit',
+    #     type=str,
+    #     choices=['DISP','VEL','ACC'],
+    #     default='VEL',
+    #     help="output unit; (default='VEL')"
+    # )
+    # seismic_remresp.add_argument(
+    #     '--pre_filt',
+    #     type=float,
+    #     nargs=4,
+    #     default=(0.005, 0.006, 30.0, 35.0),
+    #     help="deconvolution prefilter;  default=(0.005, 0.006, 30.0, 35.0); enter 4 zeros for 'pre_filt=None'"
+    # )
+    # seismic_remresp.add_argument(
+    #     '--water_level',
+    #     type=int,
+    #     default=60,
+    #     help="deconvolution water level; default=60"
+    # )
+
+
+    # # gdp seismic resample
+    # seismic_resample = seismic_subparsers.add_parser('resample', help='resample sac files',
+    # description="Resample sac files using obspy")
+    # seismic_resample.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
+    # seismic_resample.add_argument(
+    #     '--sf',
+    #     type=int,
+    #     required=True,
+    #     help='REQUIRED: output sampling frequency (Hz)'
+    # )
+    # seismic_resample.add_argument(
+    #     '--sac',
+    #     type=str,
+    #     default='auto',
+    #     help='path to sac software executable (default=auto)'
+    # )
+
+
+    # # gdp seismic bandpass
+    # seismic_bandpass = seismic_subparsers.add_parser('bandpass', help='apply bandpass filter to sac files',
+    # description="Apply bandpass filter to sac files")
+    # seismic_bandpass.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
+    # seismic_bandpass.add_argument(
+    #     '-u',
+    #     '--unit',
+    #     type=str,
+    #     required=True,
+    #     choices=['p','f'],
+    #     help='REQUIRED: corner unit; choices=("p": period, "f":frequency)'
+    # )
+    # seismic_bandpass.add_argument(
+    #     '--c1',
+    #     type=float,
+    #     required=True,
+    #     help='REQUIRED: corner period (s) / frequency (Hz) 1'
+    # )
+    # seismic_bandpass.add_argument(
+    #     '--c2',
+    #     type=float,
+    #     required=True,
+    #     help='REQUIRED: corner period (s) / frequency (Hz) 2'
+    # )
+    # seismic_bandpass.add_argument(
+    #     '-n',
+    #     type=int,
+    #     default=3,
+    #     help='number of poles (default: n=3)'
+    # )
+    # seismic_bandpass.add_argument(
+    #     '-p',
+    #     type=int,
+    #     default=2,
+    #     help='number of passes (default: p=2)'
+    # )
+    # seismic_bandpass.add_argument(
+    #     '--sac',
+    #     type=str,
+    #     default='auto',
+    #     help='path to sac software executable (default=auto)'
+    # )
+
+    # # gdp seismic cut
+    # seismic_cut = seismic_subparsers.add_parser('cut', help='cut sac files (also applies cutter fillz)',
+    # description="Cut sac files (also applies cutter fillz)")
+    # seismic_cut.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
+    # seismic_cut.add_argument(
+    #     '--begin',
+    #     type=float,
+    #     required=True,
+    #     help='REQUIRED: cut begin time (s)'
+    # )
+    # seismic_cut.add_argument(
+    #     '--end',
+    #     type=float,
+    #     required=True,
+    #     help='REQUIRED: cut end time (s)'
+    # )
+    # seismic_cut.add_argument(
+    #     '--relative',
+    #     type=str,
+    #     default=None,
+    #     help='cut relative to header ... e.g. t1-t9 (default=None)'
+    # )
+    # seismic_cut.add_argument(
+    #     '--sac',
+    #     type=str,
+    #     default='auto',
+    #     help='path to sac software executable (default=auto)'
+    # )
+
+
+    # # gdp seismic remchan
+    # seismic_remchan = seismic_subparsers.add_parser('remchan', help='remove extra channels from event directories',
+    # description="remove extra channels from event directories")
+    # seismic_remchan.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
+    # seismic_remchan.add_argument(
+    #     '--channels',
+    #     type=str,
+    #     required=True,
+    #     nargs='+',
+    #     help='REQUIRED: list of similar channels'
+    # )
+    # seismic_remchan.add_argument(
+    #     '--onlykeep',
+    #     type=str,
+    #     required=True,
+    #     nargs='+',
+    #     help='REQUIRED: if all similar channels are available, only keep these channels'
+    # )
+
+
+    # # gdp seismic sws
+    # seismic_sws = seismic_subparsers.add_parser('sws', help='shear wave splitting (sws) processing module',
+    # description="shear wave splitting (sws) processing module")
+    # sws_subparsers = seismic_sws.add_subparsers(dest='subsubmodule')
+
+    # # gdp seismic sws init
+    # sws_init = sws_subparsers.add_parser('init', help='initialize sws project: write XKS phase travel times, make copies, and initial QC',
+    # description='initialize sws project: write XKS phase travel times using "obspy.taup()", make copies, and initial QC')
+    # sws_init.add_argument("input_files", nargs='+', help='input sac files (can use wildcards e.g., sacfiles/*/*)')
+
+    # sws_init.add_argument(
+    #     '--hdronly',
+    #     action='store_true',
+    #     help='only update header information')
+
+    # sws_init.add_argument(
+    #     '--refmodel',
+    #     type=str,
+    #     choices=['1066a','1066b','ak135','ak135f','ak135f_no_mud','iasp91','herrin','jb','prem','pwdk','sp6'],
+    #     default='iasp91',
+    #     help="reference model (default: 'iasp91')"
+    # )
+
+    # sws_init.add_argument(
+    #     '--sac',
+    #     type=str,
+    #     default='auto',
+    #     help='path to sac software executable (default=auto)'
+    # )
+
+
+
+    # #====mag submodules=====#
+    # # mag = subparsers.add_parser('mag', help='geomagnetic data processing and modeling module',
+    # # description="geomagnetic data processing and modeling module")
+    # # mag_subparsers = mag.add_subparsers(dest='submodule')
+
+    # # # gdp mag igrf
+    # # mag_igrf = mag_subparsers.add_parser('igrf', help='calculate igrf',
+    # # description="calculate igrf (TFI, Inc, Dec ...) at a point (or multiple points)")
+
+    # # # gdp mag gem2dat
+    # # mag_gem2dat = mag_subparsers.add_parser('gem2dat', help='convert raw data format from a GEM proton magnetometer to ascii format',
+    # # description="convert raw data format from a GEM proton magnetometer to ascii format")
+
+    # # # gdp mag sphere
+    # # mag_sphere = mag_subparsers.add_parser('sphere', help='forward modeling of uniformly magnetized sphere(s)',
+    # # description="forward modeling of uniformly magnetized sphere(s) over a local grid")
+    
+
+    # #====ubc submodules=====#
+    # ubc = subparsers.add_parser('ubc', help='UBC code data preparation and conversion tools',
+    # description="UBC code data preparation and conversion tools")
+    # ubc_subparsers = ubc.add_subparsers(dest='submodule')
+    # ubc._positionals.title = "List of tools"
+
+    # # gdp ubc mod2xyz
+    # ubc_mod2xyz = ubc_subparsers.add_parser('mod2xyz', help='convert UBC model to xyz using 3D mesh',
+    # description="Convert UBC model to xyz using 3D mesh")
+    # ubc_mod2xyz.add_argument("mesh", type=str,\
+    #     help='3D mesh to be used for models')
+    # ubc_mod2xyz.add_argument("models", type=str,\
+    #     help='inversion model file/files (can use wildcards)', nargs='+')
+    # ubc_mod2xyz.add_argument('-o','--outdir', type=str,\
+    #     help='by default, the output xyz files are placed in the same directory as the model files; this option can be used to change this behaviour')
+    # ubc_mod2xyz.add_argument(
+    #     '--fmt',
+    #     nargs=2,
+    #     type=str,
+    #     action='store',
+    #     default=["10.2","13.8"],
+    #     help='float format for positional and model value columns respectively (default=["10.2","13.8"])')
+    # ubc_mod2xyz.add_argument(
+    #     '--skipdummy',
+    #     action='store_true',
+    #     help='do not output dummy cells with a value of -100.0')
+    # ubc_mod2xyz.add_argument(
+    #     '--label',
+    #     type=str,
+    #     default="Value",
+    #     help='model parameter label e.g. Susceptibility, Density etc.; default="Value"'
+    # )
+    # ubc_mod2xyz.add_argument(
+    #     '--polygon',
+    #     nargs='+',
+    #     default=[],
+    #     help="polygon/polygons to apply point-in-polygon before output"
+    # )
+
+    # # gdp ubc invcurves
+    # ubc_invcurves = ubc_subparsers.add_parser('invcurves', help='generate plots for inversion curves',
+    # description="Generate plots for inversion curves")
+    # ubc_invcurves.add_argument("invdir", type=str,\
+    #     help='inversion directory')
+    # ubc_invcurves.add_argument('-o','--outdir', type=str,\
+    #     help='by default, the output plot are placed in the same inversion directory; this option can be used to change this behaviour')
+    # ubc_invcurves.add_argument('--ext', choices=['pdf', 'png', 'jpg'], default='pdf',\
+    #     help='output file extension; choices: pdf (default), jpg, png ')
+    # ubc_invcurves.add_argument('--dpi', type=int, help='output dpi (dot per inch; default=150)', default=150)
+
+    # #====anomaly submodules=====#
+    # anomaly = subparsers.add_parser('anomaly', help='generate anomaly/perturbation model from absolute value model using a reference model',
+    # description="Generate anomaly/perturbation model from absolute value model using a reference model")
+    # anomaly_subparsers = anomaly.add_subparsers(dest='submodule')
+    # anomaly._positionals.title = "List of options"
+
+    # # gdp anomaly 1D
+    # anomaly_1D = anomaly_subparsers.add_parser('1D', help='calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model',
+    #     description='Calculate 1D/depth anomaly model from 1D absolute value model using a 1D reference model')
+    # anomaly_1D.add_argument('absmodel', type=str, help='input absolute value 1D model')
+    # anomaly_1D.add_argument('--refmodel', required=True, type=str, help='REQUIRED: input 1D reference model; MUST only have two columns (depth, value)')
+    # anomaly_1D.add_argument('-x','--depth', required=True, type=int, nargs=1, help='REQUIRED: column number for the depth column in ther input abosolute model')
+    # anomaly_1D.add_argument('-v','--value', required=True, type=int, nargs=1, help='REQUIRED: column number for the value column (e.g., velocity) in ther input abosolute model')
+    # anomaly_1D.add_argument('-o','--outfile', action='store', help='output file path')
+    # anomaly_1D.add_argument('--ext', type=str, choices=['pdf','png','jpg'], default='pdf',\
+    #     help="output plot file extension/format; choices=['pdf' (default),'png','jpg']")
+    # anomaly_1D.add_argument('--dpi', type=int, help='output plot dpi (dot per inch; default=150)', default=150)
+    # anomaly_1D.add_argument('--header', type=int, default=0, help='number of header lines to be ignored in the input abosolute value model; default=0')
+    # anomaly_1D.add_argument('--footer', type=int, default=0, help='number of footer lines to be ignored in the input abosolute value model; default=0')
+    # anomaly_1D.add_argument('--fmt', type=str, nargs=2, default=['03.0', '8.4'],\
+    #  help="float format for output model; default=['03.0', '8.4']")
+    # anomaly_1D.add_argument('--type', choices=['percentage','difference'], default='percentage',
+    #     help="output anomaly data type; choices=['percentage' (default), 'difference']")
+    # anomaly_1D.add_argument('--markers', type=float, nargs='+', default=[],
+    #     help='mark position of specific values in 1D profiles (e.g., values between 1 and 2 percent perturbations are used to locate the  LAB depth)')
+    # anomaly_1D.add_argument('--markers_depths', type=float, nargs=2,
+    #     help='depth range to search the given markers for')
+    # anomaly_1D.add_argument('--markers_case', type=str, choices=['increase', 'decrease', 'both'], default='both', 
+    #     help='consider it a marker if the two consecutive values increase/decrease/both[default]')
+    # anomaly_1D.add_argument('--vlabel', help='value label', default=['Value'], type=str, nargs='+')
+    # anomaly_1D.add_argument('--depthlabel', help='depth label (default="Depth (km)")', default=['Depth','(km)'], type=str, nargs='+')
+    # anomaly_1D.add_argument('--invert_yaxis', choices=['True','False'], default='True',
+    #     help="invert y-axis in the plot (default='True'); choices=[True,False]")
+    # anomaly_1D.add_argument('--legend_loc', type=str, help='legend location', default='lower left', \
+    #     choices=['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'])        
+    
+
+    # #====plot submodules=====#
+    # plot = subparsers.add_parser('plot', help='plot module (requires GMT)',
+    # description="Plot module (requires GMT)")
+    # plot_subparsers = plot.add_subparsers(dest='submodule')
+
+    # # gdp plot stations
+    # plot_stations = plot_subparsers.add_parser('stations', help='plot seismic stations on a map',
+    # description="Plot seismic stations on a map")
+    # plot_stations.add_argument("stalist", type=str, help='input station list file')
+    # plot_stations.add_argument(
+    #     '--labels',
+    #     action='store_true',
+    #     help='print station labels on the output map (if not global scale map)')
+    # plot_stations.add_argument(
+    #     '--boundaries',
+    #     action='store_true',
+    #     help='plot major tectonic boundaries')
+    # plot_stations.add_argument(
+    #     '-g',
+    #     '--glob',
+    #     action='store_true',
+    #     help='enable global scale map')
+    # plot_stations.add_argument(
+    #     '--meridian',
+    #     type=float,
+    #     default=0,
+    #     help='map central meridian (only if global scale map)')
+    # plot_stations.add_argument(
+    #     '--gmt',
+    #     type=str,
+    #     default='auto',
+    #     help='path to GMT software executable (default=auto)'
+    # )
+
+    # # gdp plot events
+    # plot_events = plot_subparsers.add_parser('events', help='plot seismic events on a map',
+    # description="Plot seismic events on a map")
+    # plot_events.add_argument("eventlist", type=str, help='input event list file')
+    # plot_events.add_argument(
+    #     '--lon',
+    #     type=float,
+    #     required=True,
+    #     help='REQUIRED: study region longitude')
+    # plot_events.add_argument(
+    #     '--lat',
+    #     type=float,
+    #     required=True,
+    #     help='REQUIRED: study region latitude')
+    # plot_events.add_argument(
+    #     '--gmt',
+    #     type=str,
+    #     default='auto',
+    #     help='path to GMT software executable (default=auto)'
+    # )
+
+    # # gdp plot hist
+    # plot_hist = plot_subparsers.add_parser('hist', help='generate histogram plots',
+    # description="Generate histogram plots")
+    # plot_hist.add_argument(
+    #     "input_files",
+    #     type=str,
+    #     nargs='+',
+    #     help='input data files (can use wildcards)'
+    # )
+    # plot_hist.add_argument(
+    #     '-o',
+    #     '--outfile',
+    #     type=str,
+    #     help='output file name')
+    # plot_hist.add_argument(
+    #     '-v',
+    #     nargs='+',
+    #     type=int,
+    #     action='store',
+    #     default=[1],
+    #     help='value/data column number(s) (default=[1])')
+    # plot_hist.add_argument(
+    #     '-n',
+    #     '--nbins',
+    #     type=int,
+    #     default=999,
+    #     help='number of bins (default=auto)')
+    # plot_hist.add_argument(
+    #     '--legend',
+    #     type=str,
+    #     nargs='+',
+    #     action='store',
+    #     default=[],
+    #     help='legend text; number of elements must be equal to input data items (note: use underline for space)')
+    # plot_hist.add_argument(
+    #     '--xlabel',
+    #     type=str,
+    #     nargs='*',
+    #     action='store',
+    #     default=['Values'],
+    #     help='x-axis label')
+    # plot_hist.add_argument(
+    #     '--ylabel',
+    #     type=str,
+    #     nargs='*',
+    #     action='store',
+    #     default=['Count'],
+    #     help='y-axis label')
+    # plot_hist.add_argument(
+    #     '--title',
+    #     type=str,
+    #     nargs='*',
+    #     action='store',
+    #     default=[],
+    #     help='plot title')
+    # plot_hist.add_argument(
+    #     '--fmt',
+    #     nargs='+',
+    #     type=str,
+    #     action='store',
+    #     default=[".4",".4"],
+    #     help='float format for positional and value columns respectively (default=0.4)')
+    # plot_hist.add_argument(
+    #     '--mean',
+    #     action='store_true',
+    #     help='enable plotting distribution mean (dashed line)')
+    # plot_hist.add_argument(
+    #     '--median',
+    #     action='store_true',
+    #     help='enable plotting distribution median (dashed line)')
+    # plot_hist.add_argument(
+    #     '--palette',
+    #     type=str,
+    #     default='Set1',
+    #     choices=['BrBG','PRGn','PiYG','PuOr','RdBu','RdGy','RdYlBu',
+    #              'RdYlGn','Spectral','Accent','Dark2','Paired',
+    #              'Pastel1','Pastel2','Set1','Set2','Set3',
+    #              'Blues','BuGn','BuPu','GnBu','Greens','Greys',
+    #              'OrRd','Oranges','PuBu','PuBuGn','PuRd','Purples',
+    #              'RdPu','Reds','YlGn','YlGnBu','YlGnBu','YlOrBr','YlOrRd'],
+    #     help="color palette (see https://www.codecademy.com/article/seaborn-design-ii)"
+    # )
+    # plot_hist.add_argument(
+    #     '--figsize',
+    #     type=float,
+    #     nargs=2,
+    #     default=[8,6],
+    #     help="output plot size dimention along x and y (default=[8,6])"
+    # )
+    # plot_hist.add_argument(
+    #     '--transparency',
+    #     type=float,
+    #     default=0.75,
+    #     help='transparency value (between 0 and 1; default=0.75)')
+    # plot_hist.add_argument(
+    #     '--header',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='number of header lines to ignore (default=0)')
+    # plot_hist.add_argument(
+    #     '--footer',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='number of footer lines to ignore (default=0)')
+
+    # # gdp plot features
+    # plot_features = plot_subparsers.add_parser('features', help='plot geographical features (e.g., points, polygons)',
+    # description="Plot geographical features (e.g., points, polygons)")
+    # plot_features.add_argument(
+    #     '--point',
+    #     type=str,
+    #     nargs='+',
+    #     action='store',
+    #     help='point(s): ascii or shape file(s)')
+    # plot_features.add_argument(
+    #     '--polygon',
+    #     type=str,
+    #     nargs='+',
+    #     action='store',
+    #     help='polygon(s): ascii or shape file(s)')
+    # plot_features.add_argument(
+    #     '--geotiff',
+    #     type=str,
+    #     nargs=1,
+    #     default=None,
+    #     action='store',
+    #     help='GeoTiff (georeferenced map)')
+    # plot_features.add_argument(
+    #     '-o',
+    #     '--outfile',
+    #     type=str,
+    #     help='output file name')
+    # plot_features.add_argument(
+    #     '--epsg',
+    #     type=int,
+    #     action='store',
+    #     default=4326,
+    #     help='EPSG coordinate system and trasfomation code (default=4326; WGS84)')
+    # plot_features.add_argument(
+    #     '-x',
+    #     nargs=2,
+    #     type=int,
+    #     action='store',
+    #     default=[1,2],
+    #     help='for ascii files only: positional column numbers ([lon, lat]; default=[1,2])')
+    # plot_features.add_argument(
+    #     '--palette',
+    #     type=str,
+    #     default='Set1',
+    #     choices=['Black','BrBG','PRGn','PiYG','PuOr','RdBu','RdGy','RdYlBu',
+    #              'RdYlGn','Spectral','Accent','Dark2','Paired',
+    #              'Pastel1','Pastel2','Set1','Set2','Set3',
+    #              'Blues','BuGn','BuPu','GnBu','Greens','Greys',
+    #              'OrRd','Oranges','PuBu','PuBuGn','PuRd','Purples',
+    #              'RdPu','Reds','YlGn','YlGnBu','YlGnBu','YlOrBr','YlOrRd'],
+    #     help="color palette (default='Set1'; see https://www.codecademy.com/article/seaborn-design-ii)"
+    # )
+    # plot_features.add_argument(
+    #     '--landcolor',
+    #     type=str,
+    #     default='lightgrey',
+    #     help="land color; choose among standrad matplotlib colors (default='lightgrey')"
+    # )
+    # plot_features.add_argument(
+    #     '--pointsize',
+    #     type=float,
+    #     default=20,
+    #     help="points marker size (default=20)")
+    # plot_features.add_argument(
+    #     '--linewidth',
+    #     type=float,
+    #     default=2,
+    #     help="polygons line width (default=2)")
+    # plot_features.add_argument(
+    #     '--ticks',
+    #     type=float,
+    #     nargs=2,
+    #     default=[999, 999],
+    #     help="meridians and parallels tick spacing (default=Auto; [0, 0] to disable)")
+    # plot_features.add_argument(
+    #     '--figsize',
+    #     type=float,
+    #     nargs=2,
+    #     default=[8,6],
+    #     help="output plot size dimention along x and y (default=[8,6])"
+    # )
+    # plot_features.add_argument(
+    #     '--transparency',
+    #     type=float,
+    #     default=1,
+    #     help="transparency value (between 0 and 1; default=1)")
+    # plot_features.add_argument(
+    #     '--area',
+    #     type=int,
+    #     default=1000,
+    #     help="area threshold size to plot (default=1000)"
+    # )
+    # plot_features.add_argument(
+    #     '--padding',
+    #     type=float,
+    #     default=0.1,
+    #     help="map padding factor (default=0.1)"
+    # )
+    # plot_features.add_argument(
+    #     '--header',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='for ascii files only: number of header lines to ignore (default=0)')
+    # plot_features.add_argument(
+    #     '--footer',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='for ascii files only: number of footer lines to ignore (default=0)')
 
 
     # return arguments
