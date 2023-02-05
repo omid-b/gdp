@@ -40,19 +40,21 @@ def parse_args(*args, **kwargs):
         help='about this package and contact information'
     )
     parser.add_argument(
+        '--version',
+        action='version',
+        version=f'%(prog)s {version}')
+    parser.add_argument(
         '--test',
         action='store_true',
-        help='test all dependencies'
-    )
-    parser.add_argument('--version', action='version', version=f'%(prog)s {version}')
+        help='test all dependencies')
     parser._positionals.title = 'list of modules'
     subparsers = parser.add_subparsers(dest='module')
     
     #=====MODULE: DATA=====#
 
     data = subparsers.add_parser('data',
-        help='general data manipulation and processing module',
-        description="General data manipulation and processing module")
+        help='data manipulation and processing module',
+        description="General and geographic data manipulation and processing module")
     data_subparsers = data.add_subparsers(dest='submodule')
     
     #------------------------# 
@@ -466,120 +468,117 @@ def parse_args(*args, **kwargs):
         default=0,
         help='number of footer lines to ignore (default=0)')
 
-    #=====MODULE: XYZ=====#
-
-    xyz = subparsers.add_parser('xyz',
-        help='geographic data manipulation and processing module',
-        description="Geographic data manipulation and processing module")
-    xyz_subparsers = xyz.add_subparsers(dest='submodule')
-
     #------------------------#
-    # $> gdp xyz cs
-    xyz_cs = xyz_subparsers.add_parser('cs',
+    # $> gdp data cs
+    data_cs = data_subparsers.add_parser('cs',
         help='coordinate systems information and transformation module',
         description='Coordinate systems information and transformation module')
-    xyz_cs_subparsers = xyz_cs.add_subparsers(dest='subsubmodule')
+    data_cs_subparsers = data_cs.add_subparsers(dest='subsubmodule')
 
     #------------------------#
-    # $> gdp xyz cs info
-    xyz_cs_info = xyz_cs_subparsers.add_parser('info',
+    # $> gdp data cs info
+    data_cs_info = data_cs_subparsers.add_parser('info',
         help='get coordinate system information',
         description='Get coordinate system information. For more information visit https://spatialreference.org/ref/epsg/')
-    xyz_cs_info.add_argument(
+    data_cs_info.add_argument(
         '--keywords',
         nargs='+',
         required=True,
         help='REQUIRED: keywords to be used in searching offline/online databases')
 
     #------------------------#
-    # $> gdp xyz cs transform
-    xyz_cs_transform = xyz_cs_subparsers.add_parser('transform', help='transform/reproject coordinate system',
+    # $> gdp data cs transform
+    data_cs_transform = data_cs_subparsers.add_parser('transform', help='transform/reproject coordinate system',
     description="Transform/reproject coordinate system")
-    xyz_cs_transform.add_argument(
+    data_cs_transform.add_argument(
         'input_file',
         type=str,
         help='input file (ascii format)')
-    xyz_cs_transform.add_argument(
+    data_cs_transform.add_argument(
         '-x',
         nargs=2,
         type=int,
         required=True,
         help='REQUIRED: x/lon and y/lat column numbers e.g., "1 2"')
-    xyz_cs_transform.add_argument(
+    data_cs_transform.add_argument(
         '--cs',
         type=str,
         required=True,
         nargs=2,
         help='REQUIRED: input and output coordinate systems: INPUT_CS OUTPUT_CS')
-    xyz_cs_transform.add_argument(
+    data_cs_transform.add_argument(
         '--fmt',
         nargs=2,
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for transformed and original coordinates respectively (default=[".4",".4"])')
-    xyz_cs_transform.add_argument(
+    data_cs_transform.add_argument(
+        '--skiporig',
+        action='store_true',
+        help='do not output original coordintes')
+    data_cs_transform.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    xyz_cs_transform.add_argument(
+    data_cs_transform.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    xyz_cs_transform.add_argument(
+    data_cs_transform.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file')
-    xyz_cs_transform.add_argument(
+    data_cs_transform.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
 
     #------------------------#
-    # $> gdp xyz chull
-    xyz_chull = xyz_subparsers.add_parser('chull', help='convex-hull/minimum bounding polygon',
+    # $> gdp data chull
+    data_chull = data_subparsers.add_parser('chull', help='convex-hull/minimum bounding polygon',
     description="convex-hull / minimum bounding polygon for a set of points")
-    xyz_chull._positionals.title = 'Required arguments'
-    xyz_chull.add_argument("points_file", type=str, help="path to points_file")
-    xyz_chull.add_argument(
+    data_chull._positionals.title = 'Required arguments'
+    data_chull.add_argument("points_file", type=str, help="path to points_file")
+    data_chull.add_argument(
         '-x',
         nargs=2,
         type=int,
         action='store',
         default=[1, 2],
         help='[x/lon, y/lat] column number(s) (default=[1, 2])')
-    xyz_chull.add_argument(
+    data_chull.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    xyz_chull.add_argument(
+    data_chull.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    xyz_chull.add_argument(
+    data_chull.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file/folder')
-    xyz_chull.add_argument(
+    data_chull.add_argument(
         '--smooth',
         type=int,
         action='store',
         default=0,
         help='number of Bezier points to smooth the output convex-hull polygon')
-    xyz_chull.add_argument(
+    data_chull.add_argument(
         '--fmt',
         nargs='+',
         type=str,
@@ -588,129 +587,129 @@ def parse_args(*args, **kwargs):
         help='float format for output convex-hull (default=".4")' )
 
     #------------------------#
-    # $> gdp xyz pip
-    xyz_pip = xyz_subparsers.add_parser('pip', help='points-in-polygon',
+    # $> gdp data pip
+    data_pip = data_subparsers.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method)")
-    xyz_pip._positionals.title = 'Required arguments'
-    xyz_pip.add_argument(
-        '--point',
+    data_pip._positionals.title = 'Required arguments'
+    data_pip.add_argument(
+        'points',
         type=str,
         nargs='+',
         action='store',
-        help='path to points file (single or multiple allowed)')
-    xyz_pip.add_argument(
+        help='path to point files (single or multiple allowed)')
+    data_pip.add_argument(
         '--polygon',
         type=str,
         action='store',
-        help='path to polygon file (ascii or shape file)')
-    xyz_pip.add_argument(
+        help='path to polygon file (ascii(x,y)=[1, 2] or shape file); if ascii, positional column fixed to (x,y)=[1,2]')
+    data_pip.add_argument(
         '-x',
         nargs=2,
         type=int,
         action='store',
         default=[1, 2],
         help='positional column number(s) (default=[1, 2]); does not apply to ascii polygon')
-    xyz_pip.add_argument(
+    data_pip.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    xyz_pip.add_argument(
+    data_pip.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    xyz_pip.add_argument(
+    data_pip.add_argument(
         '-i',
         '--inverse',
         action='store_true',
         help='inverse operation: points outside polygon (only if one polygon is given)')
-    xyz_pip.add_argument(
+    data_pip.add_argument(
         '--xrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
         help='x/longitude range: [minX/minlon, maxX/maxlon]; this option could be used to specify polygon region if a polygon file is not available.')
-    xyz_pip.add_argument(
+    data_pip.add_argument(
         '--yrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
         help='y/latitude range: [minY/minlat, maxY/maxlat]; this option could be used to specify polygon region if a polygon file is not available.')
-    xyz_pip.add_argument(
+    data_pip.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file/folder')
-    xyz_pip.add_argument(
+    data_pip.add_argument(
         '-a',
         '--append',
         action='store_true',
         help='append to output')
 
     #------------------------#
-    # $> gdp xyz nodes
-    xyz_nodes = xyz_subparsers.add_parser('nodes', help='output a 2D/3D list of regularly spaced nodes',
+    # $> gdp data nodes
+    data_nodes = data_subparsers.add_parser('nodes', help='output a 2D/3D list of regularly spaced nodes',
     description="Output a 2D/3D list of regularly spaced nodes")
-    xyz_nodes._positionals.title = 'Required arguments'
-    xyz_nodes.add_argument(
+    data_nodes._positionals.title = 'Required arguments'
+    data_nodes.add_argument(
         '--xrange',
         type=float,
         nargs=2,
         required=True,
         help='REQUIRED: x/longitude min & max values',
     )
-    xyz_nodes.add_argument(
+    data_nodes.add_argument(
         '--xstep',
         type=float,
         required=True,
         help='REQUIRED: x/longitude step size/interval',
     )
-    xyz_nodes.add_argument(
+    data_nodes.add_argument(
         '--yrange',
         type=float,
         nargs=2,
         required=True,
         help='REQUIRED: y/latitude min & max values',
     )
-    xyz_nodes.add_argument(
+    data_nodes.add_argument(
         '--ystep',
         type=float,
         required=True,
         help='REQUIRED: y/latitude step size/interval',
     )
-    xyz_nodes.add_argument(
+    data_nodes.add_argument(
         '--zrange',
         type=float,
         nargs=2,
         required=False,
         help='z/depth min & max values',
     )
-    xyz_nodes.add_argument(
+    data_nodes.add_argument(
         '--zstep',
         type=float,
         required=False,
         help='REQUIRED: z/depth step size/interval',
     )
-    xyz_nodes.add_argument(
+    data_nodes.add_argument(
         '--polygon',
         type=str,
         action='store',
         help='polygon to run "points-in-polygon" process before outputing the results'
     )
-    xyz_nodes.add_argument(
+    data_nodes.add_argument(
         '--fmt',
         nargs=3,
         type=str,
         default=["","",""],
         help='output x y z float format',
     )
-    xyz_nodes.add_argument(
+    data_nodes.add_argument(
         '-o',
         '--outfile',
         type=str,
@@ -718,12 +717,12 @@ def parse_args(*args, **kwargs):
         help='output file name/path' )
 
     #------------------------#
-    # $> gdp xyz gridder
-    xyz_gridder = xyz_subparsers.add_parser('gridder', help='gridding/interpolation of 2D/map data',
+    # $> gdp data gridder
+    data_gridder = data_subparsers.add_parser('gridder', help='gridding/interpolation of 2D/map data',
     description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
-    xyz_gridder._positionals.title = 'Required arguments'
-    xyz_gridder.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    xyz_gridder.add_argument(
+    data_gridder._positionals.title = 'Required arguments'
+    data_gridder.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    data_gridder.add_argument(
         '--spacing',
         nargs='+',
         type=float,
@@ -731,75 +730,75 @@ def parse_args(*args, **kwargs):
         required=True,
         help='REQUIRED: grid spacing along [longitude, latitude]'
     )
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--smoothing',
         type=float,
         required=True,
         help='REQUIRED: grid smoothing length (km)'
     )
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--utm',
         action='store_true',
         help='specify if data is given in UTM/Cartesian format (default=False)')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--xrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
         help='grid x/longitude range: [minX/minlon, minY/maxlon] (default=Auto)')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--yrange',
         nargs=2,
         type=float,
         action='store',
         default=[-0.999, 0.999],
         help='grid y/latitude range: [minY/minlat, minY/maxlat] (default=Auto)')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '-x',
         nargs=2,
         type=int,
         action='store',
         default=[1, 2],
         help='[x/longitude, y/latitude] column number(s) (default=[1, 2])')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '-v',
         nargs='+',
         type=int,
         action='store',
         default=[3],
         help='value/data column number(s) (default=[3])')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"])')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s)')
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file/folder'
     )
-    xyz_gridder.add_argument(
+    data_gridder.add_argument(
         '--polygon',
         type=str,
         action='store',
@@ -807,12 +806,12 @@ def parse_args(*args, **kwargs):
     )
 
     #------------------------#
-    # $> gdp xyz plot
-    xyz_plot = xyz_subparsers.add_parser('plot', help='plot module for geographic/xyz data types',
-    description="Plot module for geographic/xyz data types")
-    xyz_plot._positionals.title = 'Required arguments'
+    # $> gdp data plot
+    data_plot = data_subparsers.add_parser('plot', help='plot module for geographic data types',
+    description="Plot module for geographic data types")
+    data_plot._positionals.title = 'Required arguments'
     
-    # XXX xyz_plot subsubmodules not developed yet
+    # XXX data_plot subsubmodules not developed yet
 
     #=====MODULE: STATS=====#
 
@@ -2053,6 +2052,75 @@ def parse_args(*args, **kwargs):
         default='auto',
         help='path to sac software executable (default=auto)' )
 
+    #------------------------#
+    # $> gdp seismic plot
+    seismic_plot = seismic_subparsers.add_parser(
+        'plot',
+        help='plot module for seismic data',
+        description="Plot module for seismic data")
+    seismic_plot_subparsers = seismic_plot.add_subparsers(dest='subsubmodule')
+
+    #------------------------#
+    # $> gdp seismic plot stations
+    seismic_plot_stations = seismic_plot_subparsers.add_parser(
+        'stations',
+        help='plot seismic stations on a map',
+        description="Plot seismic stations on a map")
+    seismic_plot_stations.add_argument(
+        "stalist",
+        type=str,
+        help='input station list file')
+    seismic_plot_stations.add_argument(
+        '--labels',
+        action='store_true',
+        help='print station labels on the output map (if not global scale map)')
+    seismic_plot_stations.add_argument(
+        '--boundaries',
+        action='store_true',
+        help='plot major tectonic boundaries')
+    seismic_plot_stations.add_argument(
+        '-g',
+        '--glob',
+        action='store_true',
+        help='enable global scale map')
+    seismic_plot_stations.add_argument(
+        '--meridian',
+        type=float,
+        default=0,
+        help='map central meridian (only if global scale map)')
+    seismic_plot_stations.add_argument(
+        '--gmt',
+        type=str,
+        default='auto',
+        help='path to GMT software executable (default=auto)'
+    )
+
+
+     #------------------------#
+    # $> gdp seismic plot events
+    seismic_plot_events = seismic_plot_subparsers.add_parser(
+        'events',
+        help='plot seismic events on a map',
+        description="Plot seismic events on a map")
+    seismic_plot_events.add_argument(
+        "eventlist",
+        type=str,
+        help='input event list file')
+    seismic_plot_events.add_argument(
+        '--lon',
+        type=float,
+        required=True,
+        help='REQUIRED: study region longitude')
+    seismic_plot_events.add_argument(
+        '--lat',
+        type=float,
+        required=True,
+        help='REQUIRED: study region latitude')
+    seismic_plot_events.add_argument(
+        '--gmt',
+        type=str,
+        default='auto',
+        help='path to GMT software executable (default=auto)' )
 
     # return arguments
     return parser.parse_args()
@@ -2135,10 +2203,8 @@ def main(*args, **kwargs):
             else:
                 nan.split_data_ncol(args)
                 exit(0)
-
-    elif args.module == 'xyz':
         
-        if args.submodule == 'cs':
+        elif args.submodule == 'cs':
             
             if args.subsubmodule == 'info':
                 from . import epsg
@@ -2297,6 +2363,19 @@ def main(*args, **kwargs):
             if args.subsubmodule == 'init':
                 sws.run_sws_dataset_app(args.input_files, refmodel=args.refmodel,
                     SAC=args.sac, headonly=args.hdronly)
+                exit(0)
+
+        elif args.submodule == 'plot':
+
+            if args.subsubmodule == 'stations':
+                if args.glob:
+                    plot.plot_stations_global(args.stalist, labels=args.labels,
+                        meridian=args.meridian, boundaries=args.boundaries, GMT=args.gmt)
+                else:
+                    plot.plot_stations(args.stalist, args.labels, GMT=args.gmt)
+                exit(0)
+            elif args.subsubmodule == 'events':
+                plot.plot_events(args.eventlist, args.lon, args.lat, GMT=args.gmt)
                 exit(0)
 
 

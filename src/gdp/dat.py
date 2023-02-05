@@ -17,7 +17,10 @@ def csproj_ascii(args):
     for ip in range(nop):
         x, y = [pos[0][ip], pos[1][ip]]
         xnew, ynew = transform_point_coordinates(x, y, args.cs[0], args.cs[1])
-        output_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f %{args.fmt[1]}f %s" %(xnew, ynew, x, y, extra[ip]))
+        if args.skiporig:
+            output_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %s" %(xnew, ynew, extra[ip]))
+        else:
+            output_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f %{args.fmt[1]}f %s" %(xnew, ynew, x, y, extra[ip]))
     args.sort = False
     args.uniq = False
     if len(output_lines) == 0:
@@ -890,7 +893,7 @@ def points_in_polygon(args):
         print("Error! 'inverse' cannot be enabled if two or more polygons are given!")
         exit(1)
 
-    for points_file in args.point:
+    for points_file in args.points:
         if os.path.splitext(points_file)[1] == ".shp":
             print("In this version of gdp and this tool, shape files are not accepted for points. Use ascii instead!")
             exit()
