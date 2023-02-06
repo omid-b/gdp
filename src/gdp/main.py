@@ -1365,47 +1365,30 @@ def parse_args(*args, **kwargs):
     # $> gdp convert anomaly1D
     convert_anomaly1D = convert_subparsers.add_parser(
         'anomaly1D',
-        help='calculate 1D anomaly model from 1D absolute model',
-        description='Calculate 1D/depth anomaly model from 1D absolute model using a 1D reference model')
+        help='calculate 1D anomaly model from 1D absolute model (also can define anomaly marker proxies)',
+        description='Calculate 1D/depth anomaly model from 1D absolute model using a 1D reference model. This tool also generates profile plots and can be used to define depth markers (e.g. LAB depth proxy)')
     convert_anomaly1D.add_argument(
         'absmodel',
         type=str,
         help='input absolute value 1D model')
     convert_anomaly1D.add_argument(
-        '--refmodel',
-        type=str,
-        required=True,
-        help='REQUIRED: input 1D reference model; MUST only have two columns (depth, value)')
-    convert_anomaly1D.add_argument(
         '-x',
-        '--depth',
         type=int,
         nargs=1,
         required=True,
-        help='REQUIRED: column number for the depth column in ther input abosolute model')
+        help='REQUIRED: column number for the depth column in the input abosolute model')
     convert_anomaly1D.add_argument(
         '-v',
         '--value',
         required=True,
         type=int,
         nargs=1,
-        help='REQUIRED: column number for the value column (e.g., velocity) in ther input abosolute model')
+        help='REQUIRED: column number for the value column (e.g., velocity) in the input abosolute model')
     convert_anomaly1D.add_argument(
-        '-o',
-        '--outfile',
-        action='store',
-        help='output file path')
-    convert_anomaly1D.add_argument(
-        '--ext',
+        '--refmodel',
         type=str,
-        choices=['pdf','png','jpg'],
-        default='pdf',
-        help="output plot file extension/format; choices=['pdf' (default),'png','jpg']")
-    convert_anomaly1D.add_argument(
-        '--dpi',
-        type=int,
-        default=150,
-        help='output plot dpi (dot per inch; default=150)')
+        required=True,
+        help='REQUIRED: input 1D reference model; MUST only have two columns (depth, value)')
     convert_anomaly1D.add_argument(
         '--header',
         type=int,
@@ -1427,23 +1410,6 @@ def parse_args(*args, **kwargs):
         choices=['percentage','difference'],
         default='percentage',
         help="output anomaly data type; choices=['percentage' (default), 'difference']")
-    convert_anomaly1D.add_argument(
-        '--markers',
-        type=float,
-        nargs='+',
-        default=[],
-        help='mark position of specific values in 1D profiles (e.g., values between 1 and 2 percent perturbations are used to locate the  LAB depth)')
-    convert_anomaly1D.add_argument(
-        '--markers_depths',
-        type=float,
-        nargs=2,
-        help='depth range to search the given markers for')
-    convert_anomaly1D.add_argument(
-        '--markers_case',
-        type=str,
-        choices=['increase', 'decrease', 'both'],
-        default='both', 
-        help='consider it a marker if the two consecutive values increase/decrease/both[default]')
     convert_anomaly1D.add_argument(
         '--vlabel',
         nargs='+',
@@ -1467,6 +1433,39 @@ def parse_args(*args, **kwargs):
         default='lower left',
         choices=['best', 'upper right', 'upper left', 'lower left', 'lower right', 'right', 'center left', 'center right', 'lower center', 'upper center', 'center'],        
         help='legend location')
+    convert_anomaly1D.add_argument(
+        '-o',
+        '--outfile',
+        action='store',
+        help='output file path')
+    convert_anomaly1D.add_argument(
+        '--ext',
+        type=str,
+        choices=['pdf','png','jpg'],
+        default='pdf',
+        help="output plot file extension/format; choices=['pdf' (default),'png','jpg']")
+    convert_anomaly1D.add_argument(
+        '--dpi',
+        type=int,
+        default=150,
+        help='output plot dpi (dot per inch; default=150)')
+    convert_anomaly1D.add_argument(
+        '--markers',
+        type=float,
+        nargs='+',
+        default=[],
+        help='mark position of specific values in 1D profiles (e.g., values between 1 and 2 percent perturbations are used to locate the  LAB depth)')
+    convert_anomaly1D.add_argument(
+        '--markers_depths',
+        type=float,
+        nargs=2,
+        help='depth range to search the given markers for')
+    convert_anomaly1D.add_argument(
+        '--markers_case',
+        type=str,
+        choices=['increase', 'decrease', 'both'],
+        default='both', 
+        help='consider it a marker if the two consecutive values increase/decrease/both[default]')
 
     #------------------------#
     # $> gdp convert anomaly2D
@@ -1474,6 +1473,59 @@ def parse_args(*args, **kwargs):
         'anomaly2D',
         help='calculate 2D anomaly model from 2D absolute model',
         description='Calculate 2D anomaly model from 2D absolute model using a 1D reference model')
+    convert_anomaly2D.add_argument(
+        'absmodel',
+        type=str,
+        help='input absolute value 2D model')
+    convert_anomaly2D.add_argument(
+        '-x',
+        required=True,
+        type=int,
+        nargs=2,
+        help='REQUIRED: column number for x/lon and y/lat columns respectively in the input abosolute model')
+    convert_anomaly2D.add_argument(
+        '-v',
+        '--value',
+        required=True,
+        type=int,
+        nargs=1,
+        help='REQUIRED: column number for the value column in the input abosolute model')
+    convert_anomaly2D.add_argument(
+        '--depth',
+        type=float,
+        required=True,
+        help='REQUIRED: depth value for the 2D absolute data')
+    convert_anomaly2D.add_argument(
+        '--refmodel',
+        type=str,
+        required=True,
+        help='REQUIRED: input 1D reference model; MUST only have two columns (depth, value)')
+    convert_anomaly2D.add_argument(
+        '--header',
+        type=int,
+        default=0,
+        help='number of header lines to be ignored in the input abosolute value model; default=0')
+    convert_anomaly2D.add_argument(
+        '--footer',
+        type=int,
+        default=0,
+        help='number of footer lines to be ignored in the input abosolute value model; default=0')
+    convert_anomaly2D.add_argument(
+        '--type',
+        choices=['percentage','difference'],
+        default='percentage',
+        help="output anomaly data type; choices=['percentage' (default), 'difference']")
+    convert_anomaly2D.add_argument(
+        '--fmt',
+        type=str,
+        nargs=2,
+        default=['.4', '8.4'],
+        help="float format for output model coordinates and value respectively; default=['.4', '8.4']")
+    convert_anomaly2D.add_argument(
+        '-o',
+        '--outfile',
+        action='store',
+        help='output file path')
 
     #------------------------#
     # $> gdp convert shp2dat
@@ -2285,7 +2337,8 @@ def main(*args, **kwargs):
             dat.anomaly_1D(args)
             exit(0)
         elif args.submodule == 'anomaly2D':
-            under_dev()
+            dat.anomaly_2D(args)
+            exit(0)
         elif args.submodule == 'shp2dat':
             if args.point == None and args.polygon == None:
                 print("Error! At least one shape file must be given")

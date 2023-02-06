@@ -1060,12 +1060,50 @@ def calc_std(args):
 
 #####################################################################
 
+def anomaly_2D(args):
+    # read models
+    absmodel_x, [absmodel_v], _ = io.read_numerical_data(args.absmodel, args.header, args.footer,  [".10", ".10"], args.x, args.value, skipnan=True)
+    [refmodel_x], [refmodel_v], _ = io.read_numerical_data(args.refmodel, 0, 0,  [".10", ".10"], [1], [2], skipnan=True)
+    nop = len(absmodel_v)
+    if nop == 0:
+        print(f"Error! Number of points read from the absmodel is zero! Check absmodel: '{args.absmodel}'")
+        exit(1)
+    # check if reference model covers the abs model positional data range
+    if args.depth < min(refmodel_x) or args.depth > max(refmodel_x):
+        print(f"Error: reference model does not cover the absolute model depth={args.depth}\n")
+        exit(1)
+    # linear interpolation and find rederence model value at the given depth
+    refmodel_depth_interp = np.array([args.depth], dtype=float)
+    refmodel_value_interp = np.interp(refmodel_depth_interp, refmodel_x, refmodel_v)
+    # calculate anomaly model
+    if args.outfile == None:
+        output_lines = ["X/Lon  Y/Lat  Anomaly_value"]
+    else:
+        output_lines = []
+    for i in range(nop):
+        xy = f"%{args.fmt[0]}f %{args.fmt[0]}f" %(absmodel_x[0][i], absmodel_x[1][i])
+        if args.type == 'difference':
+            anom_val = f"%{args.fmt[1]}f" %(absmodel_v[i] - refmodel_value_interp[0])
+        elif args.type == 'percentage':
+            anom_val = f"%{args.fmt[1]}f" %((absmodel_v[i] - refmodel_value_interp[0]) * 100 / refmodel_value_interp[0])
+        output_lines.append(f"{xy} {anom_val}")
+    # output lines to std or file
+    args.append = False
+    args.sort = False
+    args.uniq = False
+    io.output_lines(output_lines, args)
+
+    # print reference model value into stdout
+    if args.outfile == None:
+        print(f"\nCalculated reference model value at depth={args.depth} is {refmodel_value_interp[0]}\n")
+    else:
+        print(f"Calculated reference model value at depth={args.depth} is {refmodel_value_interp[0]}")
 
 def anomaly_1D(args):
     import matplotlib.pyplot as plt
     outfile_orig = args.outfile
     # read models
-    [absmodel_x], [absmodel_v], _ = io.read_numerical_data(args.absmodel, args.header, args.footer,  [".10", ".10"], args.depth, args.value, skipnan=True)
+    [absmodel_x], [absmodel_v], _ = io.read_numerical_data(args.absmodel, args.header, args.footer,  [".10", ".10"], args.x, args.value, skipnan=True)
     [refmodel_x], [refmodel_v], _ = io.read_numerical_data(args.refmodel, 0, 0,  [".10", ".10"], [1], [2], skipnan=True)
     # check if reference model covers the abs model positional data range
     if min(absmodel_x) < min(refmodel_x) or max(absmodel_x) > max(refmodel_x):
