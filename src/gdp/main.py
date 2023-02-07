@@ -721,20 +721,26 @@ def parse_args(*args, **kwargs):
     data_gridder = data_subparsers.add_parser('gridder', help='gridding/interpolation of 2D/map data',
     description="Gridding/interpolation of 2D/map data with Gaussian smoothing applied")
     data_gridder._positionals.title = 'Required arguments'
-    data_gridder.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    data_gridder.add_argument(
+        "input_files",
+        nargs='+',
+        help='input ascii files (can use wildcards)')
     data_gridder.add_argument(
         '--spacing',
         nargs='+',
         type=float,
         action='store',
-        required=True,
-        help='REQUIRED: grid spacing along [longitude, latitude]'
+        help="REQUIRED (if 'nodes' not given): grid spacing along [longitude, latitude]"
     )
+    data_gridder.add_argument(
+        '--nodes',
+        type=str,
+        help="REQUIRED (if 'spacing' not given): path to grid nodes ascii file; format=(x, y)")
     data_gridder.add_argument(
         '--smoothing',
         type=float,
         required=True,
-        help='REQUIRED: grid smoothing length (km)'
+        help='REQUIRED: grid smoothing length (if not utm, unit=km; if utm, unit=m)'
     )
     data_gridder.add_argument(
         '--utm',
@@ -2105,6 +2111,188 @@ def parse_args(*args, **kwargs):
         help='path to sac software executable (default=auto)' )
 
     #------------------------#
+    # $> gdp seismic ans
+    seismic_ans = seismic_subparsers.add_parser(
+        'ans',
+        help='ambient-noise-seismology module',
+        description="Ambient-noise-seismology module: generate Rayleigh and Love wave empirical Green's functions (zero to hero!).")
+    seismic_ans_subparsers = seismic_ans.add_subparsers(dest='subsubmodule')
+
+    #------------------------#
+    # $> gdp seismic ans init
+    seismic_ans_init = seismic_ans_subparsers.add_parser(
+        'init',
+        help='initialize ans project',
+        description="Initialize project directory. Example: $ ans init <PATH>")
+    seismic_ans_init.add_argument(
+        'maindir',
+        type=str,
+        help='path to the main project directory',
+        action='store' )
+
+    #------------------------#
+    # $> gdp seismic ans config
+    seismic_ans_config = seismic_ans_subparsers.add_parser(
+        'config',
+        help='configure project settings',
+        description="Configure project settings in a GUI")
+    seismic_ans_config.add_argument(
+        '--maindir',
+        type=str,
+        help='path to the main project directory (default=".")',
+        action='store',
+        default='.' )
+
+    #------------------------#
+    # $> gdp seismic ans download
+    seismic_ans_download = seismic_ans_subparsers.add_parser(
+        'download',
+        help='download module',
+        description="Download station list, station meta files, and mseed files.")
+    seismic_ans_download.add_argument(
+        '--maindir',
+        type=str,
+        help='path to the main project directory (default=".")',
+        action='store',
+        default='.' )
+    seismic_ans_download_subparsers = seismic_ans_download.add_subparsers(dest='subsubsubmodule')
+
+    #------------------------#
+    # $> gdp seismic ans download stations
+    seismic_ans_download_stations = seismic_ans_download_subparsers.add_parser(
+        'stations',
+        help="download station list",
+        description="Download station list")
+    seismic_ans_download_stations.add_argument(
+        '--maindir',
+        type=str,
+        help='path to the main project directory (default=".")',
+        action='store',
+        default='.' )
+
+    #------------------------#
+    # $> gdp seismic ans download metadata
+    seismic_ans_download_metadata = seismic_ans_download_subparsers.add_parser(
+        'metadata',
+        help="download station meta files",
+        description="Download '*.xml' meta files")
+    seismic_ans_download_metadata.add_argument(
+        '--maindir',
+        type=str,
+        help='path to the main project directory (default=".")',
+        action='store',
+        default='.' )
+    seismic_ans_download_metadata.add_argument(
+        '--update_stations',
+        help='update the list of stations based on the content of metadata directory after download',
+        action='store_true',
+        default=False
+    )
+
+    #------------------------#
+    # $> gdp seismic ans download mseeds
+    seismic_ans_download_mseeds = seismic_ans_download_subparsers.add_parser(
+        'mseeds',
+        help="download mseed files",
+        description="Download '*.mseed' data files")
+    seismic_ans_download_mseeds.add_argument(
+        '--maindir',
+        type=str,
+        help='path to the main project directory (default=".")',
+        action='store',
+        default='.'
+    )
+
+    #------------------------#
+    # $> gdp seismic ans mseed2sac
+    seismic_ans_mseed2sac = seismic_ans_subparsers.add_parser(
+        'mseed2sac',
+        help='mseed2sac processes module',
+        description="mseed2sac processes module.")
+    seismic_ans_mseed2sac.add_argument(
+        'mseeds_dir',
+        type=str,
+        help='path to the downloaded MSEED files dataset directory',
+        action='store',
+    )
+    seismic_ans_mseed2sac.add_argument(
+        'sacs_dir',
+        type=str,
+        help='path to the output SAC files dataset directory',
+        action='store',
+    )
+    seismic_ans_mseed2sac.add_argument(
+        '--maindir',
+        type=str,
+        help='path to the main project directory (default=".")',
+        action='store',
+        default='.'
+    )
+    seismic_ans_mseed2sac.add_argument(
+        '--all',
+        help='output all and ignore station list',
+        action='store_true',
+    )
+
+
+    #------------------------#
+    # $> gdp seismic ans sac2ncf
+    seismic_ans_sac2ncf = seismic_ans_subparsers.add_parser(
+        'sac2ncf',
+        help='sac2ncf processes module',
+        description="sac2ncf processes module.")
+    seismic_ans_sac2ncf.add_argument(
+        'sacs_dir',
+        type=str,
+        help='path to the input SAC files dataset directory',
+        action='store' )
+    seismic_ans_sac2ncf.add_argument(
+        'ncfs_dir',
+        type=str,
+        help='path to the output NCF files dataset directory',
+        action='store' )
+    seismic_ans_sac2ncf.add_argument(
+        '--maindir',
+        type=str,
+        help='path to the main project directory (default=".")',
+        action='store',
+        default='.' )
+    seismic_ans_sac2ncf.add_argument(
+        '--all',
+        help='output all and ignore station list',
+        action='store_true' )
+
+    #------------------------#
+    # $> gdp seismic ans ncf2egf
+    seismic_ans_ncf2egf = seismic_ans_subparsers.add_parser(
+        'ncf2egf',
+        help='ncf2egf processes module',
+        description="ncf2egf processes module.")
+    seismic_ans_ncf2egf.add_argument(
+        'ncfs_dir',
+        type=str,
+        help='path to the input NCF files dataset directory',
+        action='store' )
+    seismic_ans_ncf2egf.add_argument(
+        'egfs_dir',
+        type=str,
+        help='path to the output EGF files dataset directory',
+        action='store' )
+    seismic_ans_ncf2egf.add_argument(
+        '--cmp',
+        nargs='+',
+        type=str,
+        action='store',
+        default=['ZZ','TT'],
+        help='cross-correlation component(s) (default: ZZ TT)')
+    seismic_ans_ncf2egf.add_argument(
+        '--maindir',
+        type=str,
+        help='path to the main project directory (default=".")',
+        action='store',
+        default='.' )
+
+    #------------------------#
     # $> gdp seismic plot
     seismic_plot = seismic_subparsers.add_parser(
         'plot',
@@ -2276,6 +2464,12 @@ def main(*args, **kwargs):
             dat.nodes(args)
             exit(0)
         elif args.submodule == 'gridder':
+            if args.nodes == None and args.spacing == None:
+                print("Either of these arguments is required: 'spacing' or 'nodes'")
+                exit(1)
+            elif args.nodes != None and args.spacing != None:
+                print("Only one of these arguments should be given: 'spacing' or 'nodes'")
+                exit(1)
             if args.utm:
                 dat.gridder_utm(args)
             else:
@@ -2417,6 +2611,60 @@ def main(*args, **kwargs):
                 sws.run_sws_dataset_app(args.input_files, refmodel=args.refmodel,
                     SAC=args.sac, headonly=args.hdronly)
                 exit(0)
+
+        elif args.submodule == 'ans':
+
+            if args.subsubmodule == 'init':
+
+                from . import ans_config
+                
+                
+                
+                
+                from . import ans_proc
+                
+
+                if not os.path.isdir(args.maindir):
+                    os.mkdir(args.maindir)
+                if not os.path.isdir(os.path.join(args.maindir, '.ans')):
+                    os.mkdir(os.path.join(args.maindir, '.ans'))
+                defaults = ans_config.Defaults(args.maindir)
+                parameters = defaults.parameters()
+                ans_config.write_config(args.maindir, parameters)
+                print("Project directory was successfully initialized!\n")
+
+            elif args.subsubmodule == 'config':
+                from . import ans_gui
+                from PyQt5.QtWidgets import QApplication
+                app = QApplication(sys.argv)
+                win = ans_gui.MainWindow(args.maindir)
+                win.show()
+                sys.exit(app.exec_())
+                app.exec_()
+
+            elif args.subsubmodule == 'download':
+                from . import ans_download
+                if args.subsubsubmodule == 'stations':
+                    ans_download.download_stations(args.maindir)
+                elif args.subsubsubmodule == 'metadata':
+                    ans_download.download_metadata(args.maindir, args.update_stations)
+                elif args.subsubsubmodule == 'mseeds':
+                    ans_download.download_mseeds(args.maindir)
+
+            elif args.subsubmodule == 'mseed2sac':
+                
+                from . import ans_mseed2sac
+                ans_mseed2sac.mseed2sac_run_all(args.maindir, args.mseeds_dir, args.sacs_dir, args.all)
+
+            elif args.subsubmodule == 'sac2ncf':
+
+                from . import ans_sac2ncf
+                ans_sac2ncf.sac2ncf_run_all(args.maindir, args.sacs_dir, args.ncfs_dir, args.all)
+
+            elif args.subsubmodule == 'ncf2egf':
+
+                from . import ans_ncf2egf
+                ans_ncf2egf.ncf2egf_run_all(args.maindir, args.ncfs_dir, args.egfs_dir, args.cmp)
 
         elif args.submodule == 'plot':
 

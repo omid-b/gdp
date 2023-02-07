@@ -1,0 +1,165 @@
+
+
+#header *, #body_menu *, #footer * {
+/*    make sure that same color is set 
+for border-color of buttons in self.set_btn_qss()*/
+    background-color: #DDDDF9; 
+}
+
+#header, #footer {
+    max-height: 55px;
+    min-height: 55px;
+}
+
+
+#lbl_status {
+    color:  #024664;
+    margin-left: 10px;
+}
+
+
+#lbl_title {
+    color:  #024664;
+    font-family: "Tahoma";
+    font-weight: bold;
+    font-size: 13pt;
+}
+
+#btn_logo {
+    margin-top: -3px;
+}
+
+#body_main {
+    border: 2px solid #D1D1F9;
+}
+
+#menu_top {
+    border-top: 2px solid #D1D1F9;
+}
+
+#menu_bottom {
+    border-top: 2px solid #D1D1F9;
+    border-bottom: 2px solid #D1D1F9;
+}
+
+/*----MAIN WIDGETS----*/
+
+
+
+#le_startdate {
+    max-width: 110px;
+}
+
+
+#le_enddate {
+    max-width: 110px;
+}
+
+#le_minlat {
+    max-width: 110px;
+}
+
+#le_maxlat {
+    max-width: 110px;
+}
+
+#le_minlon {
+    max-width: 110px;
+}
+
+#le_maxlon {
+    max-width: 110px;
+}
+
+
+#btn_showmap:enabled {
+	font-weight: bold;
+    background-color: #1C63F0;
+    color: white;
+    min-height: 15px;
+    margin-top: 10px;
+    margin-left: 7px;
+    margin-right: 7px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+#btn_showmap:enabled::hover {
+    background-color: #4584FF;
+}
+
+#btn_showmap:disabled {
+    min-height: 15px;
+    margin-top: 10px;
+    margin-left: 7px;
+    margin-right: 7px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+}
+
+
+QFrame{
+    background-color: #EEE;
+/*    border: 5px dashed red;*/
+}
+
+QWidget{
+    background-color: #EEE;
+}
+
+QLabel {
+    color: #000;
+    min-height: 18px;
+}
+
+QLineEdit {
+    min-height: 20px;
+    margin: 0;
+    padding: 0;
+    padding-left: 5px;
+    padding-right: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    background-color: #FFF;
+    color: #000;
+    border: 1px solid #AAA;
+}
+
+
+QPushButton {
+    color: #999;
+    margin-left: 2px;
+    margin-right: 2px;
+    padding-right: 5px;
+    padding-left: 5px;
+    padding-bottom: 2px;
+}
+
+#btn_sac2ncf_add, #btn_sac2ncf_remove,
+#btn_mseed2sac_add, #btn_mseed2sac_remove{
+    border: none;
+    padding: 0;
+}
+
+QComboBox, QSpinBox, QDoubleSpinBox {
+    color: #000;
+    background-color: #FFF;
+}
+
+QSpinBox, QDoubleSpinBox{
+    border: 1px solid #AAA;
+    min-height: 18px;
+}
+
+
+QAbstractItemView, QListView {
+    color: #FFF;
+    background-color : #333;
+}
+
+#scroll_mseed2sac, #scroll_sac2ncf {
+    border: none;
+}
+
+
+

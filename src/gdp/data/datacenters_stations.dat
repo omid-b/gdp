@@ -1,0 +1,21 @@
+# list of queries are from http://www.fdsn.org/webservices/datacenters/
+# lines starting with '#' will be ignored
+http://service.iris.edu/fdsnws/station/1
+#http://service.ncedc.org/fdsnws/station/1
+#http://service.scedc.caltech.edu/fdsnws/station/1/
+#http://rtserve.beg.utexas.edu/fdsnws/station/1/
+#http://eida.bgr.de/fdsnws/station/1/
+#http://eida-service.koeri.boun.edu.tr/fdsnws/station/1/
+#http://eida.ethz.ch/fdsnws/station/1/
+#http://geofon.gfz-potsdam.de/fdsnws/station/1/
+#http://ws.icgc.cat/fdsnws/station/1/
+#http://eida.ipgp.fr/fdsnws/station/1/
+#http://webservices.ingv.it/fdsnws/station/1/
+#http://erde.geophysik.uni-muenchen.de/fdsnws/station/1/
+#http://eida-sc3.infp.ro/fdsnws/station/1/
+#http://eida.gein.noa.gr/fdsnws/station/1/
+#http://www.orfeus-eu.org/fdsnws/station/1/
+#http://ws.resif.fr/fdsnws/station/1/
+#http://seisrequest.iag.usp.br/fdsnws/station/1/
+#https://fdsnws.raspberryshakedata.com/fdsnws/station/1/
+#http://auspass.edu.au:8080/fdsnws/station/1/

@@ -1,0 +1,116 @@
+<h1 align="center"> ANS: Ambient Noise Seismology (version 0.0.2) </h1>
+
+<br>
+
+<p>
+ANS is a python wrapper for ambient noise seismology tasks and it has a GUI for easier configuration of ambient-noise seismology projects. In its backend, this package depends on Perl interpreter, GMT (Generic Mapping Tools), and SAC (Seismic Analysis Code) as well as python modules including ObsPy etc. <br/><br/> *ANS is successfully tested in Python versions 3.7.*-3.11.*.
+</p>
+
+
+<br>
+<br> ANS development was first started as a separate GitHub project addresed at <a href="https://github.com/omid-b/ans">https://github.com/omid-b/ans</a> but later addded to gdp <br>
+
+<p>
+Code owners:
+<ul>
+  <li>Omid Bagherpur (email: omid.bagherpur@gmail.com)<br></li>
+  <li>Fiona Darbyshire (email: darbyshire.fiona_ann@uqam.ca)<br></li>
+</ul>
+</p>
+
+<h2> Example procedure:</h2>
+
+<ul>
+  <li style="margin-bottom:2em;">
+    <code> $> gdp seismic ans init maindir </code> <br><br>
+    Description: initialize ANS project at the project main directory i.e. "<code>maindir</code>"
+  </li>
+
+  <li style="margin-bottom:2em;">
+    <code> $> gdp seismic ans config </code> <br>
+    <code> $> gdp seismic ans config --maindir maindir</code> <br><br>
+    Description: open the program GUI to configure the ans project.
+  Note: default <code>maindir</code> is $PWD <br>
+  </li>
+
+  <li style="margin-bottom:2em;">
+    <code> $> gdp seismic ans download stations </code> <br>
+    <code> $> gdp seismic ans download stations --maindir maindir</code> <br><br>
+    Description: download list of available stations at the given 
+    region boundary and dates that was previously set in this GUI.
+    Datacenters, desired station components etc should also be set using <code>'$> ans config'</code>.<br>
+  </li>
+
+  <li style="margin-bottom:2em;">
+    <code> $> gdp seismic ans download metadata </code> <br>
+    <code> $> gdp seismic ans download metadata --maindir maindir</code> <br>
+    <code> $> gdp seismic ans download metadata --update_stations</code> <br><br>
+    Description: download station metadata files (xml file format) that will be used for instrument response removal and updating sac headers. If '<code>--update_stations</code>' is appended, program will update the list of stations based on the content of metadata directory when the process is finished.<br>
+  </li>
+
+
+  <li style="margin-bottom:2em;">
+    <code> $> gdp seismic ans download mseeds </code> <br>
+    <code> $> gdp seismic ans download mseeds --maindir maindir</code> <br><br>
+    Description: main data acquisition module; download seismograms in mseed format <br>
+  </li>
+
+  <li style="margin-bottom:2em;">
+    <code> $> gdp seismic ans mseed2sac mseeds_dir sacs_dir </code> <br>
+    <code> $> gdp seismic ans mseed2sac mseeds_dir sacs_dir --all </code> <br><br>
+    Description: convert mseed to sac files while applying the listed processing steps
+  in project configuration mseed2sac tab. Note that if for some reason, process if stopped, one can re-run the command and the program will resume the process for the remaining files.<br><br>
+  * <code>mseeds_dir:</code> input mseed dataset directory<br>
+  * <code>sacs_dir:</code> output sac files dataset directory<br>
+  * <code>--all:</code> do not pay attention to station list and output all<br>
+  </li>
+
+  <li style="margin-bottom:2em;">
+    <code> $> gdp seismic ans sac2ncf sacs_dir ncfs_dir </code> <br>
+    <code> $> gdp seismic ans sac2ncf sacs_dir ncfs_dir --all </code> <br><br>
+    Description: process the input sacfiles and output NCFs (noise cross-correlation functions) while applying the list of sac2ncf processes defined in project configuration file. Note: At this step it is necessary that all sac headers are updated and this can be done by either performing instrument response removal or adding "write headers" process to the list of processes.<br><br>
+  * <code>sacs_dir:</code> input sac files dataset directory<br>
+  * <code>ncfs_dir:</code> output ncf files dataset directory<br>
+  * <code>--all:</code> do not consider the station list and output all<br>
+  </li>
+
+  <li style="margin-bottom:2em;">
+    <code> $> gdp seismic ans ncf2egf ncfs egfs_dir</code> <br><br>
+    Description: stack NCFs and generate EGFs <br><br>
+  * <code>ncfs:</code> either path to the 'ncfs_dir' (full stack EGFs) or an ASCII datalist with a one-column data format containing a list of paths to event directories (seasonal EGFs; e.g., "14001000000" i.e. 2014/01/01)<br>
+  * <code>egfs_dir:</code> output egf files dataset directory<br>
+  </li>
+
+</ul>
+
+
+<h2> Release notes:</h2>
+
+<br>
+
+<h3>Version 0.0.2</h3>
+
+<br>
+
+<p>
+
+Fix bugs and compatibility issues in various Python versions.
+
+</p>
+
+<br>
+
+<h3>Version 0.0.1</h3>
+
+<br>
+
+
+<p>
+This version includes all the necessary commands and tools for generating Rayleigh wave (ZZ and RR cross-correlations) and Love wave (TT cross-correlation component) Empirical Green's Functions (EGFs).
+
+<br>
+
+
+
+
+

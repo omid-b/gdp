@@ -246,12 +246,17 @@ def gridder(args):
     else:
         fmt = args.fmt
 
-    if len(args.spacing) == 1:
-        args.spacing = [args.spacing[0], args.spacing[0]]
 
-    if args.spacing[0] <= 0 or args.spacing[1] <= 0:
-        print(f"Error! 'spacing' should be positive.")
-        exit(1)
+    if not args.nodes:
+        if len(args.spacing) == 1:
+            args.spacing = [args.spacing[0], args.spacing[0]]
+        if args.spacing[0] <= 0 or args.spacing[1] <= 0:
+            print(f"Error! 'spacing' should be positive.")
+            exit(1)
+    else:
+        nodes_xy, _, _ = io.read_numerical_data(args.nodes, 0, 0, [".10",".10"], [1,2], [], skipnan=True)
+        nodes_x = nodes_xy[0]
+        nodes_y = nodes_xy[1]
 
     if args.smoothing <= 0:
         print(f"Error! 'smoothing' should be positive.")
@@ -361,14 +366,7 @@ def gridder(args):
             minY = args.yrange[0]
             maxY = args.yrange[1]
 
-        xinc = args.spacing[0]
-        yinc = args.spacing[1]
-
-        nx = int(((maxX-minX)/xinc)+1)
-        ny = int(((maxY-minY)/yinc)+1)
-
         ndp = len(dataX) # number of data points
-        ngp = nx * ny # number of grid points
 
         # input data relative coordinates: xnode & ynode
         xnode = [];  ynode = []
@@ -396,11 +394,10 @@ def gridder(args):
         # grid coordinates
         gridx = []; gridy = []
         rxgrid = [];  rygrid = []
-        for ix in range(nx):
-            x = minX + ix*xinc
-            for iy in range(ny):
-                y = minY + iy*yinc
-
+        if args.nodes:
+            ngp = len(nodes_x) # number of grid points
+            for ix, x in enumerate(nodes_x):
+                y = nodes_y[ix]
                 point = geographic.Point(x, y)
                 line = geographic.Line(point_app, point)
 
@@ -423,6 +420,39 @@ def gridder(args):
                 gridy.append(y)
                 rxgrid.append(circ * deltadiff)
                 rygrid.append(circ * sin(radians(delta)) * tazdiff)
+        else:
+            xinc = args.spacing[0]
+            yinc = args.spacing[1]
+            nx = int(((maxX-minX)/xinc)+1)
+            ny = int(((maxY-minY)/yinc)+1)
+            ngp = nx * ny # number of grid points
+            for ix in range(nx):
+                x = minX + ix*xinc
+                for iy in range(ny):
+                    y = minY + iy*yinc
+
+                    point = geographic.Point(x, y)
+                    line = geographic.Line(point_app, point)
+
+                    delta = line.calc_gcarc()
+                    tazim = line.calc_az()
+
+                    deltadiff = delta - deltaref
+                    if deltadiff > 180:
+                        deltadiff -= 360
+                    elif deltadiff < -180:
+                        deltadiff += 360
+                    
+                    tazdiff =tazimref-tazim
+                    if tazdiff > 180:
+                        tazdiff -= 360
+                    elif tazdiff < -180:
+                        tazdiff += 360
+                    
+                    gridx.append(x)
+                    gridy.append(y)
+                    rxgrid.append(circ * deltadiff)
+                    rygrid.append(circ * sin(radians(delta)) * tazdiff)
 
         # gridding 
         out_lines = []
@@ -505,12 +535,16 @@ def gridder_utm(args):
     else:
         fmt = args.fmt
 
-    if len(args.spacing) == 1:
-        args.spacing = [args.spacing[0], args.spacing[0]]
-
-    if args.spacing[0] <= 0 or args.spacing[1] <= 0:
-        print(f"Error! 'spacing' should be positive.")
-        exit(1)
+    if  args.nodes:
+        nodes_xy, _, _ = io.read_numerical_data(args.nodes, 0, 0, [".10",".10"], [1,2], [], skipnan=True)
+        nodes_x = nodes_xy[0]
+        nodes_y = nodes_xy[1]
+    else:
+        if len(args.spacing) == 1:
+            args.spacing = [args.spacing[0], args.spacing[0]]
+        if args.spacing[0] <= 0 or args.spacing[1] <= 0:
+            print(f"Error! 'spacing' should be positive.")
+            exit(1)
 
     if args.smoothing <= 0:
         print(f"Error! 'smoothing' should be positive.")
@@ -597,14 +631,9 @@ def gridder_utm(args):
             minY = args.yrange[0]
             maxY = args.yrange[1]
 
-        xinc = args.spacing[0]
-        yinc = args.spacing[1]
-
-        nx = int(((maxX-minX)/xinc)+1)
-        ny = int(((maxY-minY)/yinc)+1)
+        
 
         ndp = len(dataX) # number of data points
-        ngp = nx * ny # number of grid points
 
         # input data relative coordinates: xnode & ynode
         xnode = [];  ynode = []
@@ -615,14 +644,28 @@ def gridder_utm(args):
         # grid coordinates
         gridx = []; gridy = []
         rxgrid = [];  rygrid = []
-        for ix in range(nx):
-            x = minX + ix*xinc
-            for iy in range(ny):
-                y = minY + iy*yinc
+        if args.nodes:
+            ngp = len(nodes_x)
+            for ix, x in enumerate(nodes_x):
+                y = nodes_y[ix]
                 gridx.append(x)
                 gridy.append(y)
                 rxgrid.append(x - refX)
                 rygrid.append(y - refY)
+        else:
+            xinc = args.spacing[0]
+            yinc = args.spacing[1]
+            nx = int(((maxX-minX)/xinc)+1)
+            ny = int(((maxY-minY)/yinc)+1)
+            ngp = nx * ny # number of grid points
+            for ix in range(nx):
+                x = minX + ix*xinc
+                for iy in range(ny):
+                    y = minY + iy*yinc
+                    gridx.append(x)
+                    gridy.append(y)
+                    rxgrid.append(x - refX)
+                    rygrid.append(y - refY)
 
         # gridding 
         out_lines = []
