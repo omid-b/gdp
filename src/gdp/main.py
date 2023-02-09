@@ -816,8 +816,71 @@ def parse_args(*args, **kwargs):
     data_plot = data_subparsers.add_parser('plot', help='plot module for geographic data types',
     description="Plot module for geographic data types")
     data_plot._positionals.title = 'Required arguments'
+    data_plot_subparsers = data_plot.add_subparsers(dest='subsubmodule')
+
+    #------------------------#
+    # $> gdp data plot scatter
+    data_plot_scatter = data_plot_subparsers.add_parser(
+        'scatter',
+        help='plot geographic scatter points',
+        description='Plot geographic scatter points')
+    data_plot_scatter.add_argument(
+        'input_file',
+        help='path to input scatter data file (shp files also accepted)')
+    data_plot_scatter.add_argument(
+        '-x',
+        type=int,
+        nargs=2,
+        default=[1,2],
+        help='positionals (x,y) column numbers (ascii only); default=[1, 2]' )
+    data_plot_scatter.add_argument(
+        '-v',
+        nargs='*',
+        type=int,
+        default=[],
+        help='value column numbers for color and size respectively (ascii only); default=[]' )
+    data_plot_scatter.add_argument(
+        '--cs',
+        type=str,
+        default='wgs84',
+        help='coordinate system (default=wgs84/4326)')
+    data_plot_scatter.add_argument(
+        '--padding',
+        type=float,
+        default=0.1,
+        help='map region padding factor; default=0.1')
+    data_plot_scatter.add_argument(
+        '--size',
+        type=float,
+        default=50.0,
+        help='scatter point size (or maximum size); default=50.0')
+    data_plot_scatter.add_argument(
+        '--area_thresh',
+        type=int,
+        default=1000,
+        help='minimum area threshold for showing basemap features; default=1000'
+    )
+    data_plot_scatter.add_argument(
+        '--invert_color',
+        action='store_true',
+        help='invert color map (only if first value column given; smaller values will be red colors)')
+    data_plot_scatter.add_argument(
+        '--invert_size',
+        action='store_true',
+        help='invert size (only if second value column given; smaller values will be larger)')
+    data_plot_scatter.add_argument(
+        '--dpi',
+        type=int,
+        help='output dpi (dot per inch; default=150)',
+        default=150)
+    data_plot_scatter.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        help="output plot file; default file extension, if not specified from ['pdf','png','jpg'] will be set to 'pdf'")
+
+
     
-    # XXX data_plot subsubmodules not developed yet
 
     #=====MODULE: STATS=====#
 
@@ -828,9 +891,14 @@ def parse_args(*args, **kwargs):
 
     #------------------------#
     # $> gdp stats min
-    stats_min = stats_subparsers.add_parser('min', help='calculate min of numerical column(s)',
+    stats_min = stats_subparsers.add_parser(
+        'min',
+        help='calculate min of numerical column(s)',
         description="Calculate minimum of values in numerical column(s)")
-    stats_min.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    stats_min.add_argument(
+        "input_files",
+        nargs='+',
+        help='input ascii files (can use wildcards)')
     stats_min.add_argument(
         '-v',
         nargs='+',
@@ -1212,11 +1280,11 @@ def parse_args(*args, **kwargs):
     raster_georef = raster_subparsers.add_parser('georef', help='georeference maps',
     description="Georeference maps. Coordinate system could be defined using the EPSG code (visit 'epsg.io' for more information).")
     raster_georef.add_argument(
-        '--epsg',
-        type=int,
+        '--cs',
+        type=str,
         action='store',
         default=4326,
-        help='EPSG coordinate system and trasfomation code (default=4326; WGS84)')
+        help='coordinate system or EPSG code (default=wgs84/4326)')
 
     #------------------------#
     # $> gdp raster plot
@@ -2283,8 +2351,8 @@ def parse_args(*args, **kwargs):
         nargs='+',
         type=str,
         action='store',
-        default=['ZZ','TT'],
-        help='cross-correlation component(s) (default: ZZ TT)')
+        default=['ZZ','TT','RR'],
+        help='cross-correlation component(s) (default: ZZ TT RR)')
     seismic_ans_ncf2egf.add_argument(
         '--maindir',
         type=str,
@@ -2476,7 +2544,9 @@ def main(*args, **kwargs):
                 dat.gridder(args)
             exit(0)
         elif args.submodule == 'plot':
-            under_dev()
+
+            if args.subsubmodule == 'scatter':        
+                plot.plot_data_scatter(args)
 
     elif args.module == 'stats':
         
@@ -2509,9 +2579,11 @@ def main(*args, **kwargs):
         if args.submodule == 'georef':
 
             from . import georefmaps
+            from . import dat
             import tkinter as tk
+            epsg = dat.return_epsg_code(args.cs)
             root = tk.Tk()
-            app = georefmaps.Application(master=root, epsg=args.epsg)
+            app = georefmaps.Application(master=root, epsg=epsg)
             app.mainloop()
 
         elif args.submodule == 'plot':

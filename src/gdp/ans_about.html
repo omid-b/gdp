@@ -36,9 +36,9 @@ Code owners:
   <li style="margin-bottom:2em;">
     <code> $> gdp seismic ans download stations </code> <br>
     <code> $> gdp seismic ans download stations --maindir maindir</code> <br><br>
-    Description: download list of available stations at the given 
-    region boundary and dates that was previously set in this GUI.
-    Datacenters, desired station components etc should also be set using <code>'$> ans config'</code>.<br>
+    Description: download list of available stations within the given 
+    region boundary and specified dates set in this GUI.
+    Datacenters, desired station components, and other settings should also be set in this GUI.<br>
   </li>
 
   <li style="margin-bottom:2em;">
@@ -68,7 +68,7 @@ Code owners:
   <li style="margin-bottom:2em;">
     <code> $> gdp seismic ans sac2ncf sacs_dir ncfs_dir </code> <br>
     <code> $> gdp seismic ans sac2ncf sacs_dir ncfs_dir --all </code> <br><br>
-    Description: process the input sacfiles and output NCFs (noise cross-correlation functions) while applying the list of sac2ncf processes defined in project configuration file. Note: At this step it is necessary that all sac headers are updated and this can be done by either performing instrument response removal or adding "write headers" process to the list of processes.<br><br>
+    Description: process the input sacfiles and output NCFs (noise cross-correlation functions) while applying the list of sac2ncf processes specified in the project configuration file. Note: at this stage, it is necessary that all sac headers to be written/updated and this can be done by either performing instrument response removal or adding "write headers" process to the list of processes.<br><br>
   * <code>sacs_dir:</code> input sac files dataset directory<br>
   * <code>ncfs_dir:</code> output ncf files dataset directory<br>
   * <code>--all:</code> do not consider the station list and output all<br>

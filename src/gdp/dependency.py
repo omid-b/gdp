@@ -3,6 +3,7 @@ import os
 import subprocess
 
 def check_all():
+    import subprocess
     num_errors = 0
     perl = find_perl_path()
     sac = find_sac_path()
@@ -16,6 +17,10 @@ def check_all():
         num_errors += 1
     if len(gmt) == 0:
         print("WARNING! Could not find GMT (Generic Mapping Tools) in this environment.")
+        num_errors += 1
+    if subprocess.call('ps2epsi --version',shell=True, stderr=subprocess.STDOUT, stdout=subprocess.DEVNULL) != 0 and \
+        subprocess.call('ps2eps  --version',shell=True, stderr=subprocess.STDOUT, stdout=subprocess.DEVNULL) != 0:
+        print("WARNING! Could not find either ps2epsi or ps2eps.")
         num_errors += 1
     try:
         import argparse
