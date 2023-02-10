@@ -5,3 +5,5 @@ global-include *.pyx
 include src/gdp/*
 include src/gdp/data/*
 include src/gdp/data/tectonics/*
+include src/gdp/data/images/*
+include src/gdp/data/images/icons/*
