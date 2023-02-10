@@ -44,9 +44,9 @@ def parse_args(*args, **kwargs):
         action='version',
         version=f'%(prog)s {version}')
     parser.add_argument(
-        '--test',
+        '--check',
         action='store_true',
-        help='test all dependencies')
+        help='check all dependencies')
     parser._positionals.title = 'list of modules'
     subparsers = parser.add_subparsers(dest='module')
     
@@ -2457,7 +2457,7 @@ def main(*args, **kwargs):
         clear_screen()
         print(f"{about}\n")
         exit(0)
-    elif args.test:
+    elif args.check:
         from . import dependency
         dependency.check_all()
     

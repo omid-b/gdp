@@ -170,7 +170,7 @@ def check_all():
     try:
         from osgeo import gdal, osr
     except:
-        print("Import Error: 'from osgeo import gdal, osr'")
+        print("Import Error: 'from osgeo import gdal, osr'; maybe try this fix: 'pip install gdal'")
         num_errors += 1
     if num_errors:
         print(f"\nNumber of errors found: {num_errors}\n")
