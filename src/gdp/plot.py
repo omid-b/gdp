@@ -30,13 +30,15 @@ def plot_data_scatter(args):
         exit(1)
     elif os.path.splitext(args.input_file)[1] == '.shp' and len(args.v):
         print("WARNING! value column number argument only works for ascii data type.")
+    elif args.crange[0] >= args.crange[1]:
+        print('Error! Argument "--crange" is set incorrectly!')
+        exit(1)
 
     if os.path.splitext(args.input_file)[1] == '.shp': 
-        points_xy = io.read_point_shp(args.input_file) # MUST CHECK THIS LATER!
-    else:
-        # else if args.input_file is not *.shp >> ascii file
+        points_x, points_y = io.read_point_shp(args.input_file) # MUST CHECK THIS LATER!
+        points_vals = []
+    else: # ascii
         scatter_data = io.read_numerical_data(args.input_file, 0, 0, [".10",".10"], args.x, args.v, skipnan=True)
-
         points_x = scatter_data[0][0]
         points_y = scatter_data[0][1]
         points_vals = scatter_data[1]
@@ -81,14 +83,19 @@ def plot_data_scatter(args):
                 area_thresh=args.area_thresh,
                 ax=ax)
 
+    if len(points_vals):
+        labels_y = [1,0,0,0]
+    else:
+        labels_y = [1,1,0,0]
+
     try:
         m.drawmeridians(np.arange(-180,180,int((urcrnrlon - llcrnrlon) * np.cos(np.deg2rad((min_lat + max_lat)/2)) /3)),
             labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
         m.drawparallels(np.arange(-90,90,int((urcrnrlat - llcrnrlat)/3)),
-            labels=[1,0,0,0], dashes=[1,1], color=(0,0,0,0.1))
+            labels=labels_y, dashes=[1,1], color=(0,0,0,0.1))
     except:
         m.drawmeridians([llcrnrlon, (min_lon + max_lon)/2 ,urcrnrlon], labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
-        m.drawparallels([llcrnrlat, (min_lat + max_lat)/2 ,urcrnrlat], labels=[1,0,0,0], dashes=[1,1], color=(0,0,0,0.1))
+        m.drawparallels([llcrnrlat, (min_lat + max_lat)/2 ,urcrnrlat], labels=labels_y, dashes=[1,1], color=(0,0,0,0.1))
     m.fillcontinents(color=(0.9, 0.9, 0.9))
     m.drawcountries(linewidth=0.1)
     m.drawcoastlines(linewidth=0.3)
@@ -119,12 +126,22 @@ def plot_data_scatter(args):
             df_size = ((1 - ((df.s - np.min(df.s)) / (np.max(df.s) - np.min(df.s)))) + 0.1) * args.size
         else:
             df_size = (((df.s - np.min(df.s)) / (np.max(df.s) - np.min(df.s))) + 0.1) * args.size
-        sc = m.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+
+        if args.crange[0] == -999.99 and args.crange[1] == 999.99:
+            sc = m.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+        else:
+            sc = m.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8, vmin=args.crange[0], vmax=args.crange[1])
+        
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.2)
         plt.colorbar(sc, cax=cax, label="")
     elif len(points_vals) == 1:
-        sc = m.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+        
+        if args.crange[0] == -999.99 and args.crange[1] == 999.99:
+            sc = m.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+        else:
+            sc = m.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8, vmin=args.crange[0], vmax=args.crange[1])
+
         divider = make_axes_locatable(ax)
         cax = divider.append_axes("right", size="3%", pad=0.2)
         plt.colorbar(sc, cax=cax, label="")

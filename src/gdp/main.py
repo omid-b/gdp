@@ -861,6 +861,12 @@ def parse_args(*args, **kwargs):
         help='minimum area threshold for showing basemap features; default=1000'
     )
     data_plot_scatter.add_argument(
+        '--crange',
+        type=float,
+        nargs=2,
+        default=[-999.99, 999.99],
+        help='color-scale range (only if first value column given; default=Auto)')
+    data_plot_scatter.add_argument(
         '--invert_color',
         action='store_true',
         help='invert color map (only if first value column given; smaller values will be red colors)')
