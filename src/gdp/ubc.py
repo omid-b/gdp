@@ -5,6 +5,26 @@ from . import io
 from . import dat
 from . import geographic
 
+def mvi2xyz(args):
+    # check inputs
+    if not os.path.isfile(args.mesh):
+        print(f"Error! Could not find mesh file: '{args.mesh}'")
+        exit(1)
+    models = []
+    for mod in args.models:
+        if not os.path.isfile(mod):
+            print(f"Error! Could not find model: '{mod}'")
+            exit(1)
+        if os.path.splitext()[1].lower() not in ['.amp', '.fld', '.ind', '.rem', '.mod']:
+            print(f"WARNING! Model file extension for '{os.path.basename(mod)}' is not in ['amp', 'fld', 'ind', 'rem', 'mod']; this file will be skipped!")
+        else:
+            fopen = open(mod, 'r')
+            flines = fopen.read().splitlines()
+            fopen.close()
+
+
+
+
 
 def mod2xyz(args):
     # check inputs

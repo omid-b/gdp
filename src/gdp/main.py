@@ -1738,8 +1738,8 @@ def parse_args(*args, **kwargs):
     # $> gdp ubc mod2xyz
     ubc_mod2xyz = ubc_subparsers.add_parser(
         'mod2xyz',
-        help='convert UBC model to xyz using 3D mesh',
-        description="Convert UBC model to xyz using 3D mesh" )
+        help='convert UBC SUS or DEN models to xyz format using 3D mesh',
+        description="Convert UBC SUS or DEN models to xyz format using 3D mesh" )
     ubc_mod2xyz.add_argument(
         "mesh",
         type=str,
@@ -1775,6 +1775,22 @@ def parse_args(*args, **kwargs):
         nargs='+',
         default=[],
         help="polygon/polygons to apply point-in-polygon before output" )
+
+    #------------------------#
+    # $> gdp ubc mvi2xyz
+    ubc_mvi2xyz = ubc_subparsers.add_parser(
+        'mvi2xyz',
+        help='convert UBC MVI models to xyz format using 3D mesh',
+        description="Convert UBC MVI models models to xyz format using 3D mesh" )
+    ubc_mvi2xyz.add_argument(
+        "mesh",
+        type=str,
+        help='3D mesh to be used for models' )
+    ubc_mvi2xyz.add_argument(
+        "models",
+        type=str,
+        nargs='+',
+        help='inversion model file/files (can use wildcards)' )
 
     #------------------------#
     # $> gdp ubc plot
@@ -2622,6 +2638,9 @@ def main(*args, **kwargs):
         
         if args.submodule == 'mod2xyz':
             ubc.mod2xyz(args)
+            exit(0)
+        elif args.submodule == 'mvi2xyz':
+            ubc.mvi2xyz(args)
             exit(0)
         elif args.submodule == 'plot':
 

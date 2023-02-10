@@ -951,7 +951,7 @@ def points_in_polygon(args):
                     polygon = geographic.Polygon(polygons[iply][0], polygons[iply][1])
                     if polygon.is_point_in(point, args.inverse):
                         outdata_lines.append(f"%f %f %s" %(point.lon, point.lat, points_data[2][ip]))
-            if len(args.point) > 1:
+            if len(args.points) > 1:
                 if args.outfile:
                     if not os.path.isdir(outfile_orig):
                         os.mkdir(outfile_orig)
@@ -963,7 +963,7 @@ def points_in_polygon(args):
             args.sort = True
 
             if len(outdata_lines):
-                if not outfile_orig and len(args.point) > 1:
+                if not outfile_orig and len(args.points) > 1:
                     print(f"\nFile: '{os.path.split(points_file)[1]}'")
                 io.output_lines(outdata_lines, args)
             elif not outfile_orig:
