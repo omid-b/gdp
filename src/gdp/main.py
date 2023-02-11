@@ -1797,6 +1797,27 @@ def parse_args(*args, **kwargs):
         type=str,
         nargs='+',
         help='inversion model file/files (can use wildcards)' )
+    ubc_mvi2xyz.add_argument(
+        '-o',
+        '--outdir',
+        type=str,
+        help='by default, the output xyz files are placed in the same directory as the model files; this option can be used to change this behaviour')
+    ubc_mvi2xyz.add_argument(
+        '--fmt',
+        nargs=2,
+        type=str,
+        action='store',
+        default=["10.2","13.8"],
+        help='float format for positional and model value columns respectively (default=["10.2","13.8"])')
+    ubc_mvi2xyz.add_argument(
+        '--skipdummy',
+        action='store_true',
+        help='do not output dummy cells with a value of -100.0 (or 0.0 in the case of 3-component model)')
+    ubc_mvi2xyz.add_argument(
+        '--polygon',
+        nargs='+',
+        default=[],
+        help="polygon/polygons to apply point-in-polygon before output" )
 
     #------------------------#
     # $> gdp ubc plot

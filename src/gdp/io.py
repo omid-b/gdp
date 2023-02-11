@@ -245,7 +245,10 @@ def output_lines(lines, args):
 
 
 def return_polygon_objects(polygon_files):
-    from . import geographic
+    try:
+        from . import _geographic as geographic
+    except:
+        from . import geographic
     polygons = []
     for pf in polygon_files:
         if not os.path.isfile(pf):
@@ -258,8 +261,7 @@ def return_polygon_objects(polygon_files):
                 polygons.append(geographic.Polygon(ply_xy[0], ply_xy[1]))
         else:
             ply_ascii_xy = read_polygon_ascii(pf)
-            for ply_xy in ply_ascii_xy:
-                polygons.append(geographic.Polygon(ply_xy[0], ply_xy[1]))
+            polygons.append(geographic.Polygon(ply_ascii_xy[0], ply_ascii_xy[1]))
     return polygons
 
 
