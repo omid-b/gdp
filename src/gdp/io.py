@@ -261,7 +261,8 @@ def return_polygon_objects(polygon_files):
                 polygons.append(geographic.Polygon(ply_xy[0], ply_xy[1]))
         else:
             ply_ascii_xy = read_polygon_ascii(pf)
-            polygons.append(geographic.Polygon(ply_ascii_xy[0], ply_ascii_xy[1]))
+            for iply in range(len(ply_ascii_xy)):
+                polygons.append(geographic.Polygon(ply_ascii_xy[iply][0], ply_ascii_xy[iply][1]))
     return polygons
 
 
@@ -300,7 +301,7 @@ def read_polygon_ascii(polygon_file):
         for line in flines:
             poly_x.append(float(line.split()[0]))
             poly_y.append(float(line.split()[1]))
-        polygons = [poly_x, poly_y]
+        polygons = [[poly_x, poly_y]]
     return polygons
 
 
@@ -355,5 +356,4 @@ def read_point_shp(point_file):
         points[1].append(point_y)
 
     return points
-
 
