@@ -21,7 +21,7 @@ def mvi2xyz(args):
         if not os.path.isfile(mod):
             print(f"Error! Could not find model: '{mod}'")
             exit(1)
-        if os.path.splitext(mod)[1].lower() not in ['.amp', '.fld', '.ind', '.rem', '.mod']:
+        if os.path.splitext(mod)[1].lower() not in ['.phi','.theta','.amp', '.fld', '.ind', '.rem', '.mod']:
             print(f"WARNING! Model file extension for '{os.path.basename(mod)}' is not accepted!")
             continue
 
