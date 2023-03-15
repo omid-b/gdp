@@ -1383,6 +1383,59 @@ def parse_args(*args, **kwargs):
         help='output file extension (default="dat")')
 
     #------------------------#
+    # $> gdp convert 1Dto3D
+    convert_1Dto3D = convert_subparsers.add_parser('1Dto3D', help='combine/convert 1D datasets into 2D datasets',
+    description="Combine/convert 1D datasets into 2D datasets. Example use cases:\
+     (1) building phase velocity map datasets from point/1D dispersion curve datasets,\
+     (2) building shear velocity map datasets from 1D shear velocity profiles.")
+    convert_1Dto3D.add_argument("datalist", type=str, action='store', help='1D dataset datalist')
+    convert_1Dto3D.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    convert_1Dto3D.add_argument(
+        '-x',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[1],
+        help='positional column number in 1D data files (default=1)')
+    convert_1Dto3D.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[2],
+        help="value column(s) in 1D data files (default=[2])"
+    )
+    convert_1Dto3D.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
+    convert_1Dto3D.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4", "03.0"],
+        help='float format (to store) for positional, value, and the identifier columns respectively (default=[".4",".4","03.0"])')
+    convert_1Dto3D.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    convert_1Dto3D.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+
+
+    #------------------------#
     # $> gdp convert 2Dto1D
     convert_2Dto1D = convert_subparsers.add_parser('2Dto1D', help='extract/convert 2D datasets into 1D datasets',
     description="Extract/convert 2D datasets into 1D datasets. Example use cases:\
@@ -2638,6 +2691,9 @@ def main(*args, **kwargs):
         
         if args.submodule == '1Dto2D':
             conv.datasets_1Dto2D(args)
+            exit(0)
+        elif args.submodule == '1Dto3D':
+            conv.datasets_1Dto3D(args)
             exit(0)
         elif args.submodule == '2Dto1D':
             conv.datasets_2Dto1D(args)
