@@ -1549,7 +1549,7 @@ def parse_args(*args, **kwargs):
     # $> gdp convert anomaly1D
     convert_anomaly1D = convert_subparsers.add_parser(
         'anomaly1D',
-        help='calculate 1D anomaly model from 1D absolute model (also can define anomaly marker proxies)',
+        help='calculate 1D anomaly model from 1D absolute model (can also define anomaly marker proxies e.g., LAB seismic proxy)',
         description='Calculate 1D/depth anomaly model from 1D absolute model using a 1D reference model. This tool also generates profile plots and can be used to define depth markers (e.g. LAB depth proxy)')
     convert_anomaly1D.add_argument(
         'absmodel',
@@ -2694,6 +2694,9 @@ def main(*args, **kwargs):
 
             if args.subsubmodule == 'scatter':        
                 plot.plot_data_scatter(args)
+        else:
+            subprocess.call("gdp data -h", shell=True)
+            exit(0)
 
     elif args.module == 'stats':
         
@@ -2720,6 +2723,9 @@ def main(*args, **kwargs):
             if args.subsubmodule == 'hist':
                 plot.plot_hist(args)
                 exit(0)
+        else:
+            subprocess.call("gdp stats -h", shell=True)
+            exit(0)
 
     elif args.module == 'raster':
         
@@ -2737,6 +2743,9 @@ def main(*args, **kwargs):
             
             if args.subsubmodule == 'geotiff':
                 under_dev()
+        else:
+            subprocess.call("gdp raster -h", shell=True)
+            exit(0)
 
     elif args.module == 'convert':
         
@@ -2770,6 +2779,9 @@ def main(*args, **kwargs):
         elif args.submodule == 'dat2nc':
             conv.dat2nc(args)
             exit(0)
+        else:
+            subprocess.call("gdp convert -h", shell=True)
+            exit(0)
 
     elif args.module == 'ubc':
         
@@ -2784,6 +2796,9 @@ def main(*args, **kwargs):
             if args.subsubmodule == 'invcurves':
                 ubc.invcurves(args)
                 exit(0)
+        else:
+            subprocess.call("gdp ubc -h", shell=True)
+            exit(0)
 
     elif args.module == 'seismic':
         
@@ -2845,13 +2860,8 @@ def main(*args, **kwargs):
             if args.subsubmodule == 'init':
 
                 from . import ans_config
-                
-                
-                
-                
                 from . import ans_proc
                 
-
                 if not os.path.isdir(args.maindir):
                     os.mkdir(args.maindir)
                 if not os.path.isdir(os.path.join(args.maindir, '.ans')):
@@ -2906,6 +2916,9 @@ def main(*args, **kwargs):
             elif args.subsubmodule == 'events':
                 plot.plot_events(args.eventlist, args.lon, args.lat, GMT=args.gmt)
                 exit(0)
+        else:
+            subprocess.call("gdp seismic -h", shell=True)
+            exit(0)
 
 
 
