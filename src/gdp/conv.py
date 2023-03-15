@@ -62,7 +62,6 @@ def datasets_1Dto2D(args):
     
 
 def datasets_1Dto3D(args):
-    from operator import itemgetter
     if len(args.fmt) == 1:
         args.fmt = [args.fmt[0], args.fmt[0], "03.0"]
     elif len(args.fmt) == 2:
@@ -166,6 +165,42 @@ def datasets_2Dto1D(args):
         io.output_lines(outmodel_lines[xy], args)
 
 
+#-----------------------#
+
+def datasets_2Dto3D(args):
+    if len(args.fmt) == 1:
+        args.fmt = [args.fmt[0], args.fmt[0], "03.0"]
+    elif len(args.fmt) == 2:
+        args.fmt = [args.fmt[0], args.fmt[1], "03.0"]
+    elif len(args.fmt) > 2:
+        pass
+
+    if args.x[0] == args.x[1]:
+        print("Error! The two positional column numbers (flag '-x') cannot be the same!")
+        exit(1)
+
+    datalist = io.read_2D_datalist(args.datalist, args.fmt[2])
+    fids = sorted(list(datalist.keys()))
+
+    output_lines = []
+    for fid in fids:
+        datafile = datalist[fid]
+        args.nan = False
+        args.noextra = True
+        data = io.data_lines(datafile,args)
+        for dline in data:
+            xy = ' '.join(dline.split()[0:2])
+            vals = ' '.join(dline.split()[2:])
+            output_lines.append(f"{xy} %{args.fmt[2]}f {vals}" %(float(fid)))
+            
+
+    # add nans to outmodel_lines
+    args.sort = False
+    args.uniq = False
+    args.append = False
+    io.output_lines(output_lines, args)
+
+#-------------------------#        
 
 def shp2dat(args):
     if not os.path.isdir(args.outdir):

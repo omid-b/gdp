@@ -1384,10 +1384,9 @@ def parse_args(*args, **kwargs):
 
     #------------------------#
     # $> gdp convert 1Dto3D
-    convert_1Dto3D = convert_subparsers.add_parser('1Dto3D', help='combine/convert 1D datasets into 2D datasets',
-    description="Combine/convert 1D datasets into 2D datasets. Example use cases:\
-     (1) building phase velocity map datasets from point/1D dispersion curve datasets,\
-     (2) building shear velocity map datasets from 1D shear velocity profiles.")
+    convert_1Dto3D = convert_subparsers.add_parser('1Dto3D', help='combine/convert 1D datasets into a 3D dataset',
+    description="Combine/convert 1D datasets into a 3D dataset. Example use case:\
+     - building 3D shear velocity model, to be converted into a voxel, from 1D shear velocity profiles.")
     convert_1Dto3D.add_argument("datalist", type=str, action='store', help='1D dataset datalist')
     convert_1Dto3D.add_argument(
         '-o',
@@ -1493,6 +1492,58 @@ def parse_args(*args, **kwargs):
         action='store',
         default = 'dat',
         help='output file extension (default="dat")')
+
+    #------------------------#
+    # $> gdp convert 2Dto3D
+    convert_2Dto3D = convert_subparsers.add_parser('2Dto3D', help='combine/convert 2D datasets into a 3D dataset',
+    description="Combine/convert 2D datasets into a 3D dataset. Example use case:\
+     - building a 3D/voxel shear wave velocity model from shear wave velocity map data")
+    convert_2Dto3D.add_argument("datalist", type=str, action='store', help='2D dataset datalist')
+    convert_2Dto3D.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output directory')
+    convert_2Dto3D.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1,2],
+        help='positional column number in 2D data files (default=[1,2])')
+    convert_2Dto3D.add_argument(
+        '-v',
+        nargs='+',
+        type=int,
+        action='store',
+        default=[3],
+        help="value column(s) in 2D data files (default=[3])"
+    )
+    convert_2Dto3D.add_argument(
+        '--skipnan',
+        action='store_true',
+        help='do not output lines with nan value(s)')
+    convert_2Dto3D.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4", "03.0"],
+        help='float format (to store) for positional, value, and the identifier columns respectively (default=[".4",".4","03.0"])')
+    convert_2Dto3D.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    convert_2Dto3D.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+
 
     #------------------------#
     # $> gdp convert anomaly1D
@@ -2697,6 +2748,9 @@ def main(*args, **kwargs):
             exit(0)
         elif args.submodule == '2Dto1D':
             conv.datasets_2Dto1D(args)
+            exit(0)
+        elif args.submodule == '2Dto3D':
+            conv.datasets_2Dto3D(args)
             exit(0)
         elif args.submodule == 'anomaly1D':
             dat.anomaly_1D(args)
