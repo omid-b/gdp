@@ -9,6 +9,10 @@ from . import io
 
 #####################################################################
 
+def csproj_fix(args):
+    print("Hello from cs fix!")
+    exit(0)
+
 
 def csproj_ascii(args):
     pos, _, extra = io.read_numerical_data(args.input_file, args.header, args.footer,  ".10", args.x, [], skipnan=True)

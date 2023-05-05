@@ -542,6 +542,45 @@ def parse_args(*args, **kwargs):
         help='append to output')
 
     #------------------------#
+    # $> gdp data cs fix
+    data_cs_fix = data_cs_subparsers.add_parser('fix', help='fix coordinate system mismatch',
+    description="fix coordinate system mismatch: compare two datasets and find best matching coordinate systems based on minimizing distance")
+    data_cs_fix.add_argument(
+        '--known',
+        type=str,
+        required=True,
+        help='REQUIRED: scattered dataset ascii file with an already known coordinate system')
+    data_cs_fix.add_argument(
+        '--unknown',
+        type=str,
+        required=True,
+        help='REQUIRED: scattered dataset ascii file with an unknown coordinate system')
+    data_cs_fix.add_argument(
+        '--cs',
+        type=str,
+        required=True,
+        nargs=1,
+        help='REQUIRED: coordinate system for the known dataset')
+    data_cs_fix.add_argument(
+        '--trylist',
+        type=str,
+        default="",
+        help='path to ascii file containing a list of EPSG codes to try')
+    data_cs_fix.add_argument(
+        '--tryall',
+        action='store_true',
+        help='try all available EPSG codes (~4000 EPSG codes to try)')    
+    data_cs_fix.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='[x/lon, y/lat] column number(s) for the input files (default=[1, 2])')
+
+
+
+    #------------------------#
     # $> gdp data chull
     data_chull = data_subparsers.add_parser('chull', help='convex-hull/minimum bounding polygon',
     description="convex-hull / minimum bounding polygon for a set of points")
@@ -2667,6 +2706,12 @@ def main(*args, **kwargs):
                 exit(0)
             elif args.subsubmodule == 'transform':
                 dat.csproj_ascii(args)
+                exit(0)
+            elif args.subsubmodule == 'fix':
+                if (args.tryall == False and args.trylist==""):
+                    print("Error: either of these flags must be used: '--tryall' or '--trylist'")
+                    exit(1)
+                dat.csproj_fix(args)
                 exit(0)
 
         elif args.submodule == 'chull':
