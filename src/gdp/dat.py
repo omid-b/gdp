@@ -11,6 +11,12 @@ from . import io
 
 def csproj_fix(args):
     print("Hello from cs fix!")
+    [known_x, known_y], _, _ = io.read_numerical_data(args.known, 0, 0,  ".10", args.x, [], skipnan=True)
+    [unknown_x, unknown_y], _, _ = io.read_numerical_data(args.unknown, 0, 0,  ".10", args.x, [], skipnan=True)
+    # populate trylist
+    fopen = open(args.trylist, 'r')
+    trylist = fopen.read().splitlines()
+    print(trylist)
     exit(0)
 
 
