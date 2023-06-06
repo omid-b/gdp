@@ -2001,6 +2001,84 @@ def parse_args(*args, **kwargs):
         default=150)
 
 
+    #=====MODULE: MAG=====#
+
+    mag = subparsers.add_parser('mag',
+        help='magnetic data processing module',
+        description="Magnetic data processing module")
+    mag_subparsers = mag.add_subparsers(dest='submodule')
+
+    #------------------------#
+    # $> gdp mag dd (directional derivatives)
+    mag_ddr = mag_subparsers.add_parser('ddr', # XXX
+        help='calculate directional derivative girds',
+        description="Calculate directional derivative girds (projected coordinates only)")
+    mag_ddr.add_argument(
+        'input_file',
+        type=str,
+        help="REQUIRED: path to input TMI/RMI data")
+    mag_ddr.add_argument(
+        'outdir',
+        type=str,
+        help='REQUIRED: path to output directory')
+    mag_ddr.add_argument(
+        '-i',
+        '--interval',
+        type=float,
+        required=True,
+        help="REQUIRED: output grid interval (resolution)")
+    mag_ddr.add_argument(
+        '-s',
+        '--smoothfactor',
+        type=float,
+        default=0.5,
+        help="adaptive smoothing factor (default=0.5 ~ slight smoothing)")
+    mag_ddr.add_argument(
+        '--fixedsmoothing',
+        type=float,
+        default=9999,
+        help="fixed smoothing (to be used for 2nd pass gridding; default=interval; enter 0 to skip 2nd pass gridding)")
+    mag_ddr.add_argument(
+        '-m',
+        '--maxgap',
+        type=float,
+        default=9999,
+        help="maximum gap to include interpolated nodes (default=4*interval)")
+    mag_ddr.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='positional column (i.e. X and Y) numbers (default=[1, 2])')
+    mag_ddr.add_argument(
+        '-v',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[3],
+        help='value column (i.e. RMI/TMI) number (default=3)')
+    mag_ddr.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    mag_ddr.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    mag_ddr.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".2",".4"],
+        help='float format for output positional and value columns respectively (default=[".2",".4"])')
+
+
     #=====MODULE: SEISMIC=====#
 
     seismic = subparsers.add_parser('seismic',
@@ -2847,6 +2925,12 @@ def main(*args, **kwargs):
                 exit(0)
         else:
             subprocess.call("gdp ubc -h", shell=True)
+            exit(0)
+
+    elif args.module == 'mag':
+
+        if args.submodule == 'ddr':
+            mag.directional_derivatives(args)
             exit(0)
 
     elif args.module == 'seismic':

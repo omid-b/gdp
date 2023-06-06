@@ -35,7 +35,7 @@ def plot_data_scatter(args):
         exit(1)
 
     if os.path.splitext(args.input_file)[1] == '.shp': 
-        points_x, points_y = io.read_point_shp(args.input_file) # MUST CHECK THIS LATER!
+        points_x, points_y = io.read_point_shp(args.input_file) # MUST CHECK THIS LATER! XXX
         points_vals = []
     else: # ascii
         scatter_data = io.read_numerical_data(args.input_file, 0, 0, [".10",".10"], args.x, args.v, skipnan=True)
