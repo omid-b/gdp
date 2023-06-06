@@ -879,6 +879,10 @@ def parse_args(*args, **kwargs):
         default=[],
         help='value column numbers for color and size respectively (ascii only); default=[]' )
     data_plot_scatter.add_argument(
+        '--cartesian',
+        action='store_true',
+        help='non-geographic data flag')
+    data_plot_scatter.add_argument(
         '--cs',
         type=str,
         default='wgs84',
@@ -887,7 +891,7 @@ def parse_args(*args, **kwargs):
         '--padding',
         type=float,
         default=0.1,
-        help='map region padding factor; default=0.1')
+        help='plot region padding factor; default=0.1')
     data_plot_scatter.add_argument(
         '--size',
         type=float,

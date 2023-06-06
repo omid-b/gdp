@@ -46,122 +46,200 @@ def plot_data_scatter(args):
     if nop == 0:
         print("Error! Number of non-NaN points is zero! Check positional and value columns.")
         exit(1)
-    if args.cs in ['wgs84','4326']:
-        points_lon = points_x
-        points_lat = points_y
-    else:
-        points_lon = []
-        points_lat = []
+
+    # START THE MAIN PROCESS
+    if args.cartesian:
+        min_x = np.nanmin(points_x)
+        max_x = np.nanmax(points_x)
+        min_y = np.nanmin(points_y)
+        max_y = np.nanmax(points_y)
+        xpadding = (max_x - min_x) * args.padding
+        ypadding = (max_y - min_y) * args.padding
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+        if len(points_vals):
+            labels_y = [1,0,0,0]
+        else:
+            labels_y = [1,1,0,0]
+
+        # plot points
+        x, y, c, s = [] ,[] ,[] ,[]
         for i in range(nop):
-            lon, lat = dat.transform_point_coordinates(points_x[i], points_y[i], args.cs, 'wgs84')
-            points_lon.append(lon)
-            points_lat.append(lat)
-    # map limits
-    min_lon = np.nanmin(points_lon)
-    max_lon = np.nanmax(points_lon)
-    min_lat = np.nanmin(points_lat)
-    max_lat = np.nanmax(points_lat)
-    if min_lon < -180 or max_lon > 180 or min_lat < -90 or max_lat >90:
-        print(f"Coordinate system is not set correctly! EPSG: {epsg.get_epsg_proj(args.cs)}")
-        print("    [min_lon, max_lon] = [%.2f %.2f]" %(min_lon, max_lon))
-        print("    [min_lat, max_lat] = [%.2f %.2f]" %(min_lat, max_lat))
-        exit(1)
-    xsize_arc = (max_lon - min_lon) * np.cos(np.deg2rad((min_lat + max_lat) / 2))
-    ysize_arc = (max_lat - min_lat)
-    llcrnrlon = min_lon - args.padding * min(xsize_arc, ysize_arc)
-    urcrnrlon = max_lon + args.padding * min(xsize_arc, ysize_arc)
-    llcrnrlat = min_lat - args.padding * min(xsize_arc, ysize_arc)
-    urcrnrlat = max_lat + args.padding * min(xsize_arc, ysize_arc)
+            x.append(points_x[i])
+            y.append(points_y[i])
+            if len(points_vals) == 1:
+                c.append(points_vals[0][i])
+                s.append(np.nan)
+            elif len(points_vals) == 2:
+                c.append(points_vals[0][i])
+                s.append(points_vals[1][i])
+            else:
+                c.append(np.nan)
+                s.append(np.nan)
+        df = pd.DataFrame({'x': x, 'y': y, 'c': c, 's': s})
+        cmap = plt.cm.get_cmap('jet')
+        if args.invert_color:
+            cmap = cmap.reversed()
 
-    fig, ax = plt.subplots(figsize=(8, 6))
-    m = Basemap(llcrnrlon=llcrnrlon,
-                llcrnrlat=llcrnrlat,
-                urcrnrlon=urcrnrlon,
-                urcrnrlat=urcrnrlat,
-                resolution='h',
-                epsg=4326,
-                area_thresh=args.area_thresh,
-                ax=ax)
+        if len(points_vals) == 2:
+            if args.invert_size:
+                df_size = ((1 - ((df.s - np.min(df.s)) / (np.max(df.s) - np.min(df.s)))) + 0.1) * args.size
+            else:
+                df_size = (((df.s - np.min(df.s)) / (np.max(df.s) - np.min(df.s))) + 0.1) * args.size
 
-    if len(points_vals):
-        labels_y = [1,0,0,0]
-    else:
-        labels_y = [1,1,0,0]
+            if args.crange[0] == -999.99 and args.crange[1] == 999.99:
+                sc = plt.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+            else:
+                sc = plt.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8, vmin=args.crange[0], vmax=args.crange[1])
+            
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="3%", pad=0.2)
+            plt.colorbar(sc, cax=cax, label="")
+        elif len(points_vals) == 1:
+            
+            if args.crange[0] == -999.99 and args.crange[1] == 999.99:
+                sc = plt.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+            else:
+                sc = plt.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8, vmin=args.crange[0], vmax=args.crange[1])
 
-    try:
-        m.drawmeridians(np.arange(-180,180,int((urcrnrlon - llcrnrlon) * np.cos(np.deg2rad((min_lat + max_lat)/2)) /3)),
-            labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
-        m.drawparallels(np.arange(-90,90,int((urcrnrlat - llcrnrlat)/3)),
-            labels=labels_y, dashes=[1,1], color=(0,0,0,0.1))
-    except:
-        m.drawmeridians([llcrnrlon, (min_lon + max_lon)/2 ,urcrnrlon], labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
-        m.drawparallels([llcrnrlat, (min_lat + max_lat)/2 ,urcrnrlat], labels=labels_y, dashes=[1,1], color=(0,0,0,0.1))
-    m.fillcontinents(color=(0.9, 0.9, 0.9))
-    m.drawcountries(linewidth=0.1)
-    m.drawcoastlines(linewidth=0.3)
-
-    # plot points
-    x, y, c, s = [] ,[] ,[] ,[]
-    for i in range(nop):
-        xm, ym = m(points_lon[i], points_lat[i])
-        x.append(xm)
-        y.append(ym)
-        if len(points_vals) == 1:
-            c.append(points_vals[0][i])
-            s.append(np.nan)
-        elif len(points_vals) == 2:
-            c.append(points_vals[0][i])
-            s.append(points_vals[1][i])
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="3%", pad=0.2)
+            plt.colorbar(sc, cax=cax, label="")
         else:
-            c.append(np.nan)
-            s.append(np.nan)
-    df = pd.DataFrame({'x': x, 'y': y, 'c': c, 's': s})
+            plt.scatter(df.x, df.y, s=args.size, c='darkblue', edgecolor='k', linewidth=0.8)
 
-    cmap = plt.cm.get_cmap('jet')
-    if args.invert_color:
-        cmap = cmap.reversed()
 
-    if len(points_vals) == 2:
-        if args.invert_size:
-            df_size = ((1 - ((df.s - np.min(df.s)) / (np.max(df.s) - np.min(df.s)))) + 0.1) * args.size
+        plt.tight_layout()
+        if args.outfile:
+            outfile = os.path.abspath(args.outfile)
+            ext = os.path.splitext(outfile)[1].split('.')[-1]
+            if len(ext) == 0 or ext not in  ['pdf', 'png', 'jpg']:
+                ext = 'pdf'
+                outfile = f"{outfile}.{ext}"
+            plt.savefig(outfile, format=ext.upper(), transparent=True, dpi=args.dpi)
+            plt.close()
+            print(f"output: {outfile}")
         else:
-            df_size = (((df.s - np.min(df.s)) / (np.max(df.s) - np.min(df.s))) + 0.1) * args.size
+            plt.show()
+            plt.close()
 
-        if args.crange[0] == -999.99 and args.crange[1] == 999.99:
-            sc = m.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+    else: # case: geographic data 
+        if args.cs in ['wgs84','4326']:
+            points_lon = points_x
+            points_lat = points_y
         else:
-            sc = m.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8, vmin=args.crange[0], vmax=args.crange[1])
-        
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="3%", pad=0.2)
-        plt.colorbar(sc, cax=cax, label="")
-    elif len(points_vals) == 1:
-        
-        if args.crange[0] == -999.99 and args.crange[1] == 999.99:
-            sc = m.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+            points_lon = []
+            points_lat = []
+            for i in range(nop):
+                lon, lat = dat.transform_point_coordinates(points_x[i], points_y[i], args.cs, 'wgs84')
+                points_lon.append(lon)
+                points_lat.append(lat)
+        # map limits
+        min_lon = np.nanmin(points_lon)
+        max_lon = np.nanmax(points_lon)
+        min_lat = np.nanmin(points_lat)
+        max_lat = np.nanmax(points_lat)
+        if min_lon < -180 or max_lon > 180 or min_lat < -90 or max_lat >90:
+            print(f"Coordinate system is not set correctly! EPSG: {epsg.get_epsg_proj(args.cs)}")
+            print("    [min_lon, max_lon] = [%.2f %.2f]" %(min_lon, max_lon))
+            print("    [min_lat, max_lat] = [%.2f %.2f]" %(min_lat, max_lat))
+            exit(1)
+        xsize_arc = (max_lon - min_lon) * np.cos(np.deg2rad((min_lat + max_lat) / 2))
+        ysize_arc = (max_lat - min_lat)
+        llcrnrlon = min_lon - args.padding * min(xsize_arc, ysize_arc)
+        urcrnrlon = max_lon + args.padding * min(xsize_arc, ysize_arc)
+        llcrnrlat = min_lat - args.padding * min(xsize_arc, ysize_arc)
+        urcrnrlat = max_lat + args.padding * min(xsize_arc, ysize_arc)
+
+        fig, ax = plt.subplots(figsize=(8, 6))
+        m = Basemap(llcrnrlon=llcrnrlon,
+                    llcrnrlat=llcrnrlat,
+                    urcrnrlon=urcrnrlon,
+                    urcrnrlat=urcrnrlat,
+                    resolution='h',
+                    epsg=4326,
+                    area_thresh=args.area_thresh,
+                    ax=ax)
+
+        if len(points_vals):
+            labels_y = [1,0,0,0]
         else:
-            sc = m.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8, vmin=args.crange[0], vmax=args.crange[1])
+            labels_y = [1,1,0,0]
 
-        divider = make_axes_locatable(ax)
-        cax = divider.append_axes("right", size="3%", pad=0.2)
-        plt.colorbar(sc, cax=cax, label="")
-    else:
-        m.scatter(df.x, df.y, s=args.size, c='darkblue', edgecolor='k', linewidth=0.8)
+        try:
+            m.drawmeridians(np.arange(-180,180,int((urcrnrlon - llcrnrlon) * np.cos(np.deg2rad((min_lat + max_lat)/2)) /3)),
+                labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
+            m.drawparallels(np.arange(-90,90,int((urcrnrlat - llcrnrlat)/3)),
+                labels=labels_y, dashes=[1,1], color=(0,0,0,0.1))
+        except:
+            m.drawmeridians([llcrnrlon, (min_lon + max_lon)/2 ,urcrnrlon], labels=[0,0,1,1], dashes=[1,1], color=(0,0,0,0.1))
+            m.drawparallels([llcrnrlat, (min_lat + max_lat)/2 ,urcrnrlat], labels=labels_y, dashes=[1,1], color=(0,0,0,0.1))
+        m.fillcontinents(color=(0.9, 0.9, 0.9))
+        m.drawcountries(linewidth=0.1)
+        m.drawcoastlines(linewidth=0.3)
 
-    plt.tight_layout()
-    if args.outfile:
-        outfile = os.path.abspath(args.outfile)
-        ext = os.path.splitext(outfile)[1].split('.')[-1]
-        if len(ext) == 0 or ext not in  ['pdf', 'png', 'jpg']:
-            ext = 'pdf'
-            outfile = f"{outfile}.{ext}"
-        plt.savefig(outfile, format=ext.upper(), transparent=True, dpi=args.dpi)
-        plt.close()
-        print(f"output: {outfile}")
-    else:
-        ax.format_coord = lambda x, y: "Longitude=%10.4f, Latitude=%9.4f" %(m(x,y,inverse=True))
-        plt.show()
-        plt.close()
+        # plot points
+        x, y, c, s = [] ,[] ,[] ,[]
+        for i in range(nop):
+            xm, ym = m(points_lon[i], points_lat[i])
+            x.append(xm)
+            y.append(ym)
+            if len(points_vals) == 1:
+                c.append(points_vals[0][i])
+                s.append(np.nan)
+            elif len(points_vals) == 2:
+                c.append(points_vals[0][i])
+                s.append(points_vals[1][i])
+            else:
+                c.append(np.nan)
+                s.append(np.nan)
+        df = pd.DataFrame({'x': x, 'y': y, 'c': c, 's': s})
+
+        cmap = plt.cm.get_cmap('jet')
+        if args.invert_color:
+            cmap = cmap.reversed()
+
+        if len(points_vals) == 2:
+            if args.invert_size:
+                df_size = ((1 - ((df.s - np.min(df.s)) / (np.max(df.s) - np.min(df.s)))) + 0.1) * args.size
+            else:
+                df_size = (((df.s - np.min(df.s)) / (np.max(df.s) - np.min(df.s))) + 0.1) * args.size
+
+            if args.crange[0] == -999.99 and args.crange[1] == 999.99:
+                sc = m.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+            else:
+                sc = m.scatter(df.x, df.y, s= df_size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8, vmin=args.crange[0], vmax=args.crange[1])
+            
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="3%", pad=0.2)
+            plt.colorbar(sc, cax=cax, label="")
+        elif len(points_vals) == 1:
+            
+            if args.crange[0] == -999.99 and args.crange[1] == 999.99:
+                sc = m.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8)
+            else:
+                sc = m.scatter(df.x, df.y, s=args.size, c=df.c, cmap=cmap, edgecolor='k', linewidth=0.8, vmin=args.crange[0], vmax=args.crange[1])
+
+            divider = make_axes_locatable(ax)
+            cax = divider.append_axes("right", size="3%", pad=0.2)
+            plt.colorbar(sc, cax=cax, label="")
+        else:
+            m.scatter(df.x, df.y, s=args.size, c='darkblue', edgecolor='k', linewidth=0.8)
+
+        plt.tight_layout()
+        if args.outfile:
+            outfile = os.path.abspath(args.outfile)
+            ext = os.path.splitext(outfile)[1].split('.')[-1]
+            if len(ext) == 0 or ext not in  ['pdf', 'png', 'jpg']:
+                ext = 'pdf'
+                outfile = f"{outfile}.{ext}"
+            plt.savefig(outfile, format=ext.upper(), transparent=True, dpi=args.dpi)
+            plt.close()
+            print(f"output: {outfile}")
+        else:
+            ax.format_coord = lambda x, y: "Longitude=%10.4f, Latitude=%9.4f" %(m(x,y,inverse=True))
+            plt.show()
+            plt.close()
 
 
 
