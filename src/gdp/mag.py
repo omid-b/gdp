@@ -84,10 +84,10 @@ def gridder_node_value(node_weights, data_val):
 #-------------------------#
 def get_grid_value(x, y, data_x, data_y, data_val, smoothing):
     data_x_win, data_y_win, data_val_win = window_xyz(data_x, data_y, data_val,
-                                                    x - 10*smoothing,
-                                                    x + 10*smoothing,
-                                                    y - 10*smoothing,
-                                                    y + 10*smoothing)
+                                                    x - 3*smoothing,
+                                                    x + 3*smoothing,
+                                                    y - 3*smoothing,
+                                                    y + 3*smoothing)
     node_weights = gridder_node_weights(x, y, data_x_win, data_y_win, smoothing)
     node_val = gridder_node_value(node_weights, data_val_win)
     return node_val
@@ -193,14 +193,14 @@ def directional_derivatives(args):
     nodes_all_thdr_meshgrid = calc_thdr_meshgrid(nodes_all_dx_meshgrid, nodes_all_dy_meshgrid)
     
     # plot (temp XXX)
-    plt.figure()
-    ax1 = plt.subplot(221)
+    plt.figure(figsize=(12,4))
+    ax1 = plt.subplot(141)
     ax1.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_tmi_meshgrid, cmap='jet')
-    ax2 = plt.subplot(222)
+    ax2 = plt.subplot(142)
     ax2.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_dx_meshgrid, cmap='jet')
-    ax3 = plt.subplot(223)
+    ax3 = plt.subplot(143)
     ax3.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_dy_meshgrid, cmap='jet')
-    ax4 = plt.subplot(224)
+    ax4 = plt.subplot(144)
     ax4.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_thdr_meshgrid, cmap='jet')
     plt.show()
 
