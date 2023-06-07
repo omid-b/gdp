@@ -8711,7 +8711,8 @@ def get_utm(epsg):
 
 
 def get_epsg(utm):
-    if str(utm) in WGS84_UTM_to_EPSG.keys():
+    utm = str(utm).upper()
+    if utm in WGS84_UTM_to_EPSG.keys():
         return WGS84_UTM_to_EPSG[f"{utm}"]
     else:
         return None

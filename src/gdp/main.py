@@ -559,7 +559,6 @@ def parse_args(*args, **kwargs):
         '--cs',
         type=str,
         required=True,
-        nargs=1,
         help='REQUIRED: coordinate system for the known dataset')
     data_cs_fix.add_argument(
         '--trylist',
@@ -577,6 +576,11 @@ def parse_args(*args, **kwargs):
         action='store',
         default=[1, 2],
         help='[x/lon, y/lat] column number(s) for the input files (default=[1, 2])')
+    data_cs_fix.add_argument(
+        '-n',
+        type=int,
+        default=10,
+        help='Number of outputs (default=10; output 10 best matches)')
 
 
 

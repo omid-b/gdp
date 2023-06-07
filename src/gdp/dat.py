@@ -4,19 +4,53 @@ import os
 import warnings
 import shutil
 import numpy as np
-from math import radians, degrees, sin, cos, atan2, acos
+from math import radians, degrees, sin, cos, atan2, acos, sqrt, inf, isinf
 from . import io
 
 #####################################################################
 
 def csproj_fix(args):
-    print("Hello from cs fix!")
+    from . import epsg
     [known_x, known_y], _, _ = io.read_numerical_data(args.known, 0, 0,  ".10", args.x, [], skipnan=True)
     [unknown_x, unknown_y], _, _ = io.read_numerical_data(args.unknown, 0, 0,  ".10", args.x, [], skipnan=True)
-    # populate trylist
-    fopen = open(args.trylist, 'r')
-    trylist = fopen.read().splitlines()
-    print(trylist)
+    if (len(known_x) != len(unknown_x) or len(known_y) != len(unknown_y)):
+        print("Error: number of known and unknown points must match.")
+        exit(1)
+    else:
+        nop = len(known_x) # number of points
+    # check the known cs
+    if args.cs not in list(epsg.EPSG_Proj4.keys()) and \
+    epsg.get_utm(args.cs) == None and epsg.get_epsg(args.cs) == None:
+            print(f"Error: could not find epsg code for the known data: '{args.cs}'")
+            exit(1)
+    # populate unknown cs (trylist) from args.trylist or targs.tryall
+    if args.tryall:
+        trylist = list(epsg.EPSG_Proj4.keys())
+    else:
+        fopen = open(args.trylist, 'r')
+        trylist = fopen.read().splitlines()
+        fopen.close()
+        for cs in trylist:
+            if cs not in list(epsg.EPSG_Proj4.keys()) and \
+            epsg.get_utm(cs) == None and epsg.get_epsg(cs) == None:
+                print(f"Error: could not find the try list epsg code for '{cs}'")
+                exit(1)
+    # start main process
+    mean_dist_mismatch = {}
+    for cs in trylist:
+        # mean_dist_mismatch[f"{cs}"] = 0
+        dist = []
+        for i in range(nop):
+            xnew, ynew = transform_point_coordinates(unknown_x[i], unknown_y[i], cs, args.cs, accept_same_cs=True)
+            d = sqrt((xnew - known_x[i])**2 + (ynew - known_y[i])**2)
+            dist.append(d)
+        mean_dist_mismatch[f"{cs}"] = round(np.mean(dist), 2)
+
+    mean_dist_mismatch = {k: v for k, v in sorted(mean_dist_mismatch.items(), key=lambda item: item[1])}
+    for i,x in enumerate(mean_dist_mismatch.keys()):
+        if i < args.n:
+            print(args.cs, x, mean_dist_mismatch[f"{x}"])
+
     exit(0)
 
 
@@ -39,7 +73,7 @@ def csproj_ascii(args):
     io.output_lines(output_lines, args)
 
 
-def transform_point_coordinates(x, y, cs_from, cs_to):
+def transform_point_coordinates(x, y, cs_from, cs_to, accept_same_cs=False):
     from . import epsg
     import pyproj
     try:
@@ -51,7 +85,7 @@ def transform_point_coordinates(x, y, cs_from, cs_to):
         exit(1)
     epsg_from = return_epsg_code(cs_from)
     epsg_to = return_epsg_code(cs_to)
-    if epsg_from == epsg_to:
+    if epsg_from == epsg_to and accept_same_cs==False:
         print('Error! The input-output coordinate systems are the same!')
         exit(1)
 
