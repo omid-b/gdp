@@ -630,6 +630,51 @@ def parse_args(*args, **kwargs):
         help='float format for output convex-hull (default=".4")' )
 
     #------------------------#
+    # $> gdp data ashape
+    data_ashape = data_subparsers.add_parser('ashape', help='alpha-shape/minimum bounding polygon',
+    description="Alpha-shape / minimum bounding polygon for a set of points")
+    data_ashape._positionals.title = 'Required arguments'
+    data_ashape.add_argument("points_file", type=str, help="path to points_file")
+    data_ashape.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='[x/lon, y/lat] column number(s) (default=[1, 2])')
+    data_ashape.add_argument(
+        '--header',
+        type=int,
+        action='store',
+        default=0,
+        help='number of header lines to ignore (default=0)')
+    data_ashape.add_argument(
+        '--footer',
+        type=int,
+        action='store',
+        default=0,
+        help='number of footer lines to ignore (default=0)')
+    data_ashape.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file/folder')
+    data_ashape.add_argument(
+        '--alpha',
+        type=float,
+        action='store',
+        default=0.5,
+        help='alpha value (affects smoothness; default=0.5)')
+    data_ashape.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for output alpha-shape polygon (default=".4")' )
+
+    #------------------------#
     # $> gdp data pip
     data_pip = data_subparsers.add_parser('pip', help='points-in-polygon',
     description="Points-in-polygon (ray tracing method)")
@@ -1788,7 +1833,7 @@ def parse_args(*args, **kwargs):
         type=str,
         action='store',
         default=[".4",".4"],
-        help='float format for output convex-hull (default=".4")')
+        help='float format for output (default=".4")')
 
     #------------------------#
     # $> gdp convert nc2dat
@@ -2022,8 +2067,10 @@ def parse_args(*args, **kwargs):
         type=str,
         help="REQUIRED: path to input TMI/RMI data")
     mag_ddr.add_argument(
-        'outdir',
+        '-o'
+        '--outdir',
         type=str,
+        required=True,
         help='REQUIRED: path to output directory')
     mag_ddr.add_argument(
         '-i',
@@ -2801,7 +2848,10 @@ def main(*args, **kwargs):
                 exit(0)
 
         elif args.submodule == 'chull':
-            dat.convex_hull(args)
+            dat.convex_hull_polygon(args)
+            exit(0)
+        elif args.submodule == 'ashape':
+            dat.alpha_shape_polygon(args)
             exit(0)
         elif args.submodule == 'pip':
             dat.points_in_polygon(args)

@@ -129,10 +129,19 @@ def calc_thdr_meshgrid(dx_meshgrid, dy_meshgrid):
 
 #-------------------------#
 def directional_derivatives(args):
+    from alphashape import alphashape
+
     # read input data
     [[tmi_x, tmi_y],[tmi_v], _] = io.read_numerical_data(args.input_file, args.header,
                                                          args.footer, args.fmt,
                                                          args.x, args.v, skipnan=True)
+    print("Finding concave polygon ...")
+    tmi_points = np.vstack((tmi_x, tmi_y)).T
+
+    hull = alphashape(tmi_points, 0.5)
+    hull_x, hull_y = hull.exterior.xy
+
+    exit(0)
     # max gap
     if args.maxgap == 9999:
         args.maxgap = 4 * args.interval
@@ -153,7 +162,10 @@ def directional_derivatives(args):
     nodes_all_smth = calc_nodes_smoothing(tmi_x, tmi_y, nodes_all_x, nodes_all_y, args.smoothfactor)
 
     # Gridding
-    print("2D interpolation (gridding) ... 1st pass (adaptive smoothing)")
+    if args.fixedsmoothing == 0:
+        print("2D interpolation (gridding) ... (adaptive smoothing)")
+    else:
+        print("2D interpolation (gridding) ... 1st pass (adaptive smoothing)")
     nodes_all_tmi_p1 = [] # pass 1
     for i, xn in enumerate(nodes_all_x):
         yn = nodes_all_y[i]
@@ -192,16 +204,20 @@ def directional_derivatives(args):
     print("Calculating THDR ...")
     nodes_all_thdr_meshgrid = calc_thdr_meshgrid(nodes_all_dx_meshgrid, nodes_all_dy_meshgrid)
     
-    # plot (temp XXX)
+    # plot (temp XXX; shading options: auto, nearest, gouraud )
     plt.figure(figsize=(12,4))
     ax1 = plt.subplot(141)
-    ax1.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_tmi_meshgrid, cmap='jet')
+    ax1.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_tmi_meshgrid,
+     cmap='jet', shading='auto')
     ax2 = plt.subplot(142)
-    ax2.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_dx_meshgrid, cmap='jet')
+    ax2.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_dx_meshgrid,
+     cmap='jet', shading='auto')
     ax3 = plt.subplot(143)
-    ax3.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_dy_meshgrid, cmap='jet')
+    ax3.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_dy_meshgrid,
+     cmap='jet', shading='auto')
     ax4 = plt.subplot(144)
-    ax4.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_thdr_meshgrid, cmap='jet')
+    ax4.pcolormesh(nodes_all_x_meshgrid, nodes_all_y_meshgrid, nodes_all_thdr_meshgrid,
+     cmap='jet', shading='auto')
     plt.show()
 
 

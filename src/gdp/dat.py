@@ -883,11 +883,11 @@ def difference(args):
 
 #####################################################################
 
-def convex_hull(args):
+def convex_hull_polygon(args):
     from scipy.spatial import ConvexHull
     args.sort = False
     args.uniq = False
-    args.offset = 0 # CHANGE LATER!
+    args.offset = 0 # CHANGE LATER! XXX
 
     data = io.read_numerical_data(args.points_file, args.header, args.footer, [".10",".10"], args.x, [])
     data_points = np.vstack((data[0][0], data[0][1])).T
@@ -922,6 +922,34 @@ def convex_hull(args):
     outlines = []
     for ip in chull_points:
         line = f"%{args.fmt[0]}f %{args.fmt[0]}f" %(ip[0], ip[1])
+        if line not in outlines:
+            outlines.append(line)
+    outlines.append(outlines[0])
+    args.append = False
+    if len(outlines) == 0:
+            print("Error! Number of outputs is zero!")
+            exit(1)
+    io.output_lines(outlines, args)
+
+#####################################################################
+
+def alpha_shape_polygon(args):
+    args.sort = False
+    args.uniq = False
+    args.offset = 0 # CHANGE LATER! XXX
+    import matplotlib.pyplot as plt
+    from alphashape import alphashape
+
+    data = io.read_numerical_data(args.points_file, args.header, args.footer, [".10",".10"], args.x, [])
+    points = np.vstack((data[0][0], data[0][1])).T
+    
+    hull = alphashape(points, args.alpha)
+    hull_x, hull_y = hull.exterior.xy
+
+    outlines = []
+    for i, x in enumerate(hull_x):
+        y = hull_y[i]
+        line = f"%{args.fmt[0]}f %{args.fmt[0]}f" %(x, y)
         if line not in outlines:
             outlines.append(line)
     outlines.append(outlines[0])
