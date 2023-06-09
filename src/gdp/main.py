@@ -2094,7 +2094,7 @@ def parse_args(*args, **kwargs):
         '--maxgap',
         type=float,
         default=9999,
-        help="maximum gap to include interpolated nodes (default=4*interval)")
+        help="maximum gap to include interpolated nodes (default=2*interval)")
     mag_ddr.add_argument(
         '-x',
         nargs=2,
@@ -2109,6 +2109,18 @@ def parse_args(*args, **kwargs):
         action='store',
         default=[3],
         help='value column (i.e. RMI/TMI) number (default=3)')
+    mag_ddr.add_argument(
+        '--hdmethod',
+        type=str,
+        choices=["fdiff","fft"],
+        default="fdiff",
+        help="horizontal derivative method; choices=['fdiff','fft'], default='fdiff'")
+    mag_ddr.add_argument(
+        '--vdmethod',
+        type=str,
+        choices=["fdiff","fft"],
+        default="fdiff",
+        help="vertical derivative method; choices=['fdiff','fft'], default='fft'")
     mag_ddr.add_argument(
         '--header',
         type=int,

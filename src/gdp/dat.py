@@ -942,8 +942,12 @@ def alpha_shape_polygon(args):
 
     data = io.read_numerical_data(args.points_file, args.header, args.footer, [".10",".10"], args.x, [])
     points = np.vstack((data[0][0], data[0][1])).T
-    
+
     hull = alphashape(points, args.alpha)
+    if hull.is_empty:
+        print("Error: empty concave polygon; decrease alpha value")
+        exit(1)
+    
     hull_x, hull_y = hull.exterior.xy
 
     outlines = []
@@ -955,7 +959,7 @@ def alpha_shape_polygon(args):
     outlines.append(outlines[0])
     args.append = False
     if len(outlines) == 0:
-            print("Error! Number of outputs is zero!")
+            print("Error: Number of outputs is zero!")
             exit(1)
     io.output_lines(outlines, args)
 
