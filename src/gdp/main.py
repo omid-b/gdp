@@ -2058,8 +2058,8 @@ def parse_args(*args, **kwargs):
     mag_subparsers = mag.add_subparsers(dest='submodule')
 
     #------------------------#
-    # $> gdp mag dd (directional derivatives)
-    mag_ddr = mag_subparsers.add_parser('ddr', # XXX
+    # $> gdp mag ddr (directional derivatives)
+    mag_ddr = mag_subparsers.add_parser('ddr',
         help='calculate directional derivative girds',
         description="Calculate directional derivative girds (projected coordinates only)")
     mag_ddr.add_argument(
@@ -2067,11 +2067,12 @@ def parse_args(*args, **kwargs):
         type=str,
         help="REQUIRED: path to input TMI/RMI data")
     mag_ddr.add_argument(
-        '-o'
-        '--outdir',
+        '-o',
+        '--outfile',
         type=str,
+        action='store',
         required=True,
-        help='REQUIRED: path to output directory')
+        help='REQUIRED: output file')
     mag_ddr.add_argument(
         '-i',
         '--interval',
@@ -2112,15 +2113,21 @@ def parse_args(*args, **kwargs):
     mag_ddr.add_argument(
         '--hdmethod',
         type=str,
-        choices=["fdiff","fft"],
+        choices=["fdiff","fft","rfft"],
         default="fdiff",
-        help="horizontal derivative method; choices=['fdiff','fft'], default='fdiff'")
+        help="horizontal derivative method; choices=[fdiff, fft, rfft], default=fdiff")
     mag_ddr.add_argument(
         '--vdmethod',
         type=str,
-        choices=["fdiff","fft"],
-        default="fdiff",
-        help="vertical derivative method; choices=['fdiff','fft'], default='fft'")
+        choices=["fdiff","fft","rfft"],
+        default="fft",
+        help="vertical derivative method; choices=[fdiff, fft, rfft], default=fft")
+    mag_ddr.add_argument(
+        '--rfactor',
+        type=float,
+        action='store',
+        default=1.0,
+        help='regularization factor (for rfft method only; default=1.0)')
     mag_ddr.add_argument(
         '--header',
         type=int,
@@ -2138,8 +2145,21 @@ def parse_args(*args, **kwargs):
         nargs='+',
         type=str,
         action='store',
-        default=[".2",".4"],
-        help='float format for output positional and value columns respectively (default=[".2",".4"])')
+        default=["13.2","13.5"],
+        help='float format for output positional and value columns respectively (default=["13.2","13.5"])')
+    mag_ddr.add_argument(
+        '--showplots',
+        action='store_true',
+        help='show plots at the end of the process' )
+    mag_ddr.add_argument(
+        '--noplots',
+        action='store_true',
+        help='do not generate plots' )
+    mag_ddr.add_argument(
+        '--ddronly',
+        action='store_true',
+        help='do not output filter products' )
+
 
 
     #=====MODULE: SEISMIC=====#
