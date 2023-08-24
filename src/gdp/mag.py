@@ -6,6 +6,9 @@ from math import dist
 from math import exp
 from math import pow
 
+import warnings # workaround for user warning for fixed axis tick label formatting
+warnings.filterwarnings("ignore")
+
 def igrf(args):
     print("Hello from igrf!")
     exit(0)
