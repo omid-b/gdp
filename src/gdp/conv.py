@@ -406,8 +406,7 @@ def nc2dat(args):
                 data_pos.append([])
                 for x in ds[key][:]:
                     data_pos[-1].append(x)
-
-
+        
         # match shapes for data_pos and data_val
         for iv in range(ndf):
             ntry = 0
@@ -425,16 +424,26 @@ def nc2dat(args):
             if ntry == 100:
                 print(f"Error! Could not figure out data format for '{os.path.split(ncfile)[1]}'\n")
                 exit(1)
-        
+
         out_lines = gen_nc_dataset_outlines(data_pos, data_val, fmt)
+    
+    # find and add header line info to beginning of out_lines
+    header_line = list()
+    for flen in (pos_shape):
+        for key in all_fields:
+            if (1, flen) == (len(np.shape(ds[key][:])), np.shape(ds[key][:])[0]):
+                header_line.append(key)
+    for sf in selected_fields:
+        header_line.append(sf)
+    header_line = ' '.join(header_line)
+    out_lines.insert(0, header_line)
 
     args.uniq = False
     args.sort = False
     io.output_lines(out_lines, args)
         
 
-
-
+#############################################
 
 def gen_nc_dataset_outlines(positional_matrix, values_matrix, fmt = ['.4', '.4']):
     import numpy as np
@@ -444,35 +453,26 @@ def gen_nc_dataset_outlines(positional_matrix, values_matrix, fmt = ['.4', '.4']
     shape = list(np.shape(values_matrix[0])) # dimension shape
 
     if ndim == 2:
-        for i, x in enumerate(positional_matrix[0]):
-            for j, y in enumerate(positional_matrix[1]):
-                outlines.append(f"%{fmt[0]}f %{fmt[0]}f" %(x, y))
+        indices = [(i, j) for i in range(shape[0]) for j in range(shape[1])]
+        for index in indices:
+            outlines.append(f"%{fmt[0]}f %{fmt[0]}f" \
+            %(positional_matrix[0][index[0]], positional_matrix[1][index[1]]))
+            for idf in range(ndf):
+                outlines[-1] += f" %{fmt[1]}f" %(values_matrix[idf][index[0]][index[1]])
     elif ndim == 3:
-        for i, x in enumerate(positional_matrix[0]):
-            for j, y in enumerate(positional_matrix[1]):
-                for k, z in enumerate(positional_matrix[2]):
-                    outlines.append(f"%{fmt[0]}f %{fmt[0]}f %{fmt[0]}f" %(x, y, z))
+        indices = [(i, j, k) for i in range(shape[0]) for j in range(shape[1]) for k in range(shape[2])]
+        for index in indices:
+            outlines.append(f"%{fmt[0]}f %{fmt[0]}f %{fmt[0]}f" \
+            %(positional_matrix[0][index[0]], positional_matrix[1][index[1]], positional_matrix[2][index[2]]))
+            for idf in range(ndf):
+                outlines[-1] += f" %{fmt[1]}f" %(values_matrix[idf][index[0]][index[1]][index[2]])
     else:
         print(f"Error! This is not a 2D or 3D dataset.\nCurrrent version of the program only works for 2D and 3D datasets.")
         exit(1)
 
-    if ndim == 2:
-        for idf in range(ndf):
-            for i in range(len(outlines)):
-                ix = int(np.floor(i / shape[1]))
-                iy = i % shape[1]
-                outlines[i] += f" %{fmt[1]}f" %(values_matrix[idf][ix][iy])
-    elif ndim == 3:
-        for idf in range(ndf):
-            for i in range(len(outlines)):
-                ix = int(np.floor(i / (shape[1] * shape[2]) ))
-                iy = int(np.floor(i / (shape[0] * shape[2]) ))
-                iz = i % shape[2]
-                outlines[i] += f" %{fmt[1]}f" %(values_matrix[idf][ix][iy][iz])
-
     return outlines
 
-
+#############################################
 
 def sac2dat(args):
     import obspy
