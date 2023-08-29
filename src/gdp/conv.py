@@ -427,16 +427,16 @@ def nc2dat(args):
 
         out_lines = gen_nc_dataset_outlines(data_pos, data_val, fmt)
     
-    # find and add header line info to beginning of out_lines
-    header_line = list()
-    for flen in (pos_shape):
-        for key in all_fields:
-            if (1, flen) == (len(np.shape(ds[key][:])), np.shape(ds[key][:])[0]):
-                header_line.append(key)
-    for sf in selected_fields:
-        header_line.append(sf)
-    header_line = ' '.join(header_line)
-    out_lines.insert(0, header_line)
+        # find and add header line info to beginning of out_lines
+        header_line = list()
+        for flen in (pos_shape):
+            for key in all_fields:
+                if (1, flen) == (len(np.shape(ds[key][:])), np.shape(ds[key][:])[0]):
+                    header_line.append(key)
+        for sf in selected_fields:
+            header_line.append(sf)
+        header_line = ' '.join(header_line)
+        out_lines.insert(0, header_line)
 
     args.uniq = False
     args.sort = False
