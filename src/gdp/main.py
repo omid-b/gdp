@@ -3020,6 +3020,7 @@ def main(*args, **kwargs):
             exit(0)
 
     elif args.module == 'seismic':
+
         
         if args.submodule == 'download':
             
@@ -3076,52 +3077,48 @@ def main(*args, **kwargs):
 
         elif args.submodule == 'ans':
 
-            if args.subsubmodule == 'init':
+            from .seismic import ans
 
-                from . import ans_config
-                from . import ans_proc
+            if args.subsubmodule == 'init':
                 
                 if not os.path.isdir(args.maindir):
                     os.mkdir(args.maindir)
                 if not os.path.isdir(os.path.join(args.maindir, '.ans')):
                     os.mkdir(os.path.join(args.maindir, '.ans'))
-                defaults = ans_config.Defaults(args.maindir)
+                defaults = ans.config.Defaults(args.maindir)
                 parameters = defaults.parameters()
-                ans_config.write_config(args.maindir, parameters)
+                ans.config.write_config(args.maindir, parameters)
                 print("Project directory was successfully initialized!\n")
 
             elif args.subsubmodule == 'config':
-                from . import ans_gui
+
                 from PyQt5.QtWidgets import QApplication
                 app = QApplication(sys.argv)
-                win = ans_gui.MainWindow(args.maindir)
+                win = ans.gui.MainWindow(args.maindir)
                 win.show()
                 sys.exit(app.exec_())
                 app.exec_()
 
             elif args.subsubmodule == 'download':
-                from . import ans_download
+
                 if args.subsubsubmodule == 'stations':
-                    ans_download.download_stations(args.maindir)
+                    ans.download.download_stations(args.maindir)
                 elif args.subsubsubmodule == 'metadata':
-                    ans_download.download_metadata(args.maindir, args.update_stations)
+                    ans.download.download_metadata(args.maindir, args.update_stations)
                 elif args.subsubsubmodule == 'mseeds':
-                    ans_download.download_mseeds(args.maindir)
+                    ans.download.download_mseeds(args.maindir)
 
             elif args.subsubmodule == 'mseed2sac':
                 
-                from . import ans_mseed2sac
-                ans_mseed2sac.mseed2sac_run_all(args.maindir, args.mseeds_dir, args.sacs_dir, args.all)
+                ans.mseed2sac.mseed2sac_run_all(args.maindir, args.mseeds_dir, args.sacs_dir, args.all)
 
             elif args.subsubmodule == 'sac2ncf':
 
-                from . import ans_sac2ncf
-                ans_sac2ncf.sac2ncf_run_all(args.maindir, args.sacs_dir, args.ncfs_dir, args.all)
+                ans.sac2ncf.sac2ncf_run_all(args.maindir, args.sacs_dir, args.ncfs_dir, args.all)
 
             elif args.subsubmodule == 'ncf2egf':
 
-                from . import ans_ncf2egf
-                ans_ncf2egf.ncf2egf_run_all(args.maindir, args.ncfs_dir, args.egfs_dir, args.cmp)
+                ans.ncf2egf.ncf2egf_run_all(args.maindir, args.ncfs_dir, args.egfs_dir, args.cmp)
 
         elif args.submodule == 'plot':
 

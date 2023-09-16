@@ -1,4 +1,4 @@
-from . import ans_config
+from . import config as ans_config
 
 import os
 import obspy
@@ -13,7 +13,7 @@ from obspy.clients.fdsn.mass_downloader import MassDownloader
 
 
 pkg_dir, _ = os.path.split(__file__)
-fetch_data_script = os.path.join(pkg_dir, "FetchData-2018.337")
+fetch_data_script = os.path.join(pkg_dir, 'files', "FetchData-2018.337")
 
 
 #==== MAIN FUNCTIONS ====#

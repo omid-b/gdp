@@ -4,8 +4,9 @@ import re
 import shutil
 import subprocess
 import obspy
-from . import ans_config
-from . import ans_proc
+
+from . import config as ans_config
+from . import proc as ans_proc
 
 regex_events = re.compile('^[1-2][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9][0-9]$')
 

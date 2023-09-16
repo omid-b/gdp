@@ -2,7 +2,7 @@ import os
 import sys 
 import re
 
-from . import ans_config
+from . import config as ans_config
 
 from obspy import UTCDateTime
 
@@ -53,7 +53,7 @@ from PyQt5.QtWidgets import (
 
 
 pkg_dir, _ = os.path.split(__file__)
-images_dir = os.path.join(pkg_dir,"data","images")
+images_dir = os.path.join(pkg_dir,"files","images")
 
 
 class QLineEdit(QLineEdit):
@@ -2519,7 +2519,7 @@ class NCF2EGF(QWidget):
 class ABOUT(QWidget):
     def __init__(self):
         super().__init__()
-        about_html = open(os.path.join(pkg_dir, 'ans_about.html'), 'r').read()
+        about_html = open(os.path.join(pkg_dir, 'files', 'about.html'), 'r').read()
         about_te = QTextEdit(self,
             html=about_html,
             readOnly=True,
@@ -2541,7 +2541,7 @@ class MainWindow(QMainWindow):
     def __init__(self, maindir):
         super().__init__()
         self.maindir = os.path.abspath(maindir)
-        self.setMinimumSize(1000, 600)
+        self.setMinimumSize(1100, 600)
         app_icon = QIcon()
         app_icon.addFile(os.path.join(images_dir,'icons','16x16.png'))
         app_icon.addFile(os.path.join(images_dir,'icons','24x24.png'))
@@ -2552,7 +2552,7 @@ class MainWindow(QMainWindow):
         self.setWindowTitle("ANS")
 
         # load external stylesheet file
-        with open(os.path.join(pkg_dir,'ans_gui.qss')) as qss:
+        with open(os.path.join(pkg_dir,'files','gui.qss')) as qss:
             qss = qss.read()
             if sys.platform == 'darwin':
                 qss = "\nQFrame { font-family: 'Tahoma';\n font-size: 13pt;}\n" + qss
@@ -3091,4 +3091,4 @@ class MainWindow(QMainWindow):
         self.anim_header_left.start()
         self.anim_header_right.start()
 
-    
+

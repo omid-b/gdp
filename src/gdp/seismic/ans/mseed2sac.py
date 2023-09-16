@@ -3,9 +3,10 @@ import os
 import obspy
 import re
 import shutil
-from . import ans_config
-from . import ans_proc
-from . import ans_download
+
+from . import config as ans_config
+from . import proc as ans_proc
+from . import download as ans_download
 
 #==== MAIN FUNCTION ====#
 
