@@ -11,7 +11,7 @@ from obspy.clients.fdsn.mass_downloader import RectangularDomain
 from obspy.clients.fdsn.mass_downloader import Restrictions
 from obspy.clients.fdsn.mass_downloader import MassDownloader
 
-from ..ascii import io
+from ..io import *
 
 import warnings
 with warnings.catch_warnings():

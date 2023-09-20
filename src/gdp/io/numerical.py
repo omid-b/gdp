@@ -1,6 +1,9 @@
 #!/usr/bin/env python3
 
-# numerical data type processing module
+"""
+ Numerical ascii data type processing module
+
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -8,11 +11,237 @@ import os
 import shutil
 import warnings
 
-from .non_numerical import read_ascii_lines
-from .non_numerical import write_ascii_lines
+from .non_numerical import read_lines
+
+#######################################
+
+def read_numerical_dataset(numerical_file, header, footer,\
+                         pos_indx, val_indx, skipnan=False):
+
+    if len(pos_indx):
+        pos_indx = np.array(pos_indx) - 1 # index of positional columns
+        pos_indx = pos_indx.tolist()
+    else:
+        pos_indx = []
+    if len(val_indx):
+        val_indx = np.array(val_indx) - 1
+        val_indx = val_indx.tolist()
+    else:
+        val_indx = []
+    pos = [[] for ix in range(len(pos_indx))] # list of positional values
+    val = [[] for iv in range(len(val_indx))] # list of values/data
+    extra = []
+    # read lines
+    datalines = read_lines(numerical_file, header, footer)
+    nol = len(datalines) # number of lines
+    # process lines: positional columns
+    for i in range(nol):
+        ncol = len(datalines[i].split())
+        for ix in range(len(pos_indx)):
+            # positional arguments
+            try:
+                if datalines[i].split()[pos_indx[ix]] == 'nan':
+                    pos[ix].append(np.nan)
+                else:
+                    pos[ix].append(float(datalines[i].split()[pos_indx[ix]]))
+            except:
+                pos[ix].append(np.nan)
+    # process lines: val & extra
+    for i in range(nol):
+        ncol = len(datalines[i].split())
+        for iv in range(len(val_indx)):
+            # value arguments
+            try:
+                if datalines[i].split()[val_indx[iv]] == 'nan':
+                    val[iv].append(np.nan)
+                else:
+                    val[iv].append(float(datalines[i].split()[val_indx[iv]]))
+            except:
+                val[iv].append(np.nan)
+        # extra
+        extra_str_lst = datalines[i].split()
+        for ix in range(len(pos_indx)):
+            if pos_indx[ix] >= len(datalines[i].split()):
+                pos_str = np.nan
+            else:
+                pos_str = datalines[i].split()[pos_indx[ix]]
+            if pos_str in extra_str_lst:
+                extra_str_lst.remove(pos_str)
+        for iv in range(len(val_indx)):
+            if val_indx[iv] >= len(datalines[i].split()):
+                val_str = np.nan
+            else:
+                val_str = datalines[i].split()[val_indx[iv]]
+            if val_str in extra_str_lst:
+                extra_str_lst.remove(val_str)
+        extra_str = ' '.join(extra_str_lst).strip()
+        extra.append(extra_str)
+    numerical_data = [pos, val, extra]
+    # skipnan = True ?
+    if skipnan:
+        pos_skipnan = [[] for ix in range(len(pos_indx))]
+        val_skipnan = [[] for iv in range(len(val_indx))]
+        extra_skipnan = []
+        for i in range(nol):
+            temp = []
+            for ix in range(len(pos_indx)):
+                temp.append(pos[ix][i])
+            for iv in range(len(val_indx)):
+                temp.append(val[iv][i])
+            if np.nan not in temp:
+                for ix in range(len(pos_indx)):
+                    pos_skipnan[ix].append(pos[ix][i])
+                for iv in range(len(val_indx)):
+                    val_skipnan[iv].append(val[iv][i])
+                extra_skipnan.append(extra[i])
+        numerical_data = [pos_skipnan, val_skipnan, extra_skipnan]
+    return numerical_data
+
+#######################################
+
+def numerical_dataset_to_strLines(dataset, fmt, noextra=False):
+    if len(fmt) == 1:
+        fmt = [fmt[0], fmt[0]]
+    else:
+        fmt = fmt
+
+    numerical_str_lines = []
+    nol = len(dataset[2])
+    for i in range(nol):
+        pos_str = []
+        for ix in range(len(dataset[0])):
+            pos_str.append( f"%{fmt[0]}f" %(dataset[0][ix][i]) )
+        line_str = ' '.join(pos_str)
+        for iv in range(len(dataset[1])):
+            if dataset[1][iv][i] != np.nan:
+                line_str = f"%s %{fmt[1]}f" %(line_str, dataset[1][iv][i])
+            else:
+                line_str = f"{line_str} {np.nan}"
+        if len(dataset[2][i]) and not noextra:
+            line_str = "%s %s" %(line_str, dataset[2][i])
+        numerical_str_lines.append(line_str)
+    return numerical_str_lines
+
+#######################################
+
+def calc_union(datasets, inverse=False):
+    # all datasets must have the same number of positional and value columns
+    nod = len(datasets) # number of numerical datasets
+    if nod < 2:
+        print("Error! Number of datasets must be larger than 2 for union operation.")
+        exit(1)
+    num_pos = len(datasets[0][0]) # number of positional columns
+    num_val = len(datasets[0][1]) # number of value columns
+    
+    union = [[[] for ipos in range(num_pos)],[[] for ival in range(num_val)],[]]
+    union_inv = [[[] for ipos in range(num_pos)],[[] for ival in range(num_val)],[]]
+    
+    pos_data_uniq = []
+    for ids in range(nod):
+        num_lines = len(datasets[ids][2]) # number of lines for this dataset
+        for iline in range(num_lines):
+            pos_data = [datasets[ids][0][k][iline] for k in range(num_pos)]
+            val_data = [datasets[ids][1][k][iline] for k in range(num_val)]
+            ext_data = datasets[ids][2][iline]
+            if pos_data not in pos_data_uniq:
+                pos_data_uniq.append(pos_data)
+                for ipos in range(num_pos):
+                    union[0][ipos].append(pos_data[ipos])
+                for ival in range(num_val):
+                    union[1][ival].append(val_data[ival])
+                union[2].append(ext_data)
+            else:
+                for ipos in range(num_pos):
+                    union_inv[0][ipos].append(pos_data[ipos])
+                for ival in range(num_val):
+                    union_inv[1][ival].append(val_data[ival])
+                union_inv[2].append(ext_data)
+    if inverse:
+        return union_inv
+    else:
+        return union
+
+#######################################
+
+def calc_intersect(datasets, inverse=False):
+    # all datasets must have the same number of positional and value columns
+    nod = len(datasets) # number of numerical datasets
+    if nod < 2:
+        print("Error! Number of datasets must be larger than 2 for intersect operation.")
+        exit(1)
+    num_pos = len(datasets[0][0]) # number of positional columns
+    num_val = len(datasets[0][1]) # number of value columns
+
+    intersect = [[[] for ipos in range(num_pos)],[[] for ival in range(num_val)],[]]
+    intersect_inv = [[[] for ipos in range(num_pos)],[[] for ival in range(num_val)],[]]
+
+    pos_data_datasets = [[] for i in range(nod)]
+    for ids in range(nod):
+        num_lines = len(datasets[ids][2]) # number of lines for this dataset
+        for iline in range(num_lines):
+            pos_data = [datasets[ids][0][k][iline] for k in range(num_pos)]
+            pos_data_datasets[ids].append(pos_data)
+
+    first_ds_nol = len(datasets[0][2]) # first dataset number of lines
+    for iline in range(first_ds_nol):
+        first_ds_pos_data = [datasets[0][0][k][iline] for k in range(num_pos)]
+        first_ds_val_data = [datasets[0][1][k][iline] for k in range(num_val)]
+        first_ds_ext_data = datasets[0][2][iline]
+        if all(first_ds_pos_data in l for l in pos_data_datasets[1:]):
+            for ipos in range(num_pos):
+                intersect[0][ipos].append(first_ds_pos_data[ipos])
+            for ival in range(num_val):
+                intersect[1][ival].append(first_ds_val_data[ival])
+            intersect[2].append(first_ds_ext_data)
+
+    # find intersect inverse
+    num_intersects = len(intersect[2])
+    if inverse:
+        intersect_strLines = numerical_dataset_to_strLines(intersect, [".8",".8"])
+
+        for ids in range(nod):
+            num_lines = len(datasets[ids][2]) # number of lines for this dataset
+            for iline in range(num_lines):
+                test_numerical_line = [
+                    [[datasets[ids][0][ipos][iline]] for ipos in range(num_pos)],
+                    [[datasets[ids][1][ival][iline]] for ipos in range(num_val)],
+                    [datasets[ids][2][iline]],
+                ]
+                test_numerical_line_str = numerical_dataset_to_strLines(test_numerical_line, [".8",".8"])[0]
+                if test_numerical_line_str not in intersect_strLines:
+                    for ipos in range(num_pos):
+                        xxx
 
 
 
+        return intersect_inv
+
+    else:
+        return intersect
+
+
+
+    # pos_union, val_union, ext_union = [[], [], []]
+    # pos_union_inv, val_union_inv, ext_union_inv = [[], [], []]
+    # for i in range(nod):
+
+    #     for iline in range(nol):
+    #         pos_iline = 
+    #         pos = datasets[i][0][iline]
+    #         if pos not in pos_union:
+    #             pos_union.append(pos)
+    #             val_union.append(datasets[i][1][iline])
+    #             ext_union.append(datasets[i][2][iline])
+    #         else:
+    #             pos_union_inv.append(pos)
+    #             val_union_inv.append(datasets[i][1][iline])
+    #             ext_union_inv.append(datasets[i][2][iline])
+    # if inverse:
+    #     return [pos_union_inv, val_union_inv, ext_union_inv]
+    # else:
+    #     return [pos_union, val_union, ext_union]
+
+#######################################
 
 def union(args):
     nof = len(args.input_files)
@@ -102,43 +331,43 @@ def difference(args):
 #######################################
 
 
-def read_lines(datfile,args):
-    if len(args.fmt) == 1:
-        fmt = [args.fmt[0], args.fmt[0]]
-    else:
-        fmt = args.fmt
-    if args.nan or len(args.x) == len(args.v) == 0:
-        try:
-            fopen = open(datfile,'r')
-            if args.footer != 0:
-                datalines_all = fopen.read().splitlines()[args.header:-args.footer]
-            else:
-                datalines_all = fopen.read().splitlines()[args.header:]
-            fopen.close()
-        except Exception as exc:
-            print(f"Error reading input file: {datfile}\n")
-            exit(1)
-        datalines = []
-        for x in datalines_all:
-            datalines.append(x.strip())
-    else:
-        data = read_numerical_data(datfile, args.header, args.footer,  args.fmt, args.x, args.v, args.skipnan)
-        datalines = []
-        nol = len(data[2])
-        for i in range(nol):
-            pos_str = []
-            for ix in range(len(data[0])):
-                pos_str.append( f"%{fmt[0]}f" %(data[0][ix][i]) )
-            line_str = ' '.join(pos_str)
-            for iv in range(len(data[1])):
-                if data[1][iv][i] != np.nan:
-                    line_str = f"%s %{fmt[1]}f" %(line_str, data[1][iv][i])
-                else:
-                    line_str = f"{line_str} {np.nan}"
-            if len(data[2][i]) and not args.noextra:
-                line_str = "%s %s" %(line_str, data[2][i])
-            datalines.append(line_str)
-    return datalines
+# def read_lines(datfile,args):
+#     if len(args.fmt) == 1:
+#         fmt = [args.fmt[0], args.fmt[0]]
+#     else:
+#         fmt = args.fmt
+#     if args.nan or len(args.x) == len(args.v) == 0:
+#         try:
+#             fopen = open(datfile,'r')
+#             if args.footer != 0:
+#                 datalines_all = fopen.read().splitlines()[args.header:-args.footer]
+#             else:
+#                 datalines_all = fopen.read().splitlines()[args.header:]
+#             fopen.close()
+#         except Exception as exc:
+#             print(f"Error reading input file: {datfile}\n")
+#             exit(1)
+#         datalines = []
+#         for x in datalines_all:
+#             datalines.append(x.strip())
+#     else:
+#         data = read_numerical_lines(datfile, args.header, args.footer,  args.fmt, args.x, args.v, args.skipnan)
+#         datalines = []
+#         nol = len(data[2])
+#         for i in range(nol):
+#             pos_str = []
+#             for ix in range(len(data[0])):
+#                 pos_str.append( f"%{fmt[0]}f" %(data[0][ix][i]) )
+#             line_str = ' '.join(pos_str)
+#             for iv in range(len(data[1])):
+#                 if data[1][iv][i] != np.nan:
+#                     line_str = f"%s %{fmt[1]}f" %(line_str, data[1][iv][i])
+#                 else:
+#                     line_str = f"{line_str} {np.nan}"
+#             if len(data[2][i]) and not args.noextra:
+#                 line_str = "%s %s" %(line_str, data[2][i])
+#             datalines.append(line_str)
+#     return datalines
 
 
 
@@ -146,7 +375,7 @@ def calc_min(args):
     outdata_lines = []
     for inpfile in args.input_files:
         min_column = []
-        data = read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
+        data = read_numerical_lines(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             min_column.append(f"%.{args.decimal[0]}f" %(np.nanmin(col)))
         outdata_lines.append(' '.join([inpfile] + min_column))
@@ -155,7 +384,7 @@ def calc_min(args):
     if len(outdata_lines) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-    write_ascii_lines(outdata_lines, args)
+    # write_ascii_lines(outdata_lines, args)
 
 
 #######################################
@@ -165,7 +394,7 @@ def calc_max(args):
     outdata_lines = []
     for inpfile in args.input_files:
         max_column = []
-        data = read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
+        data = read_numerical_lines(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             max_column.append(f"%.{args.decimal[0]}f" %(np.nanmax(col)))
         outdata_lines.append(' '.join([inpfile] + max_column))
@@ -174,7 +403,7 @@ def calc_max(args):
     if len(outdata_lines) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-    write_ascii_lines(outdata_lines, args)
+    # write_ascii_lines(outdata_lines, args)
 
 
 #######################################
@@ -184,7 +413,7 @@ def calc_sum(args):
     outdata_lines = []
     for inpfile in args.input_files:
         sum_column = []
-        data = read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
+        data = read_numerical_lines(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             sum_column.append(f"%.{args.decimal[0]}f" %(np.nansum(col)))
         outdata_lines.append(' '.join([inpfile] + sum_column))
@@ -193,7 +422,7 @@ def calc_sum(args):
     if len(outdata_lines) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-    write_ascii_lines(outdata_lines, args)
+    # write_ascii_lines(outdata_lines, args)
 
 #######################################
 
@@ -202,7 +431,7 @@ def calc_mean(args):
     outdata_lines = []
     for inpfile in args.input_files:
         mean_column = []
-        data = read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
+        data = read_numerical_lines(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             mean_column.append(f"%.{args.decimal[0]}f" %(float(np.nanmean(col))))
         outdata_lines.append(' '.join([inpfile] + mean_column))
@@ -211,7 +440,7 @@ def calc_mean(args):
     if len(outdata_lines) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-    write_ascii_lines(outdata_lines, args)
+    # write_ascii_lines(outdata_lines, args)
 
 #######################################
 
@@ -220,7 +449,7 @@ def calc_median(args):
     outdata_lines = []
     for inpfile in args.input_files:
         median_column = []
-        data = read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
+        data = read_numerical_lines(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             median_column.append(f"%.{args.decimal[0]}f" %(float(np.nanmedian(col))))
         outdata_lines.append(' '.join([inpfile] + median_column))
@@ -229,7 +458,7 @@ def calc_median(args):
     if len(outdata_lines) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-    write_ascii_lines(outdata_lines, args)
+    # write_ascii_lines(outdata_lines, args)
 
 #######################################
 
@@ -237,7 +466,7 @@ def calc_std(args):
     outdata_lines = []
     for inpfile in args.input_files:
         std_column = []
-        data = read_numerical_data(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
+        data = read_numerical_lines(inpfile, args.header, args.footer,  [f".{args.decimal[0]}"], [], args.v)
         for col in data[1]:
             std_column.append(f"%.{args.decimal[0]}f" %(np.nanstd(col)))
         outdata_lines.append(' '.join([inpfile] + std_column))
@@ -246,7 +475,7 @@ def calc_std(args):
     if len(outdata_lines) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-    write_ascii_lines(outdata_lines, args)
+    # write_ascii_lines(outdata_lines, args)
 
 
 def add_intersect_values(args):
@@ -265,7 +494,7 @@ def add_intersect_values(args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        datlines[i] = read_ascii_lines(input_files[i], args)
+        datlines[i] = read_lines(input_files[i], args)
         for line in datlines[i]:
             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
             datlines_vals[i].append(' '.join(line.split()[len(args.x):]))
@@ -289,7 +518,7 @@ def add_intersect_values(args):
     if len(intersect) == 0:
         print("Error! Number of calculated nodes is zero!")
         exit(1)
-    write_ascii_lines(intersect, args)
+    # write_ascii_lines(intersect, args)
 
 
 #######################################
@@ -303,7 +532,7 @@ def union(args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        datlines[i] = read_ascii_lines(input_files[i], args)
+        datlines[i] = read_lines(input_files[i], args)
         for line in datlines[i]:
             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
     union = []
@@ -324,12 +553,12 @@ def union(args):
         if len(union_inv) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(union_inv, args)
+        # write_ascii_lines(union_inv, args)
     else:
         if len(union) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(union, args)
+        # write_ascii_lines(union, args)
 
 #######################################
 
@@ -342,7 +571,7 @@ def intersect(args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        datlines[i] = read_ascii_lines(input_files[i], args)
+        datlines[i] = read_lines(input_files[i], args)
         for line in datlines[i]:
             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
     intersect = []
@@ -364,12 +593,12 @@ def intersect(args):
         if len(intersect_inv) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(intersect_inv, args)
+        # write_ascii_lines(intersect_inv, args)
     else:
         if len(intersect) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(intersect, args)
+        # write_ascii_lines(intersect, args)
 
 #######################################
 
@@ -382,7 +611,7 @@ def difference(args):
         print("Error! Number of input_files should be larger than 2 for this operation.")
         exit(1)
     for i in range(nof):
-        datlines[i] = read_ascii_lines(input_files[i], args)
+        datlines[i] = read_lines(input_files[i], args)
         for line in datlines[i]:
             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
     difference = []
@@ -404,12 +633,12 @@ def difference(args):
         if len(difference_inv) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(difference_inv, args)
+        # write_ascii_lines(difference_inv, args)
     else:
         if len(difference) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(difference, args)
+        # write_ascii_lines(difference, args)
 
 
 #######################################
@@ -417,8 +646,8 @@ def difference(args):
 
 def anomaly_2D(args):
     # read models
-    absmodel_x, [absmodel_v], _ = read_numerical_data(args.absmodel, args.header, args.footer,  [".10", ".10"], args.x, args.value, skipnan=True)
-    [refmodel_x], [refmodel_v], _ = read_numerical_data(args.refmodel, 0, 0,  [".10", ".10"], [1], [2], skipnan=True)
+    absmodel_x, [absmodel_v], _ = read_numerical_lines(args.absmodel, args.header, args.footer,  [".10", ".10"], args.x, args.value, skipnan=True)
+    [refmodel_x], [refmodel_v], _ = read_numerical_lines(args.refmodel, 0, 0,  [".10", ".10"], [1], [2], skipnan=True)
     nop = len(absmodel_v)
     if nop == 0:
         print(f"Error! Number of points read from the absmodel is zero! Check absmodel: '{args.absmodel}'")
@@ -446,7 +675,7 @@ def anomaly_2D(args):
     args.append = False
     args.sort = False
     args.uniq = False
-    write_ascii_lines(output_lines, args)
+    # write_ascii_lines(output_lines, args)
 
     # print reference model value into stdout
     if args.outfile == None:
@@ -461,8 +690,8 @@ def anomaly_1D(args):
 
     outfile_orig = args.outfile
     # read models
-    [absmodel_x], [absmodel_v], _ = read_numerical_data(args.absmodel, args.header, args.footer,  [".10", ".10"], args.x, args.value, skipnan=True)
-    [refmodel_x], [refmodel_v], _ = read_numerical_data(args.refmodel, 0, 0,  [".10", ".10"], [1], [2], skipnan=True)
+    [absmodel_x], [absmodel_v], _ = read_numerical_lines(args.absmodel, args.header, args.footer,  [".10", ".10"], args.x, args.value, skipnan=True)
+    [refmodel_x], [refmodel_v], _ = read_numerical_lines(args.refmodel, 0, 0,  [".10", ".10"], [1], [2], skipnan=True)
     # check if reference model covers the abs model positional data range
     if min(absmodel_x) < min(refmodel_x) or max(absmodel_x) > max(refmodel_x):
         print("Error: reference model does not fully cover the absolute model positional range:\n")
@@ -573,7 +802,7 @@ def anomaly_1D(args):
         if len(outlines_markers) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(outlines_markers, args)
+        # write_ascii_lines(outlines_markers, args)
 
     outline_anomaly = [f"depth abs_model ref_model anomaly_model"]
     for idep, dep in enumerate(anomaly_model_x):
@@ -586,7 +815,7 @@ def anomaly_1D(args):
         if len(outline_anomaly) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(outline_anomaly, args)
+        # write_ascii_lines(outline_anomaly, args)
         # plot
         plt.show()
     else: # output anomaly data and plot to files
@@ -595,7 +824,7 @@ def anomaly_1D(args):
         if len(outline_anomaly) == 0:
             print("Error! Number of outputs is zero!")
             exit(1)
-        write_ascii_lines(outline_anomaly, args)
+        # write_ascii_lines(outline_anomaly, args)
         # plot
         outplot = os.path.abspath(f"{os.path.splitext(outfile_orig)[0]}.{args.ext}")
         plt.savefig(outplot, dpi=args.dpi, format=args.ext)
@@ -675,96 +904,4 @@ def read_2D_datalist(input_datalist, fmt):
 
 #######################################
 
-def read_numerical_data(datfile, header, footer,  fmt, pos_indx, val_indx, skipnan=False):
-    if len(fmt) == 1:
-        fmt = [fmt[0], fmt[0]]
-    else:
-        fmt = fmt
-    if len(pos_indx):
-        pos_indx = np.array(pos_indx) - 1 # index of positional columns
-        pos_indx = pos_indx.tolist()
-    else:
-        pos_indx = []
-    if len(val_indx):
-        val_indx = np.array(val_indx) - 1
-        val_indx = val_indx.tolist()
-    else:
-        val_indx = []
-    pos = [[] for ix in range(len(pos_indx))] # list of positional values
-    val = [[] for iv in range(len(val_indx))] # list of values/data
-    extra = []
-    # read lines
-    try:
-        fopen = open(datfile, 'r')
-        if footer != 0:
-            datalines = fopen.read().splitlines()[header:-footer]
-        else:
-            datalines = fopen.read().splitlines()[header:]
-        fopen.close()
-    except Exception as exc:
-        print(exc)
-        exit(0)
-    nol = len(datalines)
-    # process lines: positional columns
-    for i in range(nol):
-        ncol = len(datalines[i].split())
-        for ix in range(len(pos_indx)):
-            # positional arguments
-            try:
-                if datalines[i].split()[pos_indx[ix]] == 'nan':
-                    pos[ix].append(np.nan)
-                else:
-                    pos[ix].append(float(datalines[i].split()[pos_indx[ix]]))
-            except:
-                pos[ix].append(np.nan)
-    # process lines: val & extra
-    for i in range(nol):
-        ncol = len(datalines[i].split())
-        for iv in range(len(val_indx)):
-            # value arguments
-            try:
-                if datalines[i].split()[val_indx[iv]] == 'nan':
-                    val[iv].append(np.nan)
-                else:
-                    val[iv].append(float(datalines[i].split()[val_indx[iv]]))
-            except:
-                val[iv].append(np.nan)
-        # extra
-        extra_str_lst = datalines[i].split()
-        for ix in range(len(pos_indx)):
-            if pos_indx[ix] >= len(datalines[i].split()):
-                pos_str = np.nan
-            else:
-                pos_str = datalines[i].split()[pos_indx[ix]]
-            if pos_str in extra_str_lst:
-                extra_str_lst.remove(pos_str)
-        for iv in range(len(val_indx)):
-            if val_indx[iv] >= len(datalines[i].split()):
-                val_str = np.nan
-            else:
-                val_str = datalines[i].split()[val_indx[iv]]
-            if val_str in extra_str_lst:
-                extra_str_lst.remove(val_str)
-        extra_str = ' '.join(extra_str_lst).strip()
-        extra.append(extra_str)
-    dat = [pos, val, extra]
-    # skipnan = True ?
-    if skipnan:
-        pos_skipnan = [[] for ix in range(len(pos_indx))]
-        val_skipnan = [[] for iv in range(len(val_indx))]
-        extra_skipnan = []
-        for i in range(nol):
-            temp = []
-            for ix in range(len(pos_indx)):
-                temp.append(pos[ix][i])
-            for iv in range(len(val_indx)):
-                temp.append(val[iv][i])
-            if np.nan not in temp:
-                for ix in range(len(pos_indx)):
-                    pos_skipnan[ix].append(pos[ix][i])
-                for iv in range(len(val_indx)):
-                    val_skipnan[iv].append(val[iv][i])
-                extra_skipnan.append(extra[i])
-        dat = [pos_skipnan, val_skipnan, extra_skipnan]
-    return dat
 

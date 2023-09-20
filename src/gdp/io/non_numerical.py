@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 
-# non-numerical/NaN data type processing module
+"""
+ Non-numerical/NaN ascii data type processing module
 
+"""
 import os
 import numpy as np
 
@@ -15,12 +17,20 @@ def read_lines(input_file, header=0, footer=0):
         else:
             lines = fopen.read().splitlines()[header:]
         fopen.close()
-    except:
-        print(f"Error reading input file: {input_file}\n")
+    except Exception as e:
+        print(f"{e}\nError reading input file: {input_file}\n")
         exit(1)
     for i, x in enumerate(lines):
         lines[i] = x.strip()
     return lines
+
+#######################################
+def uniq_lines(lines):
+    uniq_lines = []
+    for line in lines:
+        if line not in uniq_lines:
+            uniq_lines.append(line)
+    return uniq_lines
 
 #######################################
 
@@ -87,74 +97,41 @@ def calc_difference(datasets, inverse=False):
 
 #######################################
 
-def split_data_nrow(args):
-    try:
-        fopen = open(args.input_file[0],'r')
-        if args.footer != 0:
-            datalines = fopen.read().splitlines()[args.header:-args.footer]
-        else:
-            datalines = fopen.read().splitlines()[args.header:]
-    except Exception as exc:
-        print(exc)
-        exit(1)
-    indexes = [x for x in range(0, len(datalines), args.number)]
-    if indexes[-1] < len(datalines):
-        indexes.append(len(datalines))
-    # split data
-    ndata = len(indexes) - 1
-    for i in range(ndata):
-        split_data_lines = datalines[indexes[i]:indexes[i+1]]
-        split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.ext}"
-        if args.outdir:
-            if not os.path.isdir(args.outdir):
-                os.mkdir(args.outdir)
-            fopen = open(f'{os.path.join(args.outdir, split_data_name)}','w')
-            fopen.write('\n'.join(split_data_lines))
-            fopen.write('\n')
-            fopen.close()
-        else:
-            stdout = [f"File name: {split_data_name}"] + split_data_lines
-            stdout = '\n'.join(stdout)
-            print(f"{stdout}\n")
+def split_by_nrows(combined_dataset, number, name_index_offset=0):
+    split_dataset = {}
+    split_indices = [x for x in range(0, len(combined_dataset), number)]
+    if split_indices[-1] < len(combined_dataset):
+        split_indices.append(len(combined_dataset))
+    num_split_datasets = len(split_indices) - 1 # number of split datasets
+    for i in range(num_split_datasets):
+        split_data_lines = combined_dataset[split_indices[i]:split_indices[i+1]]
+        split_data_name = f"{'_'.join(split_data_lines[name_index_offset-1].split())}"
+        split_dataset[f"{split_data_name}"] = split_data_lines
+    return split_dataset
 
 #######################################
 
-def split_data_ncol(args):
-    try:
-        fopen = open(args.input_file[0],'r')
-        if args.footer != 0:
-            datalines = fopen.read().splitlines()[args.header:-args.footer]
-        else:
-            datalines = fopen.read().splitlines()[args.header:]
-    except Exception as exc:
-        print(exc)
-        exit(1)
-    indexes = []
-    for i, dline in enumerate(datalines):
-        if len(dline.split()) == args.number:
-            indexes.append(i + args.start)
-    if indexes[-1] < len(datalines):
-        indexes.append(len(datalines))
-    # handle errors
-    if min(indexes) < 0:
-        print(f"\nError! Argument 'start' is too low!\n")
-        exit(1)
-    # split data
-    ndata = len(indexes) - 1
-    for i in range(ndata):
-        split_data_lines = datalines[indexes[i]:indexes[i+1]]
-        split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.ext}"
-        if args.outdir:
-            if not os.path.isdir(args.outdir):
-                os.mkdir(args.outdir)
-            fopen = open(f'{os.path.join(args.outdir, split_data_name)}','w')
-            fopen.write('\n'.join(split_data_lines))
-            fopen.write('\n')
-            fopen.close()
-        else:
-            stdout = [f"File name: {split_data_name}"] + split_data_lines
-            stdout = '\n'.join(stdout)
-            print(f"{stdout}\n")
+def split_by_ncols(combined_dataset, number, \
+                   name_index_offset=0,\
+                   start_index_offset=0):
+    split_dataset = {}
+    split_indices = []
+    for i, line in enumerate(combined_dataset):
+        if len(line.split()) == number:
+            split_indices.append(i + start_index_offset)
+            if split_indices[-1] < 0:
+                print("Error: split_by_num_cols(): 'split_index' cannot be negative!")
+                print("       (check argument 'start_index_offset')")
+                exit(1)
+    if split_indices[-1] < len(combined_dataset):
+        split_indices.append(len(combined_dataset))
+    num_split_datasets = len(split_indices) - 1 # number of split datasets
+    for i in range(num_split_datasets):
+        split_data_lines = combined_dataset[split_indices[i]:split_indices[i+1]]
+        split_data_name = f"{'_'.join(split_data_lines[name_index_offset-1].split())}"
+        split_dataset[f"{split_data_name}"] = split_data_lines
+    return split_dataset
+
 
 #######################################
 
@@ -165,23 +142,21 @@ def write_to_stdout(lines,\
     for x in lines:
         len_line.append(len(x))
         lines_strip.append(x.strip())
-    lines_out = []
-    if args.uniq:
-        for x in lines_strip:
-            if x not in lines_out:
-                lines_out.append(x)
-    else:
-        lines_out = lines_strip
-    if args.sort:
+    lines_out = lines_strip
+    if sort:
         lines_out, len_line = zip(*sorted(zip(lines_out, len_line)))
         lines_out = list(lines_out)
         len_line = list(len_line)
+
     # undo strip
-    for i,x in enumerate(lines_out):
+    for i, x in enumerate(lines_out):
         lines_out[i] = f"%{len_line[i]}s" %(x)
+
+    if uniq:
+        lines_out = uniq_lines(lines_out)
     # write to stdout
     for x in lines_out:
-            print(f"{x}")
+        print(f"{x}")
 
 #######################################            
 
@@ -193,13 +168,13 @@ def write_to_file(lines, outfile,\
         len_line.append(len(x))
         lines_strip.append(x.strip())
     lines_out = []
-    if args.uniq:
+    if uniq:
         for x in lines_strip:
             if x not in lines_out:
                 lines_out.append(x)
     else:
         lines_out = lines_strip
-    if args.sort:
+    if sort:
         lines_out, len_line = zip(*sorted(zip(lines_out, len_line)))
         lines_out = list(lines_out)
         len_line = list(len_line)
@@ -207,7 +182,7 @@ def write_to_file(lines, outfile,\
     for i,x in enumerate(lines_out):
         lines_out[i] = f"%{len_line[i]}s" %(x)
     # write to file
-    if args.append:
+    if append:
         fopen = open(outfile,'a')
     else:
         fopen = open(outfile,'w')
@@ -254,3 +229,73 @@ def write_to_file(lines, outfile,\
 #             datalines.append(line_str)
 #     return datalines
 
+#######################################
+
+# def split_data_ncol(args):
+#     try:
+#         fopen = open(args.input_file[0],'r')
+#         if args.footer != 0:
+#             datalines = fopen.read().splitlines()[args.header:-args.footer]
+#         else:
+#             datalines = fopen.read().splitlines()[args.header:]
+#     except Exception as exc:
+#         print(exc)
+#         exit(1)
+#     indexes = []
+#     for i, dline in enumerate(datalines):
+#         if len(dline.split()) == args.number:
+#             indexes.append(i + args.start)
+#     if indexes[-1] < len(datalines):
+#         indexes.append(len(datalines))
+#     # handle errors
+#     if min(indexes) < 0:
+#         print(f"\nError! Argument 'start' is too low!\n")
+#         exit(1)
+#     # split data
+#     ndata = len(indexes) - 1
+#     for i in range(ndata):
+#         split_data_lines = datalines[indexes[i]:indexes[i+1]]
+#         split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.ext}"
+#         if args.outdir:
+#             if not os.path.isdir(args.outdir):
+#                 os.mkdir(args.outdir)
+#             fopen = open(f'{os.path.join(args.outdir, split_data_name)}','w')
+#             fopen.write('\n'.join(split_data_lines))
+#             fopen.write('\n')
+#             fopen.close()
+#         else:
+#             stdout = [f"File name: {split_data_name}"] + split_data_lines
+#             stdout = '\n'.join(stdout)
+#             print(f"{stdout}\n")
+
+# #######################################
+
+# def split_data_nrow(args):
+#     try:
+#         fopen = open(args.input_file[0],'r')
+#         if args.footer != 0:
+#             datalines = fopen.read().splitlines()[args.header:-args.footer]
+#         else:
+#             datalines = fopen.read().splitlines()[args.header:]
+#     except Exception as exc:
+#         print(exc)
+#         exit(1)
+#     indexes = [x for x in range(0, len(datalines), args.number)]
+#     if indexes[-1] < len(datalines):
+#         indexes.append(len(datalines))
+#     # split data
+#     ndata = len(indexes) - 1
+#     for i in range(ndata):
+#         split_data_lines = datalines[indexes[i]:indexes[i+1]]
+#         split_data_name = f"{'_'.join(split_data_lines[args.name-1].split())}.{args.ext}"
+#         if args.outdir:
+#             if not os.path.isdir(args.outdir):
+#                 os.mkdir(args.outdir)
+#             fopen = open(f'{os.path.join(args.outdir, split_data_name)}','w')
+#             fopen.write('\n'.join(split_data_lines))
+#             fopen.write('\n')
+#             fopen.close()
+#         else:
+#             stdout = [f"File name: {split_data_name}"] + split_data_lines
+#             stdout = '\n'.join(stdout)
+#             print(f"{stdout}\n")

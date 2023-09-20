@@ -1,5 +1,7 @@
 #!/usr/bin/env python3
 
+# This is plan B if could not import _geographic
+
 class Point:
     def __init__(self, lon, lat):
         self.lon = lon

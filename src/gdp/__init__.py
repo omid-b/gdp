@@ -1,3 +1,3 @@
 from . import seismic
-from . import ascii
+from . import io
 from ._version import __version__

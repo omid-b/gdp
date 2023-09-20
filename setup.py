@@ -56,7 +56,7 @@ class build_ext(_build_ext):
         self.include_dirs.append(numpy.get_include())
 
 
-# package version; variable: __version__
+# read package version; variable: __version__
 with open("src/gdp/_version.py") as fp:
     exec(fp.read())
 

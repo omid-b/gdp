@@ -1,10 +1,11 @@
 #!/usr/bin/env python3
 
-import os
-import sys
 import argparse
+import os
 import subprocess
+import sys
 
+from . import scripts
 from ._version import __version__
 
 version = __version__
@@ -117,7 +118,7 @@ def parse_args(*args, **kwargs):
     data_cat.add_argument(
         '--skipnan',
         action='store_true',
-        help='do not output lines with nan value(s)')
+        help='do not output lines with nan value(s); numerical data only')
     data_cat.add_argument(
         '-o',
         '--outfile',
@@ -424,7 +425,7 @@ def parse_args(*args, **kwargs):
     description="Split a concatenated dataset into multiple data files")
     data_split._positionals.title = 'required positional arguments'
     data_split._optionals.title = 'optional/Required arguments'
-    data_split.add_argument("input_file", nargs=1, help='input ascii file')
+    data_split.add_argument("input_file", type=str, help='input ascii file')
     data_split.add_argument(
         '--method',
         choices=['nrow','ncol'],
@@ -2799,8 +2800,6 @@ def main(*args, **kwargs):
         from . import check
         check.check_all()
 
-    from . import scripts
-
     if args.module == 'data':
 
         if args.submodule == 'cat':
@@ -2819,280 +2818,280 @@ def main(*args, **kwargs):
             
             scripts.data_difference(args)
 
-        elif args.submodule == 'add':
+        # elif args.submodule == 'add':
             
-            scripts.data_add(args)
+        #     scripts.data_add(args)
 
         elif args.submodule == 'split':
             
             scripts.data_split(args)
 
-        elif args.submodule == 'cs':
+    #     elif args.submodule == 'cs':
             
-            if args.subsubmodule == 'info':
+    #         if args.subsubmodule == 'info':
                 
-                scripts.data_cs_info(args)
+    #             scripts.data_cs_info(args)
 
-            elif args.subsubmodule == 'transform':
+    #         elif args.subsubmodule == 'transform':
 
-                scripts.data_cs_transform(args)
+    #             scripts.data_cs_transform(args)
 
-            elif args.subsubmodule == 'fix':
+    #         elif args.subsubmodule == 'fix':
                 
-                scripts.data_cs_fix(args)
+    #             scripts.data_cs_fix(args)
 
-        elif args.submodule == 'chull':
+    #     elif args.submodule == 'chull':
 
-            scripts.data_chull(args)
+    #         scripts.data_chull(args)
             
-        elif args.submodule == 'ashape':
+    #     elif args.submodule == 'ashape':
 
-            scripts.data_ashape(args)
+    #         scripts.data_ashape(args)
             
-        elif args.submodule == 'pip':
+    #     elif args.submodule == 'pip':
             
-            scripts.data_pip(args)
+    #         scripts.data_pip(args)
 
-        elif args.submodule == 'nodes':
+    #     elif args.submodule == 'nodes':
             
-            scripts.data_nodes(args)
+    #         scripts.data_nodes(args)
 
-        elif args.submodule == 'gridder':
+    #     elif args.submodule == 'gridder':
 
-            scripts.data_gridder(args)
+    #         scripts.data_gridder(args)
             
-        elif args.submodule == 'plot':
+    #     elif args.submodule == 'plot':
 
-            if args.subsubmodule == 'scatter':        
-                plot.plot_data_scatter(args)
-        else:
-            subprocess.call("gdp data -h", shell=True)
-            exit(0)
+    #         if args.subsubmodule == 'scatter':        
+    #             plot.plot_data_scatter(args)
+    #     else:
+    #         subprocess.call("gdp data -h", shell=True)
+    #         exit(0)
 
-    elif args.module == 'stats':
+    # elif args.module == 'stats':
         
-        if args.submodule == 'min':
-            dat.calc_min(args)
-            exit(0)
-        elif args.submodule == 'max':
-            dat.calc_max(args)
-            exit(0)
-        elif args.submodule == 'sum':
-            dat.calc_sum(args)
-            exit(0)
-        elif args.submodule == 'mean':
-            dat.calc_mean(args)
-            exit(0)
-        elif args.submodule == 'median':
-            dat.calc_median(args)
-            exit(0)
-        elif args.submodule == 'std':
-            dat.calc_std(args)
-            exit(0)
-        elif args.submodule == 'plot':
+    #     if args.submodule == 'min':
+    #         dat.calc_min(args)
+    #         exit(0)
+    #     elif args.submodule == 'max':
+    #         dat.calc_max(args)
+    #         exit(0)
+    #     elif args.submodule == 'sum':
+    #         dat.calc_sum(args)
+    #         exit(0)
+    #     elif args.submodule == 'mean':
+    #         dat.calc_mean(args)
+    #         exit(0)
+    #     elif args.submodule == 'median':
+    #         dat.calc_median(args)
+    #         exit(0)
+    #     elif args.submodule == 'std':
+    #         dat.calc_std(args)
+    #         exit(0)
+    #     elif args.submodule == 'plot':
 
-            if args.subsubmodule == 'hist':
-                plot.plot_hist(args)
-                exit(0)
-        else:
-            subprocess.call("gdp stats -h", shell=True)
-            exit(0)
+    #         if args.subsubmodule == 'hist':
+    #             plot.plot_hist(args)
+    #             exit(0)
+    #     else:
+    #         subprocess.call("gdp stats -h", shell=True)
+    #         exit(0)
 
-    elif args.module == 'raster':
+    # elif args.module == 'raster':
         
-        if args.submodule == 'georef':
+    #     if args.submodule == 'georef':
 
-            from . import georefmaps
-            from . import dat
-            import tkinter as tk
-            epsg = dat.return_epsg_code(args.cs)
-            root = tk.Tk()
-            app = georefmaps.Application(master=root, epsg=epsg)
-            app.mainloop()
+    #         from . import georefmaps
+    #         from . import dat
+    #         import tkinter as tk
+    #         epsg = dat.return_epsg_code(args.cs)
+    #         root = tk.Tk()
+    #         app = georefmaps.Application(master=root, epsg=epsg)
+    #         app.mainloop()
 
-        elif args.submodule == 'plot':
+    #     elif args.submodule == 'plot':
             
-            if args.subsubmodule == 'geotiff':
-                under_dev()
-        else:
-            subprocess.call("gdp raster -h", shell=True)
-            exit(0)
+    #         if args.subsubmodule == 'geotiff':
+    #             under_dev()
+    #     else:
+    #         subprocess.call("gdp raster -h", shell=True)
+    #         exit(0)
 
-    elif args.module == 'convert':
+    # elif args.module == 'convert':
         
-        if args.submodule == '1Dto2D':
-            conv.datasets_1Dto2D(args)
-            exit(0)
-        elif args.submodule == '1Dto3D':
-            conv.datasets_1Dto3D(args)
-            exit(0)
-        elif args.submodule == '2Dto1D':
-            conv.datasets_2Dto1D(args)
-            exit(0)
-        elif args.submodule == '2Dto3D':
-            conv.datasets_2Dto3D(args)
-            exit(0)
-        elif args.submodule == 'anomaly1D':
-            dat.anomaly_1D(args)
-            exit(0)
-        elif args.submodule == 'anomaly2D':
-            dat.anomaly_2D(args)
-            exit(0)
-        elif args.submodule == 'shp2dat':
-            if args.point == None and args.polygon == None:
-                print("Error! At least one shape file must be given")
-                exit(1)
-            conv.shp2dat(args)
-            exit(0)
-        elif args.submodule == 'nc2dat':
-            conv.nc2dat(args)
-            exit(0)
-        elif args.submodule == 'dat2nc':
-            conv.dat2nc(args)
-            exit(0)
-        else:
-            subprocess.call("gdp convert -h", shell=True)
-            exit(0)
+    #     if args.submodule == '1Dto2D':
+    #         conv.datasets_1Dto2D(args)
+    #         exit(0)
+    #     elif args.submodule == '1Dto3D':
+    #         conv.datasets_1Dto3D(args)
+    #         exit(0)
+    #     elif args.submodule == '2Dto1D':
+    #         conv.datasets_2Dto1D(args)
+    #         exit(0)
+    #     elif args.submodule == '2Dto3D':
+    #         conv.datasets_2Dto3D(args)
+    #         exit(0)
+    #     elif args.submodule == 'anomaly1D':
+    #         dat.anomaly_1D(args)
+    #         exit(0)
+    #     elif args.submodule == 'anomaly2D':
+    #         dat.anomaly_2D(args)
+    #         exit(0)
+    #     elif args.submodule == 'shp2dat':
+    #         if args.point == None and args.polygon == None:
+    #             print("Error! At least one shape file must be given")
+    #             exit(1)
+    #         conv.shp2dat(args)
+    #         exit(0)
+    #     elif args.submodule == 'nc2dat':
+    #         conv.nc2dat(args)
+    #         exit(0)
+    #     elif args.submodule == 'dat2nc':
+    #         conv.dat2nc(args)
+    #         exit(0)
+    #     else:
+    #         subprocess.call("gdp convert -h", shell=True)
+    #         exit(0)
 
-    elif args.module == 'ubc':
+    # elif args.module == 'ubc':
         
-        if args.submodule == 'mod2xyz':
-            ubc.mod2xyz(args)
-            exit(0)
-        elif args.submodule == 'mvi2xyz':
-            ubc.mvi2xyz(args)
-            exit(0)
-        elif args.submodule == 'plot':
+    #     if args.submodule == 'mod2xyz':
+    #         ubc.mod2xyz(args)
+    #         exit(0)
+    #     elif args.submodule == 'mvi2xyz':
+    #         ubc.mvi2xyz(args)
+    #         exit(0)
+    #     elif args.submodule == 'plot':
 
-            if args.subsubmodule == 'invcurves':
-                ubc.invcurves(args)
-                exit(0)
-        else:
-            subprocess.call("gdp ubc -h", shell=True)
-            exit(0)
+    #         if args.subsubmodule == 'invcurves':
+    #             ubc.invcurves(args)
+    #             exit(0)
+    #     else:
+    #         subprocess.call("gdp ubc -h", shell=True)
+    #         exit(0)
 
-    elif args.module == 'mag':
+    # elif args.module == 'mag':
 
-        if args.submodule == 'ddr':
-            mag.directional_derivatives(args)
-            exit(0)
+    #     if args.submodule == 'ddr':
+    #         mag.directional_derivatives(args)
+    #         exit(0)
 
-    elif args.module == 'seismic':
+    # elif args.module == 'seismic':
 
         
-        if args.submodule == 'download':
+    #     if args.submodule == 'download':
             
-            if args.subsubmodule == 'init':
-                download.write_download_config(args)
-                exit(0)
-            elif args.subsubmodule == 'events':
-                download.download_events(args)
-                exit(0)
-            elif args.subsubmodule == 'stations':
-                download.download_stations(args)
-                exit(0)
-            elif args.subsubmodule == 'metadata':
-                download.download_metadata(args)
-                exit(0)
-            elif args.subsubmodule == 'mseeds':
-                download.download_mseeds(args)
-                exit(0)
+    #         if args.subsubmodule == 'init':
+    #             download.write_download_config(args)
+    #             exit(0)
+    #         elif args.subsubmodule == 'events':
+    #             download.download_events(args)
+    #             exit(0)
+    #         elif args.subsubmodule == 'stations':
+    #             download.download_stations(args)
+    #             exit(0)
+    #         elif args.subsubmodule == 'metadata':
+    #             download.download_metadata(args)
+    #             exit(0)
+    #         elif args.subsubmodule == 'mseeds':
+    #             download.download_mseeds(args)
+    #             exit(0)
 
-        elif args.submodule == 'mseed2sac':
-            conv.mseed2sac(args)
-            exit(0)
-        elif args.submodule == 'sac2dat':
-            conv.sac2dat(args)
-            exit(0)
-        elif args.submodule == 'writehdr':
-            sacproc.writehdr(args)
-            exit(0)
-        elif args.submodule == 'remresp':
-            sacproc.remresp(args)
-            exit(0)
-        elif args.submodule == 'resample':
-            sacproc.resample(args)
-            exit(0)
-        elif args.submodule == 'bandpass':
-            sacproc.bandpass(args)
-            exit(0)
-        elif args.submodule == 'cut':
-            if args.relative == None:
-                sacproc.cut(args)
-            else:
-                sacproc.cut_relative(args)
-            exit(0)
-        elif args.submodule == 'remchan':
-            sacproc.remchan(args)
-            exit(0)
-        elif args.submodule == 'sws':
-            from .seismic import sws
+    #     elif args.submodule == 'mseed2sac':
+    #         conv.mseed2sac(args)
+    #         exit(0)
+    #     elif args.submodule == 'sac2dat':
+    #         conv.sac2dat(args)
+    #         exit(0)
+    #     elif args.submodule == 'writehdr':
+    #         sacproc.writehdr(args)
+    #         exit(0)
+    #     elif args.submodule == 'remresp':
+    #         sacproc.remresp(args)
+    #         exit(0)
+    #     elif args.submodule == 'resample':
+    #         sacproc.resample(args)
+    #         exit(0)
+    #     elif args.submodule == 'bandpass':
+    #         sacproc.bandpass(args)
+    #         exit(0)
+    #     elif args.submodule == 'cut':
+    #         if args.relative == None:
+    #             sacproc.cut(args)
+    #         else:
+    #             sacproc.cut_relative(args)
+    #         exit(0)
+    #     elif args.submodule == 'remchan':
+    #         sacproc.remchan(args)
+    #         exit(0)
+    #     elif args.submodule == 'sws':
+    #         from .seismic import sws
             
-            if args.subsubmodule == 'init':
-                sws.initialize.run_sws_dataset_app(args.input_files, refmodel=args.refmodel,
-                    SAC=args.sac, headonly=args.hdronly)
-                exit(0)
+    #         if args.subsubmodule == 'init':
+    #             sws.initialize.run_sws_dataset_app(args.input_files, refmodel=args.refmodel,
+    #                 SAC=args.sac, headonly=args.hdronly)
+    #             exit(0)
 
-        elif args.submodule == 'ans':
+    #     elif args.submodule == 'ans':
 
-            from .seismic import ans
+    #         from .seismic import ans
 
-            if args.subsubmodule == 'init':
+    #         if args.subsubmodule == 'init':
                 
-                if not os.path.isdir(args.maindir):
-                    os.mkdir(args.maindir)
-                if not os.path.isdir(os.path.join(args.maindir, '.ans')):
-                    os.mkdir(os.path.join(args.maindir, '.ans'))
-                defaults = ans.config.Defaults(args.maindir)
-                parameters = defaults.parameters()
-                ans.config.write_config(args.maindir, parameters)
-                print("Project directory was successfully initialized!\n")
+    #             if not os.path.isdir(args.maindir):
+    #                 os.mkdir(args.maindir)
+    #             if not os.path.isdir(os.path.join(args.maindir, '.ans')):
+    #                 os.mkdir(os.path.join(args.maindir, '.ans'))
+    #             defaults = ans.config.Defaults(args.maindir)
+    #             parameters = defaults.parameters()
+    #             ans.config.write_config(args.maindir, parameters)
+    #             print("Project directory was successfully initialized!\n")
 
-            elif args.subsubmodule == 'config':
+    #         elif args.subsubmodule == 'config':
 
-                from PyQt5.QtWidgets import QApplication
-                app = QApplication(sys.argv)
-                win = ans.gui.MainWindow(args.maindir)
-                win.show()
-                sys.exit(app.exec_())
-                app.exec_()
+    #             from PyQt5.QtWidgets import QApplication
+    #             app = QApplication(sys.argv)
+    #             win = ans.gui.MainWindow(args.maindir)
+    #             win.show()
+    #             sys.exit(app.exec_())
+    #             app.exec_()
 
-            elif args.subsubmodule == 'download':
+    #         elif args.subsubmodule == 'download':
 
-                if args.subsubsubmodule == 'stations':
-                    ans.download.download_stations(args.maindir)
-                elif args.subsubsubmodule == 'metadata':
-                    ans.download.download_metadata(args.maindir, args.update_stations)
-                elif args.subsubsubmodule == 'mseeds':
-                    ans.download.download_mseeds(args.maindir)
+    #             if args.subsubsubmodule == 'stations':
+    #                 ans.download.download_stations(args.maindir)
+    #             elif args.subsubsubmodule == 'metadata':
+    #                 ans.download.download_metadata(args.maindir, args.update_stations)
+    #             elif args.subsubsubmodule == 'mseeds':
+    #                 ans.download.download_mseeds(args.maindir)
 
-            elif args.subsubmodule == 'mseed2sac':
+    #         elif args.subsubmodule == 'mseed2sac':
                 
-                ans.mseed2sac.mseed2sac_run_all(args.maindir, args.mseeds_dir, args.sacs_dir, args.all)
+    #             ans.mseed2sac.mseed2sac_run_all(args.maindir, args.mseeds_dir, args.sacs_dir, args.all)
 
-            elif args.subsubmodule == 'sac2ncf':
+    #         elif args.subsubmodule == 'sac2ncf':
 
-                ans.sac2ncf.sac2ncf_run_all(args.maindir, args.sacs_dir, args.ncfs_dir, args.all)
+    #             ans.sac2ncf.sac2ncf_run_all(args.maindir, args.sacs_dir, args.ncfs_dir, args.all)
 
-            elif args.subsubmodule == 'ncf2egf':
+    #         elif args.subsubmodule == 'ncf2egf':
 
-                ans.ncf2egf.ncf2egf_run_all(args.maindir, args.ncfs_dir, args.egfs_dir, args.cmp)
+    #             ans.ncf2egf.ncf2egf_run_all(args.maindir, args.ncfs_dir, args.egfs_dir, args.cmp)
 
-        elif args.submodule == 'plot':
+    #     elif args.submodule == 'plot':
 
-            if args.subsubmodule == 'stations':
-                if args.glob:
-                    plot.plot_stations_global(args.stalist, labels=args.labels,
-                        meridian=args.meridian, boundaries=args.boundaries, GMT=args.gmt)
-                else:
-                    plot.plot_stations(args.stalist, args.labels, GMT=args.gmt)
-                exit(0)
-            elif args.subsubmodule == 'events':
-                plot.plot_events(args.eventlist, args.lon, args.lat, GMT=args.gmt)
-                exit(0)
-        else:
-            subprocess.call("gdp seismic -h", shell=True)
-            exit(0)
+    #         if args.subsubmodule == 'stations':
+    #             if args.glob:
+    #                 plot.plot_stations_global(args.stalist, labels=args.labels,
+    #                     meridian=args.meridian, boundaries=args.boundaries, GMT=args.gmt)
+    #             else:
+    #                 plot.plot_stations(args.stalist, args.labels, GMT=args.gmt)
+    #             exit(0)
+    #         elif args.subsubmodule == 'events':
+    #             plot.plot_events(args.eventlist, args.lon, args.lat, GMT=args.gmt)
+    #             exit(0)
+    #     else:
+    #         subprocess.call("gdp seismic -h", shell=True)
+    #         exit(0)
 
 
 
