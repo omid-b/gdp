@@ -14,7 +14,7 @@ from . import stations
 from . import events
 
 pkg_dir, _ = os.path.split(__file__)
-fetch_data_script = os.path.join(pkg_dir, "FetchData-2018.337")
+fetch_data_script = os.path.join(pkg_dir, 'seismic', "FetchData-2018.337")
 
 class MSEEDS:
     def __init__(self, config, args):

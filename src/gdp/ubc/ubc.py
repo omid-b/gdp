@@ -3,7 +3,11 @@
 import os
 from . import io
 from . import dat
-from . import geographic
+
+try:
+    from .._extensions import _geographic
+except:
+    from .._extensions import geographic
 
 def mvi2xyz(args):
     import numpy as np

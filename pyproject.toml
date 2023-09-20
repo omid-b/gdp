@@ -1,3 +1,73 @@
 [build-system]
-requires = ["setuptools","wheel","Cython>=0.29.21"]
+requires = [
+    "cython>=0.29.31",
+    "setuptools>=45",
+    "numpy",
+    "setuptools_scm[toml]>=6.2",
+    "wheel",
+]
 build-backend = "setuptools.build_meta"
+
+[project]
+name = "gdp"
+dynamic = ["readme", "version"]
+
+authors = [
+    {name = "Omid Bagherpur", email = "omid.bagherpur@gmail.com"},
+]
+description = "Geophysical Data Processing"
+requires-python = ">=3.8"
+license = {text = "LICENSE"}
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Lesser General Public License v3 or later (LGPLv3+)",
+    "Programming Language :: Python",
+    "Topic :: Scientific/Engineering",
+    "Topic :: Scientific/Engineering :: Mathematics",
+    "Topic :: Scientific/Engineering :: Physics",
+    "Operating System :: POSIX",
+    "Operating System :: Unix",
+    "Operating System :: MacOS",
+    "Natural Language :: English"
+]
+keywords = [
+    "CLI",
+    "Geophysical Data Processing",
+]
+dependencies = [
+    "numpy>=1.19",
+    "pandas>=1.1",
+    "obspy>=1.2",
+    "Cython>=0.29.21",
+    "scipy>=1.7.0",
+    "geopandas",
+    "rasterio",
+    "earthpy",
+    "netCDF4",
+    "seaborn",
+    "pyclipper",
+    "PyQt5",
+    "basemap",
+    "basemap-data-hires",
+    "bs4",
+    "shapely",
+    "setuptools_scm",
+    "alphashape",
+]
+
+[project.urls]
+homepage = "http://github.com/omid-b/gdp"
+documentation = "http://github.com/omid-b/gdp"
+repository = "http://github.com/omid-b/gdp"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+namespaces = false
+
+[project.scripts]
+gdp = "gdp.main:main"
+
+[tool.setuptools.dynamic]
+readme = {file = ["README.md"]}

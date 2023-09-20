@@ -1,56 +1,74 @@
 #!/usr/bin/env python3
 
+"""gdp
+
+Geophysical Data Processing using Python!
+
+"""
+
+import re
+import os
 import sys
-import platform
+import numpy
 from setuptools import setup
 from setuptools import Extension
 from Cython.Build import cythonize
 from setuptools.command.build_ext import build_ext as _build_ext
 
-cmdclass = {}
+ext_kwargs = {}
+if os.environ.get("DISC_COV", None) is not None:
+    ext_kwargs["define_macros"].append(("CYTHON_TRACE_NOGIL", 1))
 
-if platform.python_implementation() == 'CPython':
-	try:
-		import wheel.bdist_wheel
-	except:
-		pass
-	else:
-		class bdist_wheel(wheel.bdist_wheel.bdist_wheel):
-			def finalize_options(self):
-				self.py_limited_api = 'cp3{}'.format(sys.version_info[1])
-				super().finalize_options()
+extensions = [
+    Extension(
+        name="gdp._extensions._geographic",
+        sources=[os.path.join("src", "gdp", "_extensions", "_geographic.pyx")],
+        include_dirs=[numpy.get_include()],
+        language="c",
+        **ext_kwargs
+    ),
+    Extension(
+        name="gdp._extensions._funcs",
+        sources=[os.path.join("src", "gdp", "_extensions", "_funcs.pyx")],
+        include_dirs=[numpy.get_include()],
+        language="c",
+        **ext_kwargs
+    ),
+]
+
+# cmdclass['bdist_wheel']
+try:
+    from wheel.bdist_wheel import bdist_wheel as _bdist_wheel
+
+    class bdist_wheel(_bdist_wheel):
+        def finalize_options(self):
+            self.root_is_pure = False
+            _bdist_wheel.finalize_options(self)
+
+except ImportError:
+    bdist_wheel = None
 
 
+# cmdclass['_build_ext']
 class build_ext(_build_ext):
     def finalize_options(self):
         _build_ext.finalize_options(self)
-        import numpy
         self.include_dirs.append(numpy.get_include())
 
 
-cmdclass['bdist_wheel'] = bdist_wheel
-cmdclass['build_ext'] = build_ext
+# package version; variable: __version__
+with open("src/gdp/_version.py") as fp:
+    exec(fp.read())
 
 
-# extensions = [
-#     Extension("_funcs", ["src/gdp/_funcs.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
-#     Extension("_geographic", ["src/gdp/_geographic.pyx"], py_limited_api=True, define_macros=[('CYTHON_LIMITED_API', '1')]),
-# ]
-
-# setup(
-#     cmdclass=cmdclass,
-#     setup_requires=['numpy','cython'],
-#     include_package_data=True,
-#     ext_modules=cythonize(extensions)
-# )
-
-setup(
-	cmdclass=cmdclass,
-    setup_requires=['numpy','cython'],
-	include_package_data=True,
-    ext_modules=cythonize(["src/gdp/_funcs.pyx", "src/gdp/_geographic.pyx"])
+setup_kwargs = {}
+setup_kwargs["name"] = "gdp"
+setup_kwargs["version"] = __version__
+setup_kwargs["cmdclass"] = {"bdist_wheel": bdist_wheel, "build_ext": build_ext}
+setup_kwargs["ext_modules"] = cythonize(
+    extensions, compiler_directives={"language_level": 3}
 )
 
-
+setup(**setup_kwargs)
 
 

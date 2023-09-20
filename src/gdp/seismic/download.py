@@ -9,7 +9,7 @@ import configparser
 from . import events
 from . import stations
 from . import mseeds
-from . import dependency
+from .. import programs
 
 def isdate(text): # is a date value: 'YYYY-MM-DD'
     rexpr = re.compile("^[1-2][0-9][0-9][0-9]-[0-1][0-9]-[0-3][0-9]$")
@@ -121,8 +121,8 @@ sac = %s
 """ %(
         station_list,
         event_list,
-        dependency.find_perl_path(),
-        dependency.find_sac_path()
+        programs.find_perl_path(),
+        programs.find_sac_path()
     )
     fopen = open(config_file, 'w')
     fopen.write(config_text)

@@ -5,7 +5,10 @@ import sys
 import argparse
 import subprocess
 
-version = "0.2.0a"
+from ._version import __version__
+
+version = __version__
+
 about = """\
 gdp: Geophysical Data Processing
 \nContact information:
@@ -2793,116 +2796,71 @@ def main(*args, **kwargs):
         print(f"{about}\n")
         exit(0)
     elif args.check:
-        from . import dependency
-        dependency.check_all()
-    
-    from . import io    
-    from . import dat
-    from . import nan
-    from . import conv
-    from . import sacproc
-    from . import download
-    from . import mag
-    from . import plot
-    from . import ubc
+        from . import check
+        check.check_all()
+
+    from . import scripts
 
     if args.module == 'data':
 
         if args.submodule == 'cat':
-            out_lines = []
-            for inpfile in args.input_files:
-                out_lines += io.data_lines(inpfile, args)
-            io.output_lines(out_lines, args)
-            exit(0)
+            
+            scripts.data_concatenate(args)
+
         elif args.submodule == 'union':
-            if args.nan:
-                nan.union(args)
-            else:
-                dat.union(args)
-            exit(0)
+
+            scripts.data_union(args)
+
         elif args.submodule == 'intersect':
-            if args.nan:
-                nan.intersect(args)
-            else:
-                dat.intersect(args)
-            exit(0)
+            
+            scripts.data_intersect(args)
+
         elif args.submodule == 'difference':
-            if args.nan:
-                nan.difference(args)
-            else:
-                dat.difference(args)
-            exit(0)
+            
+            scripts.data_difference(args)
+
         elif args.submodule == 'add':
-            dat.add_intersect_values(args)
-            exit(0)
+            
+            scripts.data_add(args)
+
         elif args.submodule == 'split':
-            # check arguments
-            if args.number < 0 :
-                print(f"\nError! Argument 'number' should be a positive integer\n")
-                exit(1)
-            if args.header < 0 :
-                print(f"\nError! Argument 'header' should be a positive integer\n")
-                exit(1)
-            if args.footer < 0 :
-                print(f"\nError! Argument 'footer' should be a positive integer\n")
-                exit(1)
-            if args.name < 1 :
-                print(f"\nError! Argument 'name' should be a positive integer (> 0) for method=nrow\n")
-                exit(1)
-            if args.name > args.number:
-                print(f"\nError! Argument 'name' should be less than or equal argument 'number' for method=nrow\n")
-                exit(1)
-            # start split
-            if args.method == 'nrow':
-                if args.start:
-                    print(f"\nError! Argument 'start' is only for method=ncol\n")
-                    exit(1)
-                nan.split_data_nrow(args)
-                exit(0)
-            else:
-                nan.split_data_ncol(args)
-                exit(0)
-        
+            
+            scripts.data_split(args)
+
         elif args.submodule == 'cs':
             
             if args.subsubmodule == 'info':
-                from . import epsg
-                epsg.get_csinfo(args)
-                exit(0)
+                
+                scripts.data_cs_info(args)
+
             elif args.subsubmodule == 'transform':
-                dat.csproj_ascii(args)
-                exit(0)
+
+                scripts.data_cs_transform(args)
+
             elif args.subsubmodule == 'fix':
-                if (args.tryall == False and args.trylist==""):
-                    print("Error: either of these flags must be used: '--tryall' or '--trylist'")
-                    exit(1)
-                dat.csproj_fix(args)
-                exit(0)
+                
+                scripts.data_cs_fix(args)
 
         elif args.submodule == 'chull':
-            dat.convex_hull_polygon(args)
-            exit(0)
+
+            scripts.data_chull(args)
+            
         elif args.submodule == 'ashape':
-            dat.alpha_shape_polygon(args)
-            exit(0)
+
+            scripts.data_ashape(args)
+            
         elif args.submodule == 'pip':
-            dat.points_in_polygon(args)
-            exit(0)
+            
+            scripts.data_pip(args)
+
         elif args.submodule == 'nodes':
-            dat.nodes(args)
-            exit(0)
+            
+            scripts.data_nodes(args)
+
         elif args.submodule == 'gridder':
-            if args.nodes == None and args.spacing == None:
-                print("Either of these arguments is required: 'spacing' or 'nodes'")
-                exit(1)
-            elif args.nodes != None and args.spacing != None:
-                print("Only one of these arguments should be given: 'spacing' or 'nodes'")
-                exit(1)
-            if args.utm:
-                dat.gridder_utm(args)
-            else:
-                dat.gridder(args)
-            exit(0)
+
+            scripts.data_gridder(args)
+            
         elif args.submodule == 'plot':
 
             if args.subsubmodule == 'scatter':        
@@ -3068,10 +3026,10 @@ def main(*args, **kwargs):
             sacproc.remchan(args)
             exit(0)
         elif args.submodule == 'sws':
-            from . import sws
+            from .seismic import sws
             
             if args.subsubmodule == 'init':
-                sws.run_sws_dataset_app(args.input_files, refmodel=args.refmodel,
+                sws.initialize.run_sws_dataset_app(args.input_files, refmodel=args.refmodel,
                     SAC=args.sac, headonly=args.hdronly)
                 exit(0)
 

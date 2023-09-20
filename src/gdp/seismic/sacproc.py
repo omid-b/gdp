@@ -4,9 +4,9 @@ import re
 import obspy
 import subprocess
 
-from . import dependency
 from . import download
 from . import events
+from .. import programs
 
 def get_metadata_info(metadata_dir):
     metadata_dir = os.path.abspath(metadata_dir)
@@ -169,13 +169,13 @@ def writehdr(args):
     import operator
     from obspy.taup import TauPyModel
     try:
-        from . import _geographic as geographic
+        from .._extensions import _geographic as geographic
     except ImportError:
         print("WARNING! Could not use cythonized module: geographic")
-        from . import geographic
+        from .._extensions import geographic
     
     if args.sac == 'auto':
-        SAC = dependency.find_sac_path()
+        SAC = programs.find_sac_path()
     else:
         SAC = args.sac
     if not len(SAC):
@@ -397,7 +397,7 @@ def remresp(args):
     
 def resample(args):
     if args.sac == 'auto':
-        SAC = dependency.find_sac_path()
+        SAC = programs.find_sac_path()
     else:
         SAC = args.sac
     if not len(SAC):
@@ -434,7 +434,7 @@ def resample(args):
     
 def bandpass(args):
     if args.sac == 'auto':
-        SAC = dependency.find_sac_path()
+        SAC = programs.find_sac_path()
     else:
         SAC = args.sac
     if not len(SAC):
@@ -494,7 +494,7 @@ def bandpass(args):
     
 def cut(args):
     if args.sac == 'auto':
-        SAC = dependency.find_sac_path()
+        SAC = programs.find_sac_path()
     else:
         SAC = args.sac
     if not len(SAC):
@@ -537,7 +537,7 @@ def cut(args):
 
 def cut_relative(args):
     if args.sac == 'auto':
-        SAC = dependency.find_sac_path()
+        SAC = programs.find_sac_path()
     else:
         SAC = args.sac
     if not len(SAC):

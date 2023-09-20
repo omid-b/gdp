@@ -11,16 +11,16 @@ from obspy.clients.fdsn.mass_downloader import RectangularDomain
 from obspy.clients.fdsn.mass_downloader import Restrictions
 from obspy.clients.fdsn.mass_downloader import MassDownloader
 
-from . import io
+from ..ascii import io
 
 import warnings
 with warnings.catch_warnings():
     warnings.simplefilter('ignore')
     try:
-        from . import _geographic as geographic
+        from .._extensions import _geographic as geographic
     except ImportError:
-        print("WARNING! Could not use cythonized module: geographic")
-        from . import geographic
+        # print("WARNING! Could not use cythonized module: geographic")
+        from .._extensions import geographic
 
 class EVENTS:
 

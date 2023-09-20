@@ -1,13 +1,14 @@
 
 import os
 import subprocess
+from . import programs
 
 def check_all():
     import subprocess
     num_errors = 0
-    perl = find_perl_path()
-    sac = find_sac_path()
-    gmt = find_gmt_path()
+    perl = programs.find_perl_path()
+    sac = programs.find_sac_path()
+    gmt = programs.find_gmt_path()
     print("\nChecking all dependencies... This might take a while...\n")
     if len(perl) == 0:
         print("WARNING! Could not find PERL interperter.")
@@ -170,7 +171,8 @@ def check_all():
     try:
         from osgeo import gdal, osr
     except:
-        print("Import Error: 'from osgeo import gdal, osr'; maybe try this fix: 'pip install gdal'")
+        print("Import Error: 'from osgeo import gdal, osr'; maybe try this fix:")
+        print("pip install gdal==`gdal-config --version`")
         num_errors += 1
     if num_errors:
         print(f"\nNumber of errors found: {num_errors}\n")
@@ -178,48 +180,4 @@ def check_all():
     else:
         print("All tests ran successfully!")
         exit(0)
-
-
-def find_perl_path():
-    p = subprocess.run( [ 'which', 'perl' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-    if p.returncode == 0:
-        PERL = p.stdout.decode().split('\n')[0]
-    else:
-        PERL = ""
-    return PERL
-
-
-def find_sac_path():
-    if os.path.isfile("/usr/local/sac/bin/sac"):
-        SAC = "/usr/local/sac/bin/sac"
-    elif os.path.isfile("/usr/local/bin/sac"):
-        SAC = "/usr/local/bin/sac"
-    elif os.path.isfile("/usr/bin/sac"):
-        SAC = "/usr/bin/sac"
-    else:
-        p = subprocess.run( [ 'which', 'sac' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-        if p.returncode == 0:
-            SAC = p.stdout.decode().split('\n')[0]
-        else:
-            SAC = ""
-    return SAC
-
-
-def find_gmt_path():
-    if os.path.isfile("/usr/local/gmt/bin/gmt"):
-        GMT = "/usr/local/gmt/bin/gmt"
-    elif os.path.isfile("/usr/local/bin/gmt"):
-        GMT = "/usr/local/bin/gmt"
-    elif os.path.isfile("/usr/bin/gmt"):
-        GMT = "/usr/bin/gmt"
-    elif os.path.isfile("/home/marco/Documents/GMT/bin/gmt"):
-        GMT = "/home/marco/Documents/GMT/bin/gmt"
-    else:
-        p = subprocess.run( [ 'which', 'gmt' ], stdout=subprocess.PIPE, stderr=subprocess.PIPE )
-        if p.returncode == 0:
-            GMT = p.stdout.decode().split('\n')[0]
-        else:
-            GMT = ""
-    return GMT
-
 

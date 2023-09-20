@@ -1,5 +1,9 @@
 #!/usr/bin/env python3
 
+from .. import ascii
+import requests
+from bs4 import BeautifulSoup
+
 #---------------DICTIONARIES---------------#
 
 EPSG_Info = {
@@ -8622,9 +8626,6 @@ WGS84_UTM_to_EPSG = {
 #     get_epsg(utm): get EPSG code for a UTM zone
 
 def get_csinfo(args):
-    from . import io
-    import requests
-    from bs4 import BeautifulSoup
     
     args.uniq = False
     args.sort = False
@@ -8676,14 +8677,14 @@ def get_csinfo(args):
                 print_lines.append(text)
             finally:
                 print_lines.append("")
-                io.output_lines(print_lines, args)
+                ascii.io.output_lines(print_lines, args)
     else:
         print("\nWARNING! This computer is NOT connected to the internet! Printed information will be limited.\n")
         for epsg in epsg_to_print:
             print_lines = [f"EPSG {epsg}: {EPSG_Info[epsg]}",""]
-            io.output_lines(print_lines, args)
+            ascii.io.output_lines(print_lines, args)
 
-    io.output_lines(["",f"Number of coordinate system entries found: {len(epsg_to_print)}",""], args)
+    ascii.io.output_lines(["",f"Number of coordinate system entries found: {len(epsg_to_print)}",""], args)
 
 
 

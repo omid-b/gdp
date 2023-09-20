@@ -5,10 +5,10 @@ import subprocess
 import shutil
 import re
 
-from . import io
-from . import stations
-from . import events
-from . import dependency
+from .ascii import io
+from .seismic import stations
+from .seismic import events
+from . import programs
 
 pkg_dir, _ = os.path.split(__file__)
 
@@ -537,7 +537,7 @@ def plot_stations_global(input_stalist, labels=False, boundaries=False, meridian
         exit(1)
     # GMT
     if GMT == 'auto':
-        GMT = dependency.find_gmt_path()
+        GMT = programs.find_gmt_path()
     if len(GMT) == 0 or not os.path.isfile(GMT):
         print(f"Error! Could not find GMT executable:\nGMT: '{GMT}'\n")
         exit(1)
@@ -587,9 +587,9 @@ def plot_stations_global(input_stalist, labels=False, boundaries=False, meridian
     fopen.close()
     # tectonic boundaries
     if boundaries:
-        for x in os.listdir(os.path.join(pkg_dir,'data','tectonics')):
+        for x in os.listdir(os.path.join(pkg_dir,'files','tectonics')):
             if re.search('dat$',x):
-                gmt_script += [f"cat {os.path.join(pkg_dir,'data','tectonics',x)}|gmt psxy -R -J -O -P -K -Wthick,azure3 >> {fname}.ps"]
+                gmt_script += [f"cat {os.path.join(pkg_dir,'files','tectonics',x)}|gmt psxy -R -J -O -P -K -Wthick,azure3 >> {fname}.ps"]
     if labels:
         gmt_script += [f"cat {fname}.tmp| gmt pstext -D0/-0.27i -F+f11p,Helvetica-Bold,black -R -J -P -K -O >> {fname}.ps"]
     gmt_script += [f"cat {fname}.dat | gmt psxy -R -J -K -O -P -Si15p -Groyalblue4 -Wthin,black >> {fname}.ps",
@@ -604,7 +604,7 @@ def plot_stations_global(input_stalist, labels=False, boundaries=False, meridian
 def plot_stations(input_stalist, labels=False, GMT='auto'):
     # GMT
     if GMT == 'auto':
-        GMT = dependency.find_gmt_path()
+        GMT = programs.find_gmt_path()
     if len(GMT) == 0 or not os.path.isfile(GMT):
         print(f"Error! Could not find GMT executable:\nGMT: '{GMT}'\n")
         exit(1)
@@ -687,8 +687,8 @@ def plot_events(input_eventlist, region_lon, region_lat, GMT='auto'):
     print(f"Event list: {input_eventlist}\n")
     # GMT
     if GMT == 'auto':
-        GMT = dependency.find_gmt_path()
-    GMT = dependency.find_gmt_path()
+        GMT = programs.find_gmt_path()
+    GMT = programs.find_gmt_path()
     if len(GMT) == 0 or not os.path.isfile(GMT):
         print(f"Error! Could not find GMT executable:\nGMT: '{GMT}'\n")
         exit(1)
@@ -724,9 +724,9 @@ def plot_events(input_eventlist, region_lon, region_lat, GMT='auto'):
     f"{GMT} set MAP_GRID_CROSS_SIZE_PRIMARY 0",
     f"{GMT} pscoast -Rg -JE{region_lon}/{region_lat}/6.5i -K -P -Di -B5555 -A5000 -Givory3 -Vq > {fname}.ps"]
     # tectonic boundaries
-    for x in os.listdir(os.path.join(pkg_dir,'data','tectonics')):
+    for x in os.listdir(os.path.join(pkg_dir,'files','tectonics')):
         if re.search('dat$',x):
-            gmt_script += [f"cat {os.path.join(pkg_dir,'data','tectonics',x)}|gmt psxy -R -J -O -P -K -Wthick,azure3 >> {fname}.ps"]
+            gmt_script += [f"cat {os.path.join(pkg_dir,'files','tectonics',x)}|gmt psxy -R -J -O -P -K -Wthick,azure3 >> {fname}.ps"]
     gmt_script += [\
     f"{GMT} grdmath -Vq -Rg -I120m {region_lon} {region_lat} SDIST KM2DEG = {fname}.tmp",
     f"{GMT} grdcontour {fname}.tmp -A60 -L0/170 -C20 -J -P -O -K >> {fname}.ps"]

@@ -18,8 +18,8 @@ import matplotlib.transforms as mtrans
 import matplotlib.backends.backend_tkagg as tkagg
 import seaborn as sns
 
-from . import sacproc
-from . import dependency
+from .. import sacproc
+from ... import programs
 
 class SWS_Dataset_App(tk.Frame):
     def __init__(self, sacfiles_info, master=None,
@@ -137,7 +137,7 @@ class SWS_Dataset_App(tk.Frame):
                         i += 1
                 # write T1-T9 and KT1-KT2 headers into the three components
                 if self.SAC == 'auto':
-                    self.SAC = dependency.find_sac_path()
+                    self.SAC = programs.find_sac_path()
                 if len(self.SAC) == 0 or not os.path.isfile(self.SAC):
                     print(f"Error! Could not find SAC software.\n")
                     exit(1)
