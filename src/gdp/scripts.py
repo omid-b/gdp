@@ -91,11 +91,16 @@ def data_intersect(args):
 def data_difference(args):
     datasets = []
     for input_file in args.input_files:
-        datasets.append(non_numerical.read_lines(input_file, args.header, args.footer))
+        if args.nan:
+            datasets.append(non_numerical.read_lines(input_file, args.header, args.footer))
+        else:
+            datasets.append(numerical.read_numerical_dataset(input_file, args.header, args.footer,\
+                                                             args.x, args.v, args.skipnan))
     if args.nan:
         difference = non_numerical.calc_difference(datasets)
     else:
-        pass
+        difference = numerical.calc_difference(datasets, args.inverse)
+        difference = numerical.numerical_dataset_to_strLines(difference, args.fmt, args.noextra)
     # output results
     if args.outfile:
         non_numerical.write_to_file(difference,\
@@ -109,8 +114,25 @@ def data_difference(args):
                                     sort=args.sort)
 
 # #-------------------------#
-# def data_add(args):
-#     numerical.add_intersect_values(args)
+def data_add(args):
+    datasets = []
+    for input_file in args.input_files:
+        datasets.append(numerical.read_numerical_dataset(input_file, args.header, args.footer,\
+                                                             args.x, args.v, args.skipnan))
+
+    add_intersect = numerical.calc_add_intersect(datasets)
+    add_intersect = numerical.numerical_dataset_to_strLines(add_intersect, args.fmt, noextra=True)
+     # output results
+    if args.outfile:
+        non_numerical.write_to_file(add_intersect,\
+                                    args.outfile,\
+                                    uniq=False,\
+                                    sort=args.sort,\
+                                    append=args.append)
+    else:
+        non_numerical.write_to_stdout(add_intersect,\
+                                    uniq=False,\
+                                    sort=args.sort)
 
 #-------------------------#
 def data_split(args):

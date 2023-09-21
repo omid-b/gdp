@@ -2818,9 +2818,9 @@ def main(*args, **kwargs):
             
             scripts.data_difference(args)
 
-        # elif args.submodule == 'add':
+        elif args.submodule == 'add':
             
-        #     scripts.data_add(args)
+            scripts.data_add(args)
 
         elif args.submodule == 'split':
             

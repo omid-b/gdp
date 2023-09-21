@@ -18,7 +18,7 @@ def read_lines(input_file, header=0, footer=0):
             lines = fopen.read().splitlines()[header:]
         fopen.close()
     except Exception as e:
-        print(f"{e}\nError reading input file: {input_file}\n")
+        print(f"{e}")
         exit(1)
     for i, x in enumerate(lines):
         lines[i] = x.strip()
