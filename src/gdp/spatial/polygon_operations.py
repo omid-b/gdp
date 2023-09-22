@@ -3,10 +3,11 @@ from scipy.spatial import ConvexHull
 import pyclipper
 import matplotlib.pyplot as plt
 from alphashape import alphashape
-from .. import ascii
 import numpy as np
 import warnings
 import os
+
+from .. import io
 
 #----------------------#
 # Bezier smoothing from:

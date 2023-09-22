@@ -485,9 +485,8 @@ def parse_args(*args, **kwargs):
         help='get coordinate system information',
         description='Get coordinate system information. For more information visit https://spatialreference.org/ref/epsg/')
     data_cs_info.add_argument(
-        '--keywords',
+        'keywords',
         nargs='+',
-        required=True,
         help='REQUIRED: keywords to be used in searching offline/online databases')
 
     #------------------------#
@@ -495,15 +494,21 @@ def parse_args(*args, **kwargs):
     data_cs_transform = data_cs_subparsers.add_parser('transform', help='transform/reproject coordinate system',
     description="Transform/reproject coordinate system")
     data_cs_transform.add_argument(
-        'input_file',
+        '--data',
         type=str,
-        help='input file (ascii format)')
+        help='input data file (ascii format)')
     data_cs_transform.add_argument(
         '-x',
         nargs=2,
         type=int,
-        required=True,
+        required=False,
         help='REQUIRED: x/lon and y/lat column numbers e.g., "1 2"')
+    data_cs_transform.add_argument(
+        '--xy',
+        nargs=2,
+        type=float,
+        required=False,
+        help='single point coordinate transformation [x0, y0]')
     data_cs_transform.add_argument(
         '--cs',
         type=str,
@@ -547,44 +552,55 @@ def parse_args(*args, **kwargs):
 
     #------------------------#
     # $> gdp data cs fix
-    data_cs_fix = data_cs_subparsers.add_parser('fix', help='fix coordinate system mismatch',
+    data_cs_mismatch = data_cs_subparsers.add_parser('mismatch', help='fix coordinate system mismatch',
     description="fix coordinate system mismatch: compare two datasets and find best matching coordinate systems based on minimizing distance")
-    data_cs_fix.add_argument(
+    data_cs_mismatch.add_argument(
         '--known',
         type=str,
         required=True,
         help='REQUIRED: scattered dataset ascii file with an already known coordinate system')
-    data_cs_fix.add_argument(
+    data_cs_mismatch.add_argument(
         '--unknown',
         type=str,
         required=True,
         help='REQUIRED: scattered dataset ascii file with an unknown coordinate system')
-    data_cs_fix.add_argument(
+    data_cs_mismatch.add_argument(
         '--cs',
         type=str,
         required=True,
         help='REQUIRED: coordinate system for the known dataset')
-    data_cs_fix.add_argument(
+    data_cs_mismatch.add_argument(
         '--trylist',
         type=str,
         default="",
         help='path to ascii file containing a list of EPSG codes to try')
-    data_cs_fix.add_argument(
+    data_cs_mismatch.add_argument(
         '--tryall',
         action='store_true',
         help='try all available EPSG codes (~4000 EPSG codes to try)')    
-    data_cs_fix.add_argument(
+    data_cs_mismatch.add_argument(
         '-x',
         nargs=2,
         type=int,
         action='store',
         default=[1, 2],
         help='[x/lon, y/lat] column number(s) for the input files (default=[1, 2])')
-    data_cs_fix.add_argument(
+    data_cs_mismatch.add_argument(
         '-n',
         type=int,
         default=10,
         help='Number of outputs (default=10; output 10 best matches)')
+    data_cs_mismatch.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output file')
+    data_cs_mismatch.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output')
 
 
 
@@ -2826,19 +2842,24 @@ def main(*args, **kwargs):
             
             scripts.data_split(args)
 
-    #     elif args.submodule == 'cs':
+        elif args.submodule == 'cs':
             
-    #         if args.subsubmodule == 'info':
+            if args.subsubmodule == 'info':
+                pass
                 
-    #             scripts.data_cs_info(args)
+                scripts.data_cs_info(args)
 
-    #         elif args.subsubmodule == 'transform':
+            elif args.subsubmodule == 'transform':
 
-    #             scripts.data_cs_transform(args)
+                scripts.data_cs_transform(args)
 
-    #         elif args.subsubmodule == 'fix':
+            elif args.subsubmodule == 'mismatch':
                 
-    #             scripts.data_cs_fix(args)
+                scripts.data_cs_mismatch(args)
+
+            else:
+
+                subprocess.call("gdp data cs -h", shell=True)
 
     #     elif args.submodule == 'chull':
 

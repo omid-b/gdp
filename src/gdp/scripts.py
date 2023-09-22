@@ -2,11 +2,14 @@
 import os
 from .io import non_numerical
 from .io import numerical
+from .spatial import coordinate_systems
+
 # from .geographic import epsg
-# from .geographic import coordinate_systems
 # from .geographic import polygon_operations
 # from .discretize import nodes
 # from .gridder import fixed_gaussian_smoothing
+
+
 
 #-------------------------#
 def data_concatenate(args):
@@ -182,19 +185,102 @@ def data_split(args):
             non_numerical.write_to_stdout(split_dataset[f"{key}"])
 
 # #-------------------------#
-# def data_cs_info(args):
-#     epsg.get_csinfo(args)
+def data_cs_info(args):
+    coordinate_systems.get_csinfo(args.keywords)
+
 
 # #-------------------------#
-# def data_cs_transform(args):
-#     coordinate_systems.csproj_ascii(args)
+def data_cs_transform(args):
+    if (args.data and args.xy) or (not args.data and not args.xy):
+        print("Error: either of these options must be used:'data' or 'xy'")
+        exit(1)
 
-# #-------------------------#
-# def data_cs_fix(args):
-#     if (args.tryall == False and args.trylist==""):
-#         print("Error: either of these flags must be used: '--tryall' or '--trylist'")
-#         exit(1)
-#     coordinate_systems.csproj_fix(args)
+    elif args.data and not args.xy:
+
+        if not args.x:
+            print("Error: positional columns i.e. option 'x' not specified")
+            exit(1)
+
+        transformed = [[],[]] # [[x], [y]]
+        numerical_data = numerical.read_numerical_dataset(\
+                         args.data, args.header, args.footer,\
+                         pos_indx=args.x, val_indx=[], skipnan=False)
+        nol = len(numerical_data[2])
+        for iline in range(nol):
+            x0 = numerical_data[0][0][iline]
+            y0 = numerical_data[0][1][iline]
+            xt, yt = coordinate_systems.transform(x0, y0, args.cs[0], args.cs[1])
+            transformed[0].append(xt)
+            transformed[1].append(yt)
+
+        if args.skiporig:
+            numerical_data[0] = []
+            numerical_data[1] = transformed
+        else:
+            numerical_data[1] = transformed
+    
+    elif args.xy and not args.data:
+
+        x0, y0 = args.xy
+        xt, yt = coordinate_systems.transform(x0, y0, args.cs[0], args.cs[1])
+        numerical_data = [[[x0], [y0]], [[xt], [yt]], ['']]
+        if args.skiporig:
+            numerical_data[0] = []
+
+
+    numerical_data_strLines = numerical.numerical_dataset_to_strLines(numerical_data, args.fmt, noextra=False)
+    # output results
+    if args.outfile:
+        non_numerical.write_to_file(numerical_data_strLines,\
+                                    args.outfile,\
+                                    uniq=False,\
+                                    sort=False,\
+                                    append=args.append)
+    else:
+        non_numerical.write_to_stdout(numerical_data_strLines,\
+                                    uniq=False,\
+                                    sort=False)
+
+
+#-------------------------#
+def data_cs_mismatch(args):
+    if (args.tryall == False and args.trylist==""):
+        print("Error: either of these flags must be used: '--tryall' or '--trylist'")
+        exit(1)
+    # numerical.read_numerical_dataset(\
+    #                  args.data, args.header, args.footer,\
+    #                  pos_indx=args.x, val_indx=[], skipnan=False)
+    known_xy, _, _ = numerical.read_numerical_dataset(\
+                               args.known, 0, 0,\
+                               pos_indx=args.x, val_indx=[], skipnan=True)
+    unknown_xy, _, _ = numerical.read_numerical_dataset(\
+                                 args.unknown, 0, 0,\
+                                 pos_indx=args.x, val_indx=[], skipnan=True)
+    
+    trylist = []
+    if args.trylist:
+        trylist = non_numerical.read_lines(args.trylist)
+
+    best_mismatch_mean_dist = coordinate_systems.find_smallest_mismatch(\
+                                        known_xy, unknown_xy, args.cs,\
+                                        trylist, args.n)
+    
+    output_lines = []
+    for key in best_mismatch_mean_dist.keys():
+        output_lines.append(f"%s  %.2f" %(key, best_mismatch_mean_dist[key]))
+
+    # output results
+    if args.outfile:
+        non_numerical.write_to_file(output_lines,\
+                                    args.outfile,\
+                                    uniq=False,\
+                                    sort=False,\
+                                    append=args.append)
+    else:
+        non_numerical.write_to_stdout(output_lines,\
+                                    uniq=False,\
+                                    sort=False)
+
 
 # #-------------------------#
 # def data_chull(args):

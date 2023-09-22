@@ -1,8 +1,12 @@
-#!/usr/bin/env python3
 
-from .. import ascii
-import requests
 from bs4 import BeautifulSoup
+import math
+import numpy as np
+import pyproj
+import requests
+
+from ..io import non_numerical
+
 
 #---------------DICTIONARIES---------------#
 
@@ -8619,24 +8623,52 @@ WGS84_UTM_to_EPSG = {
     '60S': 32760,
 }
 
-#----------FUNCTIONS----------#
+#============FUNCTIONS============#
+
+#----------EPSG FUNCTIONS----------#
 # These functions return None if entry doesn't exist:
 #     get_epsg_info(epsg): description of different EPSG coordinate system
 #     get_utm(epsg): get UTM zone (e.g., '12N') for a EPSG code
 #     get_epsg(utm): get EPSG code for a UTM zone
 
-def get_csinfo(args):
-    
-    args.uniq = False
-    args.sort = False
-    args.outfile = None
 
+def get_epsg_info(epsg):
+    if str(epsg) in EPSG_Info.keys():
+        return EPSG_Info[f"{epsg}"]
+    else:
+        return None
+
+
+def get_epsg_proj(epsg):
+    if str(epsg) in EPSG_Proj4.keys():
+        return EPSG_Proj4[f"{epsg}"]
+    else:
+        return None
+
+
+def get_utm(epsg):
+    if str(epsg) in WGS84_EPSG_to_UTM.keys():
+        return WGS84_EPSG_to_UTM[f"{epsg}"]
+    else:
+        return None
+
+
+
+def get_epsg(utm):
+    utm = str(utm).upper()
+    if utm in WGS84_UTM_to_EPSG.keys():
+        return WGS84_UTM_to_EPSG[f"{utm}"]
+    else:
+        return None
+
+
+def get_csinfo(keywords):
     query_website = "https://spatialreference.org/ref/epsg"
     epsg_to_print = []
     for epsg_key in EPSG_Info.keys():
         add_this = True
         desc = EPSG_Info[epsg_key]
-        for kw in args.keywords:
+        for kw in keywords:
             if kw.lower() not in desc.lower():
                 add_this = False
                 break
@@ -8677,44 +8709,141 @@ def get_csinfo(args):
                 print_lines.append(text)
             finally:
                 print_lines.append("")
-                ascii.io.output_lines(print_lines, args)
+                non_numerical.write_to_stdout(print_lines)
     else:
         print("\nWARNING! This computer is NOT connected to the internet! Printed information will be limited.\n")
         for epsg in epsg_to_print:
             print_lines = [f"EPSG {epsg}: {EPSG_Info[epsg]}",""]
-            ascii.io.output_lines(print_lines, args)
+            non_numerical.write_to_stdout(print_lines)
 
-    ascii.io.output_lines(["",f"Number of coordinate system entries found: {len(epsg_to_print)}",""], args)
-
-
+    non_numerical.write_to_stdout(["",f"Number of coordinate system entries found: {len(epsg_to_print)}",""])
 
 
-def get_epsg_info(epsg):
-    if str(epsg) in EPSG_Info.keys():
-        return EPSG_Info[f"{epsg}"]
+def transform(x, y, epsg_from, epsg_to, accept_same_cs=False):
+    try:
+        from osgeo import ogr
+        from osgeo import osr
+    except Exception as e:
+        print(f"{e}. Hint: install and test GDAL.")
+        print("install GDAL: $ pip install GDAL==`gdal-config --version`")
+        print("   test GDAL: $ python3 -c 'from osgeo import ogr, osr'")
+        exit(1)
+
+    epsg_from = return_epsg_code(epsg_from)
+    epsg_to = return_epsg_code(epsg_to)
+    if epsg_from == epsg_to and accept_same_cs==False:
+        print('Error! The input-output coordinate systems are the same!')
+        exit(1)
+
+    if get_epsg_proj(epsg_from) == None and epsg_from != 4326:
+        print(f'Error! The Proj4 transformation codes not available for: "{epsg_from}"')
+        exit(1)
+    elif get_epsg_proj(epsg_to) == None and epsg_to != 4326:
+        print(f'Error! The Proj4 transformation codes not available for: "{epsg_to}"')
+        exit(1)
+    # calculate the transformed coordinates
+    if epsg_from == 4326:
+        proj = pyproj.Proj(get_epsg_proj(epsg_to))
+        xnew, ynew = proj(x, y, inverse=False)
+    elif epsg_to == 4326:
+        proj = pyproj.Proj(get_epsg_proj(epsg_from))
+        xnew, ynew = proj(x, y, inverse=True)
     else:
-        return None
+        # first transform to wgs84
+        proj = pyproj.Proj(get_epsg_proj(epsg_from))
+        xtemp, ytemp = proj(x, y, inverse=True)
+        # now transform to final coordinate system
+        proj = pyproj.Proj(get_epsg_proj(epsg_to))
+        xnew, ynew = proj(xtemp, ytemp, inverse=False)
+
+    return [xnew, ynew]
 
 
-def get_epsg_proj(epsg):
-    if str(epsg) in EPSG_Proj4.keys():
-        return EPSG_Proj4[f"{epsg}"]
+def find_smallest_mismatch(known_xy, unknown_xy, known_cs, trylist = [], nbest = 1):
+    [known_x, known_y] = known_xy
+    [unknown_x, unknown_y] = unknown_xy
+    # [known_x, known_y], _, _ = io.read_numerical_data(known_data, 0, 0,  ".10", args.x, [], skipnan=True)
+    # [unknown_x, unknown_y], _, _ = io.read_numerical_data(args.unknown, 0, 0,  ".10", args.x, [], skipnan=True)
+    if (len(known_x) != len(unknown_x) or len(known_y) != len(unknown_y)):
+        print("Error: number of known and unknown points must match.")
+        exit(1)
     else:
-        return None
-
-
-def get_utm(epsg):
-    if str(epsg) in WGS84_EPSG_to_UTM.keys():
-        return WGS84_EPSG_to_UTM[f"{epsg}"]
+        nop = len(known_x) # number of points
+    # check the known cs
+    if known_cs not in list(EPSG_Proj4.keys()) and \
+    get_utm(known_cs) == None and get_epsg(known_cs) == None:
+            print(f"Error: could not find epsg code for the known data: '{known_cs}'")
+            exit(1)
+    # populate unknown cs (trylist) from trylist or tryall
+    if not len(trylist):
+        trylist = list(EPSG_Proj4.keys())
     else:
-        return None
+        for cs in trylist:
+            if cs not in list(EPSG_Proj4.keys()) and \
+            get_utm(cs) == None and get_epsg(cs) == None:
+                print(f"Error: could not find the try list epsg code for '{cs}'")
+                exit(1)
+    # start main process
+    mean_dist_mismatch = {}
+    for cs in trylist:
+        # mean_dist_mismatch[f"{cs}"] = 0
+        dist = []
+        for i in range(nop):
+            xnew, ynew = transform(unknown_x[i], unknown_y[i], cs, known_cs, accept_same_cs=True)
+            d = math.sqrt((xnew - known_x[i])**2 + (ynew - known_y[i])**2)
+            dist.append(d)
+        mean_dist_mismatch[f"{cs}"] = round(np.mean(dist), 2)
+
+    mean_dist_mismatch = {k: v for k, v in sorted(mean_dist_mismatch.items(), key=lambda item: item[1])}
+
+    k = 0
+    keys = list(mean_dist_mismatch.keys())
+    best_mismatch = {}
+    while k < nbest and k < len(keys):
+        best_mismatch[f"{keys[k]}"] = mean_dist_mismatch[f"{keys[k]}"]
+        k += 1
+        
+    return best_mismatch
+
+
+def csproj_ascii(args):
+    pos, _, extra = io.read_numerical_data(args.input_file, args.header, args.footer,  ".10", args.x, [], skipnan=True)
+    nop = len(pos[0]) # number of points
+    output_lines = []
+    for ip in range(nop):
+        x, y = [pos[0][ip], pos[1][ip]]
+        xnew, ynew = transform_point_coordinates(x, y, args.cs[0], args.cs[1])
+        if args.skiporig:
+            output_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %s" %(xnew, ynew, extra[ip]))
+        else:
+            output_lines.append(f"%{args.fmt[0]}f %{args.fmt[0]}f %{args.fmt[1]}f %{args.fmt[1]}f %s" %(xnew, ynew, x, y, extra[ip]))
+    args.sort = False
+    args.uniq = False
+    if len(output_lines) == 0:
+        print("Error! Number of calculated nodes is zero!")
+        exit(1)
+    io.output_lines(output_lines, args)
 
 
 
-def get_epsg(utm):
-    utm = str(utm).upper()
-    if utm in WGS84_UTM_to_EPSG.keys():
-        return WGS84_UTM_to_EPSG[f"{utm}"]
+def return_epsg_code(cs_code):
+    # return integer EPSG code or give an error and exit program
+    # initialize variables
+    epsg_code, utm_zone = [None, None]
+    try:
+        epsg_code = int(cs_code)
+    except:
+        utm_zone = cs_code
+    # find epsg_code
+    if epsg_code != None:
+        if get_epsg_info(str(epsg_code)) == None:
+            print(f"Error! Could not find entry for EPSG: {epsg_code}")
+            exit(1)
+    elif utm_zone.lower() == 'wgs84':
+        epsg_code = 4326
     else:
-        return None
-
+        epsg_code = get_epsg(utm_zone.upper())
+        if epsg_code == None:
+            print(f"Error! Could not figure out the EPSG code for: '{cs_code}'")
+            exit(1)
+    return epsg_code
