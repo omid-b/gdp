@@ -1,14 +1,34 @@
-# from .io import numerical
+
 import os
+
+import numpy as np
+
 from .io import non_numerical
 from .io import numerical
 from .spatial import coordinate_systems
+from .spatial import polygon_operations
+
+from .io.ascii import Dataset
 
 # from .geographic import epsg
-# from .geographic import polygon_operations
 # from .discretize import nodes
 # from .gridder import fixed_gaussian_smoothing
 
+#-------------------------#
+def test(args):
+    dataset = Dataset(args.input_files)
+
+    dataset.options(**vars(args))
+
+    dataset.write()
+
+    # dataset.write()
+
+
+
+    # ds.append(args.input_files)
+
+    # print(dataset.__dir__())
 
 
 #-------------------------#
@@ -16,13 +36,13 @@ def data_concatenate(args):
     concatenated = [] 
     if args.nan: # non-numerical
         for input_file in args.input_files:
-            concatenated += non_numerical.read_lines(input_file, args.header, args.footer)
+            concatenated += non_numerical.read_dataset(input_file, args.header, args.footer)
     else: # numerical
         concatenated = [] 
         for input_file in args.input_files:
-            numerical_data = numerical.read_numerical_dataset(input_file, args.header, args.footer,\
+            numerical_data = numerical.read_dataset(input_file, args.header, args.footer,\
                                                             args.x, args.v, args.skipnan)
-            numerical_data_strLines = numerical.numerical_dataset_to_strLines(numerical_data, args.fmt, args.noextra)
+            numerical_data_strLines = numerical.convert_to_non_numerical(numerical_data, args.fmt, args.noextra)
             concatenated += numerical_data_strLines
 
     # output results
@@ -42,15 +62,15 @@ def data_union(args):
     datasets = []
     for input_file in args.input_files:
         if args.nan:
-            datasets.append(non_numerical.read_lines(input_file, args.header, args.footer))
+            datasets.append(non_numerical.read_dataset(input_file, args.header, args.footer))
         else:
-            datasets.append(numerical.read_numerical_dataset(input_file, args.header, args.footer,\
+            datasets.append(numerical.read_dataset(input_file, args.header, args.footer,\
                                                              args.x, args.v, args.skipnan))
     if args.nan:
         union = non_numerical.calc_union(datasets)
     else:
         union = numerical.calc_union(datasets, args.inverse)
-        union = numerical.numerical_dataset_to_strLines(union, args.fmt, args.noextra)
+        union = numerical.convert_to_non_numerical(union, args.fmt, args.noextra)
 
     # output results
     if args.outfile:
@@ -69,15 +89,15 @@ def data_intersect(args):
     datasets = []
     for input_file in args.input_files:
         if args.nan:
-            datasets.append(non_numerical.read_lines(input_file, args.header, args.footer))
+            datasets.append(non_numerical.read_dataset(input_file, args.header, args.footer))
         else:
-            datasets.append(numerical.read_numerical_dataset(input_file, args.header, args.footer,\
+            datasets.append(numerical.read_dataset(input_file, args.header, args.footer,\
                                                              args.x, args.v, args.skipnan))
     if args.nan:
-        intersect = non_numerical.calc_intersect(datasets)
+        intersect = non_numerical.calc_intersect(datasets, inverse=args.inverse)
     else:
-        intersect = numerical.calc_intersect(datasets, args.inverse)
-        intersect = numerical.numerical_dataset_to_strLines(intersect, args.fmt, args.noextra)
+        intersect = numerical.calc_intersect(datasets, inverse=args.inverse)
+        intersect = numerical.convert_to_non_numerical(intersect, args.fmt, args.noextra)
     # output results
     if args.outfile:
         non_numerical.write_to_file(intersect,\
@@ -95,15 +115,15 @@ def data_difference(args):
     datasets = []
     for input_file in args.input_files:
         if args.nan:
-            datasets.append(non_numerical.read_lines(input_file, args.header, args.footer))
+            datasets.append(non_numerical.read_dataset(input_file, args.header, args.footer))
         else:
-            datasets.append(numerical.read_numerical_dataset(input_file, args.header, args.footer,\
+            datasets.append(numerical.read_dataset(input_file, args.header, args.footer,\
                                                              args.x, args.v, args.skipnan))
     if args.nan:
         difference = non_numerical.calc_difference(datasets)
     else:
         difference = numerical.calc_difference(datasets, args.inverse)
-        difference = numerical.numerical_dataset_to_strLines(difference, args.fmt, args.noextra)
+        difference = numerical.convert_to_non_numerical(difference, args.fmt, args.noextra)
     # output results
     if args.outfile:
         non_numerical.write_to_file(difference,\
@@ -120,11 +140,11 @@ def data_difference(args):
 def data_add(args):
     datasets = []
     for input_file in args.input_files:
-        datasets.append(numerical.read_numerical_dataset(input_file, args.header, args.footer,\
+        datasets.append(numerical.read_dataset(input_file, args.header, args.footer,\
                                                              args.x, args.v, args.skipnan))
 
     add_intersect = numerical.calc_add_intersect(datasets)
-    add_intersect = numerical.numerical_dataset_to_strLines(add_intersect, args.fmt, noextra=True)
+    add_intersect = numerical.convert_to_non_numerical(add_intersect, args.fmt, noextra=True)
      # output results
     if args.outfile:
         non_numerical.write_to_file(add_intersect,\
@@ -141,26 +161,26 @@ def data_add(args):
 def data_split(args):
     # check arguments
     if args.number < 0 :
-        print(f"\nError! Argument 'number' should be a positive integer\n")
+        print(f"\nError: argument 'number' should be a positive integer\n")
         exit(1)
     if args.header < 0 :
-        print(f"\nError! Argument 'header' should be a positive integer\n")
+        print(f"\nError: argument 'header' should be a positive integer\n")
         exit(1)
     if args.footer < 0 :
-        print(f"\nError! Argument 'footer' should be a positive integer\n")
+        print(f"\nError: argument 'footer' should be a positive integer\n")
         exit(1)
     if args.name < 1 :
-        print(f"\nError! Argument 'name' should be a positive integer (> 0) for method=nrow\n")
+        print(f"\nError: argument 'name' should be a positive integer (> 0) for method=nrow\n")
         exit(1)
     if args.name > args.number:
-        print(f"\nError! Argument 'name' should be less than or equal argument 'number' for method=nrow\n")
+        print(f"\nError: argument 'name' should be less than or equal argument 'number' for method=nrow\n")
         exit(1)
     # read combined dataset
-    combined_dataset = non_numerical.read_lines(args.input_file, args.header, args.footer)
+    combined_dataset = non_numerical.read_dataset(args.input_file, args.header, args.footer)
     # start split
     if args.method == 'nrow':
         if args.start:
-            print(f"\nError! Argument 'start' is only for method=ncol\n")
+            print(f"\nError: argument 'start' is only for method=ncol\n")
             exit(1)
 
         split_dataset = non_numerical.split_by_nrows(combined_dataset,\
@@ -202,7 +222,7 @@ def data_cs_transform(args):
             exit(1)
 
         transformed = [[],[]] # [[x], [y]]
-        numerical_data = numerical.read_numerical_dataset(\
+        numerical_data = numerical.read_dataset(\
                          args.data, args.header, args.footer,\
                          pos_indx=args.x, val_indx=[], skipnan=False)
         nol = len(numerical_data[2])
@@ -228,7 +248,7 @@ def data_cs_transform(args):
             numerical_data[0] = []
 
 
-    numerical_data_strLines = numerical.numerical_dataset_to_strLines(numerical_data, args.fmt, noextra=False)
+    numerical_data_strLines = numerical.convert_to_non_numerical(numerical_data, args.fmt, noextra=False)
     # output results
     if args.outfile:
         non_numerical.write_to_file(numerical_data_strLines,\
@@ -247,19 +267,17 @@ def data_cs_mismatch(args):
     if (args.tryall == False and args.trylist==""):
         print("Error: either of these flags must be used: '--tryall' or '--trylist'")
         exit(1)
-    # numerical.read_numerical_dataset(\
-    #                  args.data, args.header, args.footer,\
-    #                  pos_indx=args.x, val_indx=[], skipnan=False)
-    known_xy, _, _ = numerical.read_numerical_dataset(\
+
+    known_xy, _, _ = numerical.read_dataset(\
                                args.known, 0, 0,\
                                pos_indx=args.x, val_indx=[], skipnan=True)
-    unknown_xy, _, _ = numerical.read_numerical_dataset(\
+    unknown_xy, _, _ = numerical.read_dataset(\
                                  args.unknown, 0, 0,\
                                  pos_indx=args.x, val_indx=[], skipnan=True)
     
     trylist = []
     if args.trylist:
-        trylist = non_numerical.read_lines(args.trylist)
+        trylist = non_numerical.read_dataset(args.trylist)
 
     best_mismatch_mean_dist = coordinate_systems.find_smallest_mismatch(\
                                         known_xy, unknown_xy, args.cs,\
@@ -282,17 +300,75 @@ def data_cs_mismatch(args):
                                     sort=False)
 
 
-# #-------------------------#
-# def data_chull(args):
-#     polygon_operations.convex_hull_polygon(args)
+#-------------------------#
+def data_chull(args):
+    [points_x, points_y], _, _ = numerical.read_dataset(\
+                               args.points_file, 0, 0,\
+                               pos_indx=args.x, val_indx=[], skipnan=True)
 
-# #-------------------------#
-# def data_ashape(args):
-#     polygon_operations.alpha_shape_polygon(args)
+    chull_x, chull_y = polygon_operations.convex_hull(points_x, points_y)
+    numerical_chull = [[chull_x, chull_y],[],['' for i in range(len(chull_x))]]
 
-# #-------------------------#
-# def data_pip(args):
-#     polygon_operations.points_in_polygon(args)
+    # output results
+    if args.outfile:
+        numerical.write_to_file(numerical_chull,\
+                                args.outfile,\
+                                uniq=False,\
+                                sort=False,\
+                                append=False,\
+                                fmt=args.fmt,
+                                noextra=True)
+    else:
+        numerical.write_to_stdout(numerical_chull,\
+                                  uniq=False,\
+                                  sort=False,
+                                  fmt=args.fmt,
+                                  noextra=True)
+
+
+#-------------------------#
+def data_ashape(args):
+    [points_x, points_y], _, _ = numerical.read_dataset(\
+                               args.points_file, 0, 0,\
+                               pos_indx=args.x, val_indx=[], skipnan=True)
+
+    ashape_x, ashape_y = polygon_operations.alpha_shape(points_x, points_y, alpha=args.alpha)
+    numerical_ashape = [[ashape_x, ashape_y],[],['' for i in range(len(ashape_x))]]
+
+    # output results
+    if args.outfile:
+        numerical.write_to_file(numerical_ashape,\
+                                args.outfile,\
+                                uniq=False,\
+                                sort=False,\
+                                append=False,\
+                                fmt=args.fmt,\
+                                noextra=True)
+    else:
+        numerical.write_to_stdout(numerical_ashape,\
+                                 uniq=False,\
+                                 sort=False,
+                                 fmt=args.fmt,
+                                 noextra=True)
+
+
+#-------------------------#
+def data_pip(args):
+    points_dataset = numerical.read_dataset(\
+                               args.points_file, 0, 0,\
+                               pos_indx=args.x, val_indx=[], skipnan=True)
+    [polygon_x, polygon_y], _, _ = numerical.read_dataset(\
+                                   args.points_file, 0, 0,\
+                                   pos_indx=[1,2], val_indx=[], skipnan=True)
+    # make it a closed polygon if necessary
+    if polygon_x[0] != polygon_x[-1] and polygon_y[0] != polygon_y[-1]:
+        polygon_x.append(polygon_x[0])
+        polygon_y.append(polygon_y[0])
+
+    results_numerical = polygon_operations.dataset_in_polygon(\
+                        points_dataset, polygon_x, polygon_y,\
+                        inverse=args.inverse)
+    numerical.write_to_stdout(results_numerical)
 
 # #-------------------------#
 # def data_nodes(args):
@@ -309,6 +385,4 @@ def data_cs_mismatch(args):
 #         fixed_gaussian_smoothing.gridder_utm(args)
 #     else:
 #         fixed_gaussian_smoothing.gridder(args)
-
-
 

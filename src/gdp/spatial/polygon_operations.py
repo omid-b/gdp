@@ -1,154 +1,90 @@
+#!/usr/bin/env python3
 
-from scipy.spatial import ConvexHull
-import pyclipper
-import matplotlib.pyplot as plt
+"""
+ A module for spatial polygon operations and processings
+
+"""
+
+
+
 from alphashape import alphashape
+from scipy.spatial import ConvexHull
+import matplotlib.pyplot as plt
 import numpy as np
-import warnings
 import os
+import pyclipper
+import warnings
 
 from .. import io
-
-#----------------------#
-# Bezier smoothing from:
-# https://towardsdatascience.com/b%C3%A9zier-interpolation-8033e9a262c2
-
-def get_bezier_coef(points):
-    # since the formulas work given that we have n+1 points
-    # then n must be this:
-    n = len(points) - 1
-
-    # build coefficents matrix
-    C = 4 * np.identity(n)
-    np.fill_diagonal(C[1:], 1)
-    np.fill_diagonal(C[:, 1:], 1)
-    C[0, 0] = 2
-    C[n - 1, n - 1] = 7
-    C[n - 1, n - 2] = 2
-
-    # build points vector
-    P = [2 * (2 * points[i] + points[i + 1]) for i in range(n)]
-    P[0] = points[0] + 2 * points[1]
-    P[n - 1] = 8 * points[n - 1] + points[n]
-
-    # solve system, find a & b
-    A = np.linalg.solve(C, P)
-    B = [0] * n
-    for i in range(n - 1):
-        B[i] = 2 * points[i + 1] - A[i + 1]
-    B[n - 1] = (A[n - 1] + points[n]) / 2
-
-    return A, B
-
-# returns the general Bezier cubic formula given 4 control points
-def get_cubic(a, b, c, d):
-    return lambda t: np.power(1 - t, 3) * a + 3 * np.power(1 - t, 2) * t * b + 3 * (1 - t) * np.power(t, 2) * c + np.power(t, 3) * d
-
-
-
-# return one cubic curve for each consecutive points
-def get_bezier_cubic(points):
-    A, B = get_bezier_coef(points)
-    return [
-        get_cubic(points[i], A[i], B[i], points[i + 1])
-        for i in range(len(points) - 1)
-    ]
-
-# evalute each cubic curve on the range [0, 1] sliced in n points
-def evaluate_bezier(points, n):
-    curves = get_bezier_cubic(points)
-    return np.array([fun(t) for fun in curves for t in np.linspace(0, 1, n)])
+with warnings.catch_warnings():
+    warnings.simplefilter('ignore')
+    try:
+        from .._extensions import _geographic as geographic
+    except ImportError:
+        print("WARNING! Could not use cythonized module: geographic")
+        from .._extensions import geographic
 
 #---------------#
 
-def convex_hull_polygon(args):
-    args.sort = False
-    args.uniq = False
-    args.offset = 0 # CHANGE LATER! XXX
+def convex_hull(points_x, points_y):
+    points_xy = np.vstack((points_x, points_y)).T
+    chull = ConvexHull(points_xy)
+    chull_points = np.vstack((points_xy[chull.vertices,0], points_xy[chull.vertices,1])).T.tolist()
+    chull_x, chull_y = np.vstack((chull_points)).T
+    # convert to list and append the first item (closed polygon)
+    chull_x, chull_y = chull_x.tolist(), chull_y.tolist()
+    chull_x.append(chull_x[0])
+    chull_y.append(chull_y[0])
+    return [chull_x, chull_y]
 
-    data = ascii.io.read_numerical_data(args.points_file, args.header, args.footer, [".10",".10"], args.x, [])
-    data_points = np.vstack((data[0][0], data[0][1])).T
+#---------------#
 
-    chull = ConvexHull(data_points)
-    chull_points = np.vstack((data_points[chull.vertices,0], data_points[chull.vertices,1])).T.tolist()
-    chull_points.append(chull_points[0])
-    # reformat chull_points for offset >> to be developed in later versions
-    chull_points_orig = chull_points
-    chull_points = ()
-    for p in chull_points_orig:
-        chull_points += ((p[0], p[1]),)
-
-    if args.offset != 0:
-        try:
-            pco = pyclipper.PyclipperOffset()
-            test = ((180, 200), (260, 200), (260, 150), (180, 150))
-            pco.AddPath(chull_points, pyclipper.JT_ROUND, pyclipper.ET_CLOSEDPOLYGON)
-            pco_solution = pco.Execute(args.offset)
-            chull_points = pco_solution[0]
-        except Exception as e:
-            print("WARNING! Could not apply offset to convex hull!")
-
-    if args.smooth > 2:
-        chull_points = evaluate_bezier(np.array(chull_points_orig, dtype=float), args.smooth)
-
-    if args.smooth in [1, 2]:
-        print("WARNING! Smooth is not performed.\nNumber of Bezier points must be larger than 2!")
-
-    outlines = []
-    for ip in chull_points:
-        line = f"%{args.fmt[0]}f %{args.fmt[0]}f" %(ip[0], ip[1])
-        if line not in outlines:
-            outlines.append(line)
-    outlines.append(outlines[0])
-    args.append = False
-    if len(outlines) == 0:
-            print("Error! Number of outputs is zero!")
-            exit(1)
-    ascii.io.output_lines(outlines, args)
-
-#####################################################################
-
-def alpha_shape_polygon(args):
-    args.sort = False
-    args.uniq = False
-    args.offset = 0 # CHANGE LATER! XXX
-
-    data = ascii.io.read_numerical_data(args.points_file, args.header, args.footer, [".10",".10"], args.x, [])
-    points = np.vstack((data[0][0], data[0][1])).T
-
-    hull = alphashape(points, args.alpha)
+def alpha_shape(points_x, points_y, alpha=0.5):
+    points_xy = np.vstack((points_x, points_y)).T
+    hull = alphashape(points_xy, alpha)
     if hull.is_empty:
         print("Error: empty concave polygon; decrease alpha value")
         exit(1)
-    
     hull_x, hull_y = hull.exterior.xy
+    # convert to list and append the first item (closed polygon)
+    hull_x, hull_y = hull_x.tolist(), hull_y.tolist()
+    hull_x.append(hull_x[0])
+    hull_y.append(hull_y[0])
+    return [hull_x, hull_y]
 
-    outlines = []
-    for i, x in enumerate(hull_x):
-        y = hull_y[i]
-        line = f"%{args.fmt[0]}f %{args.fmt[0]}f" %(x, y)
-        if line not in outlines:
-            outlines.append(line)
-    outlines.append(outlines[0])
-    args.append = False
-    if len(outlines) == 0:
-            print("Error: Number of outputs is zero!")
-            exit(1)
-    ascii.io.output_lines(outlines, args)
+#---------------#
+
+def dataset_in_polygon(numerical_dataset, polygon_x, polygon_y, inverse=False):
+    nvals = len(numerical_dataset[1])
+    print(nvals)
+    output_numerical_dataset = [[[], []], [[] for ival in range(nvals)], []]
+    polygon = geographic.Polygon(polygon_x, polygon_y) # polygon object
+    npts = len(numerical_dataset[0][0]) # number of points in numerical_dataset
+    for ip in range(npts):
+        x0 = numerical_dataset[0][0][ip]
+        y0 = numerical_dataset[0][1][ip]
+        point = geographic.Point(x0, y0)
+        if polygon.is_point_in(point, inverse=inverse):
+            # positionals
+            output_numerical_dataset[0][0].append(x0)
+            output_numerical_dataset[0][1].append(y0)
+            # values
+            for ival in range(nvals):
+                output_numerical_dataset[1][ival].append(\
+                    numerical_dataset[1][ival][ip]\
+                )
+            # extra
+            output_numerical_dataset[2].append(\
+                numerical_dataset[2][ip]
+            )
+    return output_numerical_dataset
+
 
 
 #####################################################################
 
-
 def points_in_polygon(args):
-    with warnings.catch_warnings():
-        warnings.simplefilter('ignore')
-        try:
-            from . import _geographic as geographic
-        except ImportError:
-            print("WARNING! Could not use cythonized module: geographic")
-            from . import geographic
-
+    
     outfile_orig = args.outfile
 
     # build polygon class
@@ -233,3 +169,60 @@ def points_in_polygon(args):
             print("Warning! No points outside polygon.")
         else:
             print("Warning! No points in polygon.")
+
+
+#----------------------#
+# Bezier smoothing from:
+# https://towardsdatascience.com/b%C3%A9zier-interpolation-8033e9a262c2
+
+def get_bezier_coef(points):
+    # since the formulas work given that we have n+1 points
+    # then n must be this:
+    n = len(points) - 1
+
+    # build coefficents matrix
+    C = 4 * np.identity(n)
+    np.fill_diagonal(C[1:], 1)
+    np.fill_diagonal(C[:, 1:], 1)
+    C[0, 0] = 2
+    C[n - 1, n - 1] = 7
+    C[n - 1, n - 2] = 2
+
+    # build points vector
+    P = [2 * (2 * points[i] + points[i + 1]) for i in range(n)]
+    P[0] = points[0] + 2 * points[1]
+    P[n - 1] = 8 * points[n - 1] + points[n]
+
+    # solve system, find a & b
+    A = np.linalg.solve(C, P)
+    B = [0] * n
+    for i in range(n - 1):
+        B[i] = 2 * points[i + 1] - A[i + 1]
+    B[n - 1] = (A[n - 1] + points[n]) / 2
+
+    return A, B
+
+
+# returns the general Bezier cubic formula given 4 control points
+def get_cubic(a, b, c, d):
+    return lambda t: np.power(1 - t, 3) *\
+                     a + 3 * np.power(1 - t, 2) *\
+                     t * b + 3 * (1 - t) *\
+                     np.power(t, 2) * c + np.power(t, 3) * d
+
+
+
+# return one cubic curve for each consecutive points
+def get_bezier_cubic(points):
+    A, B = get_bezier_coef(points)
+    return [
+        get_cubic(points[i], A[i], B[i], points[i + 1])
+        for i in range(len(points) - 1)
+    ]
+
+# evalute each cubic curve on the range [0, 1] sliced in n points
+def evaluate_bezier(points, n):
+    curves = get_bezier_cubic(points)
+    return np.array([fun(t) for fun in curves for t in np.linspace(0, 1, n)])
+
+#---------------#

@@ -635,12 +635,12 @@ def parse_args(*args, **kwargs):
         type=str,
         action='store',
         help='output file/folder')
-    data_chull.add_argument(
-        '--smooth',
-        type=int,
-        action='store',
-        default=0,
-        help='number of Bezier points to smooth the output convex-hull polygon')
+    # data_chull.add_argument(
+    #     '--smooth',
+    #     type=int,
+    #     action='store',
+    #     default=0,
+    #     help='number of Bezier points to smooth the output convex-hull polygon')
     data_chull.add_argument(
         '--fmt',
         nargs='+',
@@ -700,9 +700,8 @@ def parse_args(*args, **kwargs):
     description="Points-in-polygon (ray tracing method)")
     data_pip._positionals.title = 'Required arguments'
     data_pip.add_argument(
-        'points',
+        'points_file',
         type=str,
-        nargs='+',
         action='store',
         help='path to point files (single or multiple allowed)')
     data_pip.add_argument(
@@ -2819,8 +2818,9 @@ def main(*args, **kwargs):
     if args.module == 'data':
 
         if args.submodule == 'cat':
-            
-            scripts.data_concatenate(args)
+        
+            scripts.test(args)
+            # scripts.data_concatenate(args)
 
         elif args.submodule == 'union':
 
@@ -2861,21 +2861,21 @@ def main(*args, **kwargs):
 
                 subprocess.call("gdp data cs -h", shell=True)
 
-    #     elif args.submodule == 'chull':
+        elif args.submodule == 'chull':
 
-    #         scripts.data_chull(args)
+            scripts.data_chull(args)
             
-    #     elif args.submodule == 'ashape':
+        elif args.submodule == 'ashape':
 
-    #         scripts.data_ashape(args)
+            scripts.data_ashape(args)
             
-    #     elif args.submodule == 'pip':
+        elif args.submodule == 'pip':
             
-    #         scripts.data_pip(args)
+            scripts.data_pip(args)
 
-    #     elif args.submodule == 'nodes':
+        # elif args.submodule == 'nodes':
             
-    #         scripts.data_nodes(args)
+            # scripts.data_nodes(args)
 
     #     elif args.submodule == 'gridder':
 

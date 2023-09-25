@@ -11,12 +11,12 @@ import os
 import shutil
 import warnings
 
-from .non_numerical import read_lines
+from . import non_numerical
 
 #######################################
 
-def read_numerical_dataset(numerical_file, header, footer,\
-                         pos_indx, val_indx, skipnan=False):
+def read_dataset(numerical_file, header=0, footer=0,\
+                 pos_indx=[1,2], val_indx=[3], skipnan=False):
 
     if len(pos_indx):
         pos_indx = np.array(pos_indx) - 1 # index of positional columns
@@ -32,7 +32,7 @@ def read_numerical_dataset(numerical_file, header, footer,\
     val = [[] for iv in range(len(val_indx))] # list of values/data
     extra = []
     # read lines
-    datalines = read_lines(numerical_file, header, footer)
+    datalines = non_numerical.read_dataset(numerical_file, header, footer)
     nol = len(datalines) # number of lines
     # process lines: positional columns
     for i in range(nol):
@@ -99,28 +99,54 @@ def read_numerical_dataset(numerical_file, header, footer,\
 
 #######################################
 
-def numerical_dataset_to_strLines(dataset, fmt, noextra=False):
+def convert_to_non_numerical(numerical_dataset,\
+    fmt=[".4"], noextra=False):
     if len(fmt) == 1:
         fmt = [fmt[0], fmt[0]]
     else:
         fmt = fmt
 
     numerical_str_lines = []
-    nol = len(dataset[2])
+    nol = len(numerical_dataset[2])
     for i in range(nol):
         pos_str = []
-        for ix in range(len(dataset[0])):
-            pos_str.append( f"%{fmt[0]}f" %(dataset[0][ix][i]) )
+        for ix in range(len(numerical_dataset[0])):
+            pos_str.append( f"%{fmt[0]}f" %(numerical_dataset[0][ix][i]) )
         line_str = ' '.join(pos_str)
-        for iv in range(len(dataset[1])):
-            if dataset[1][iv][i] != np.nan:
-                line_str = f"%s %{fmt[1]}f" %(line_str, dataset[1][iv][i])
+        for iv in range(len(numerical_dataset[1])):
+            if numerical_dataset[1][iv][i] != np.nan:
+                line_str = f"%s %{fmt[1]}f" %(line_str, numerical_dataset[1][iv][i])
             else:
                 line_str = f"{line_str} {np.nan}"
-        if len(dataset[2][i]) and not noextra:
-            line_str = "%s %s" %(line_str, dataset[2][i])
+        if len(numerical_dataset[2][i]) and not noextra:
+            line_str = "%s %s" %(line_str, numerical_dataset[2][i])
         numerical_str_lines.append(line_str)
     return numerical_str_lines
+
+
+#######################################
+
+def write_to_stdout(numerical_dataset,\
+                    uniq=False, sort=False,\
+                    fmt=[".4"], noextra=False):
+    non_numerical_dataset = convert_to_non_numerical(\
+                            numerical_dataset,\
+                            fmt=fmt, noextra=noextra)
+    non_numerical.write_to_stdout(non_numerical_dataset,\
+                                  uniq=uniq, sort=sort)
+
+#######################################
+
+def write_to_file(numerical_dataset, outfile,\
+                  uniq=False, sort=False, append=False,
+                  fmt=[".4"], noextra=False):
+    non_numerical_dataset = convert_to_non_numerical(\
+                            numerical_dataset,\
+                            fmt=fmt, noextra=noextra)
+    non_numerical.write_to_file(\
+                  non_numerical_dataset, outfile,\
+                  uniq=uniq, sort=sort, append=append)
+
 
 #######################################
 
@@ -283,47 +309,6 @@ def calc_add_intersect(datasets):
 
 #######################################
 
-# def add_intersect_values(args):
-#     args.nan = False
-#     args.noextra = True
-#     if len(args.fmt) == 1:
-#         fmt = [args.fmt[0], args.fmt[0]]
-#     else:
-#         fmt = args.fmt
-#     nof = len(args.input_files)
-#     input_files = args.input_files
-#     datlines = [[] for i in range(nof)]
-#     datlines_pos = [[] for i in range(nof)]
-#     datlines_vals = [[] for i in range(nof)]
-#     if nof < 2:
-#         print("Error! Number of input_files should be larger than 2 for this operation.")
-#         exit(1)
-#     for i in range(nof):
-#         datlines[i] = read_lines(input_files[i], args)
-#         for line in datlines[i]:
-#             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
-#             datlines_vals[i].append(' '.join(line.split()[len(args.x):]))
-#     intersect = []
-#     intersect_pos = []
-#     intersect_add_vals = []
-#     nol = len(datlines[0])
-#     for j in range(nol):
-#         if all(datlines_pos[0][j] in l for l in datlines_pos[1:])\
-#         and datlines_pos[i][j] not in intersect_pos:
-#             added_vals = [0 for ivc in range(len(args.v))]
-#             for ivc in range(len(args.v)):
-#                 for idc in range(nof):
-#                     added_vals[ivc] += float(datlines_vals[idc][j].split()[ivc])
-#                 added_vals[ivc] = f"%{fmt[1]}f" %(added_vals[ivc])
-#             intersect_pos.append(datlines_pos[0][j])
-#             intersect_add_vals.append(' '.join(added_vals))
-#             intersect.append(f"{intersect_pos[-1]} {intersect_add_vals[-1]}")
-
-#     args.uniq = False # it's already uniq!
-#     if len(intersect) == 0:
-#         print("Error! Number of calculated nodes is zero!")
-#         exit(1
-
 def calc_complementary_dataset(datasets, sub_dataset):
     # both datasets and sub_dataset must have the same number of
     # positional and value columns
@@ -335,7 +320,7 @@ def calc_complementary_dataset(datasets, sub_dataset):
     fmt = [".10", ".10"]
     nod = len(datasets) # number of numerical datasets
     # datasets to a single list(type=str)
-    sub_dataset_strLines = numerical_dataset_to_strLines(sub_dataset, fmt)
+    sub_dataset_strLines = convert_to_non_numerical(sub_dataset, fmt)
     for ids in range(nod):
         num_lines = len(datasets[ids][2]) # number of lines for this dataset
         for iline in range(num_lines):
@@ -345,7 +330,7 @@ def calc_complementary_dataset(datasets, sub_dataset):
                     [[datasets[ids][1][ival][iline]] for ival in range(num_val)],
                     [datasets[ids][2][iline]],
                 ]
-            candidate_numerical_line_str = numerical_dataset_to_strLines(candidate_numerical_line, fmt)[0]
+            candidate_numerical_line_str = convert_to_non_numerical(candidate_numerical_line, fmt)[0]
 
             if candidate_numerical_line_str not in sub_dataset_strLines:
                 for ipos in range(num_pos):
@@ -356,111 +341,7 @@ def calc_complementary_dataset(datasets, sub_dataset):
     
     return sub_dataset_complement
 
-
-
-
-# def union(args):
-#     nof = len(args.input_files)
-#     input_files = args.input_files
-#     datlines = [[] for i in range(nof)]
-#     union = []
-#     if nof < 2:
-#         print("Error! Number of input_files should be larger than 2 for this operation.")
-#         exit(1)
-#     for i in range(nof):
-#         datlines[i] = data_lines(input_files[i],args)
-#         nol = len(datlines[i])
-#         for j in range(nol):
-#             if datlines[i][j] not in union:
-#                 union.append(datlines[i][j])
-#     if args.inverse:
-#         union_inv = []
-#         for i in range(nof):
-#             nol = len(args.input_files)
-#             for j in range(nol):
-#                 if datlines[i][j] not in union:
-#                     union_inv.append(datlines[i][j])
-#         io.output_lines(union_inv, args)
-#     else:
-#         io.output_lines(union, args)
-
 #######################################
-
-# def intersect(args):
-#     nof = len(args.input_files)
-#     input_files = args.input_files
-#     datlines = [[] for i in range(nof)]
-#     intersect = []
-#     if nof < 2:
-#         print("Error! Number of input_files should be larger than 2 for this operation.")
-#         exit(1)
-#     ###
-#     for i in range(nof):
-#         datlines[i] = data_lines(input_files[i],args)
-#     nol = len(datlines[0])
-#     for j in range(nol):
-#         if all(datlines[0][j] in l for l in datlines[1:]):
-#             intersect.append(datlines[0][j])
-#     ###
-#     if args.inverse:
-#         intersect_inv = []
-#         for i in range(nof):
-#             nol = len(datlines[i])
-#             for j in range(nol):
-#                 if datlines[i][j] not in intersect:
-#                     intersect_inv.append(datlines[i][j])
-#         io.output_lines(intersect_inv, args)
-#     else:
-#         io.output_lines(intersect, args)
-
-
-
-
-
-
-
-#######################################
-
-
-# def read_lines(datfile,args):
-#     if len(args.fmt) == 1:
-#         fmt = [args.fmt[0], args.fmt[0]]
-#     else:
-#         fmt = args.fmt
-#     if args.nan or len(args.x) == len(args.v) == 0:
-#         try:
-#             fopen = open(datfile,'r')
-#             if args.footer != 0:
-#                 datalines_all = fopen.read().splitlines()[args.header:-args.footer]
-#             else:
-#                 datalines_all = fopen.read().splitlines()[args.header:]
-#             fopen.close()
-#         except Exception as exc:
-#             print(f"Error reading input file: {datfile}\n")
-#             exit(1)
-#         datalines = []
-#         for x in datalines_all:
-#             datalines.append(x.strip())
-#     else:
-#         data = read_numerical_lines(datfile, args.header, args.footer,  args.fmt, args.x, args.v, args.skipnan)
-#         datalines = []
-#         nol = len(data[2])
-#         for i in range(nol):
-#             pos_str = []
-#             for ix in range(len(data[0])):
-#                 pos_str.append( f"%{fmt[0]}f" %(data[0][ix][i]) )
-#             line_str = ' '.join(pos_str)
-#             for iv in range(len(data[1])):
-#                 if data[1][iv][i] != np.nan:
-#                     line_str = f"%s %{fmt[1]}f" %(line_str, data[1][iv][i])
-#                 else:
-#                     line_str = f"{line_str} {np.nan}"
-#             if len(data[2][i]) and not args.noextra:
-#                 line_str = "%s %s" %(line_str, data[2][i])
-#             datalines.append(line_str)
-#     return datalines
-
-
 
 # def calc_min(args):
 #     outdata_lines = []
@@ -567,169 +448,6 @@ def calc_complementary_dataset(datasets, sub_dataset):
 #             print("Error! Number of outputs is zero!")
 #             exit(1)
 #     # write_ascii_lines(outdata_lines, args)
-
-
-# def add_intersect_values(args):
-#     args.nan = False
-#     args.noextra = True
-#     if len(args.fmt) == 1:
-#         fmt = [args.fmt[0], args.fmt[0]]
-#     else:
-#         fmt = args.fmt
-#     nof = len(args.input_files)
-#     input_files = args.input_files
-#     datlines = [[] for i in range(nof)]
-#     datlines_pos = [[] for i in range(nof)]
-#     datlines_vals = [[] for i in range(nof)]
-#     if nof < 2:
-#         print("Error! Number of input_files should be larger than 2 for this operation.")
-#         exit(1)
-#     for i in range(nof):
-#         datlines[i] = read_lines(input_files[i], args)
-#         for line in datlines[i]:
-#             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
-#             datlines_vals[i].append(' '.join(line.split()[len(args.x):]))
-#     intersect = []
-#     intersect_pos = []
-#     intersect_add_vals = []
-#     nol = len(datlines[0])
-#     for j in range(nol):
-#         if all(datlines_pos[0][j] in l for l in datlines_pos[1:])\
-#         and datlines_pos[i][j] not in intersect_pos:
-#             added_vals = [0 for ivc in range(len(args.v))]
-#             for ivc in range(len(args.v)):
-#                 for idc in range(nof):
-#                     added_vals[ivc] += float(datlines_vals[idc][j].split()[ivc])
-#                 added_vals[ivc] = f"%{fmt[1]}f" %(added_vals[ivc])
-#             intersect_pos.append(datlines_pos[0][j])
-#             intersect_add_vals.append(' '.join(added_vals))
-#             intersect.append(f"{intersect_pos[-1]} {intersect_add_vals[-1]}")
-
-#     args.uniq = False # it's already uniq!
-#     if len(intersect) == 0:
-#         print("Error! Number of calculated nodes is zero!")
-#         exit(1)
-    # write_ascii_lines(intersect, args)
-
-
-#######################################
-
-# def union(args):
-#     nof = len(args.input_files)
-#     input_files = args.input_files
-#     datlines = [[] for i in range(nof)]
-#     datlines_pos = [[] for i in range(nof)]
-#     if nof < 2:
-#         print("Error! Number of input_files should be larger than 2 for this operation.")
-#         exit(1)
-#     for i in range(nof):
-#         datlines[i] = read_lines(input_files[i], args)
-#         for line in datlines[i]:
-#             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
-#     union = []
-#     union_pos = []
-#     for i in range(nof):
-#         nol = len(datlines_pos[i])
-#         for j in range(nol):
-#             if datlines_pos[i][j] not in union_pos:
-#                 union.append(datlines[i][j])
-#                 union_pos.append(datlines_pos[i][j])
-#     if args.inverse:
-#         union_inv = []
-#         for i in range(nof):
-#             nol = len(datlines[i])
-#             for j in range(nol):
-#                 if datlines[i][j] not in union:
-#                     union_inv.append(datlines[i][j])
-#         if len(union_inv) == 0:
-#             print("Error! Number of outputs is zero!")
-#             exit(1)
-#         # write_ascii_lines(union_inv, args)
-#     else:
-#         if len(union) == 0:
-#             print("Error! Number of outputs is zero!")
-#             exit(1)
-#         # write_ascii_lines(union, args)
-
-# #######################################
-
-# def intersect(args):
-#     nof = len(args.input_files)
-#     input_files = args.input_files
-#     datlines = [[] for i in range(nof)]
-#     datlines_pos = [[] for i in range(nof)]
-#     if nof < 2:
-#         print("Error! Number of input_files should be larger than 2 for this operation.")
-#         exit(1)
-#     for i in range(nof):
-#         datlines[i] = read_lines(input_files[i], args)
-#         for line in datlines[i]:
-#             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
-#     intersect = []
-#     intersect_pos = []
-#     nol = len(datlines[0])
-#     for j in range(nol):
-#         if all(datlines_pos[0][j] in l for l in datlines_pos[1:])\
-#         and datlines_pos[i][j] not in intersect_pos:
-#             intersect.append(datlines[0][j])
-#             intersect_pos.append(datlines_pos[0][j])
-#     if args.inverse:
-#         intersect_inv = []
-#         for i in range(nof):
-#             nol = len(datlines[i])
-#             for j in range(nol):
-#                 line = datlines[i][j]
-#                 if line not in intersect:
-#                     intersect_inv.append(line)
-#         if len(intersect_inv) == 0:
-#             print("Error! Number of outputs is zero!")
-#             exit(1)
-#         # write_ascii_lines(intersect_inv, args)
-#     else:
-#         if len(intersect) == 0:
-#             print("Error! Number of outputs is zero!")
-#             exit(1)
-#         # write_ascii_lines(intersect, args)
-
-# #######################################
-
-# def difference(args):
-#     nof = len(args.input_files)
-#     input_files = args.input_files
-#     datlines = [[] for i in range(nof)]
-#     datlines_pos = [[] for i in range(nof)]
-#     if nof < 2:
-#         print("Error! Number of input_files should be larger than 2 for this operation.")
-#         exit(1)
-#     for i in range(nof):
-#         datlines[i] = read_lines(input_files[i], args)
-#         for line in datlines[i]:
-#             datlines_pos[i].append(' '.join(line.split()[0:len(args.x)]))
-#     difference = []
-#     difference_pos = []
-#     nol = len(datlines[0])
-#     for j in range(nol):
-#         if all(datlines_pos[0][j] not in l for l in datlines_pos[1:])\
-#         and datlines_pos[0][j] not in difference_pos:
-#             difference.append(datlines[0][j])
-#             difference_pos.append(datlines_pos[0][j])
-#     if args.inverse:
-#         difference_inv = []
-#         for i in range(nof):
-#             nol = len(datlines[i])
-#             for j in range(nol):
-#                 line = datlines[i][j]
-#                 if line not in difference:
-#                     difference_inv.append(line)
-#         if len(difference_inv) == 0:
-#             print("Error! Number of outputs is zero!")
-#             exit(1)
-#         # write_ascii_lines(difference_inv, args)
-#     else:
-#         if len(difference) == 0:
-#             print("Error! Number of outputs is zero!")
-#             exit(1)
-#         # write_ascii_lines(difference, args)
 
 
 # #######################################
