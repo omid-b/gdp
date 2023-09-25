@@ -11,10 +11,10 @@ import numpy as np
 class Dataset:
 
     def __init__(self, files=[]):
+        self.processed = [] # [[pos, val, extra], ..., [pos, val, extra]]
         self.nds = 0 # number of datasets
-        self.nx = 0 # (datasets dimensions)
-        self.nv = 0 # number of dimensions
-        self.processed = []
+        self.nx  = 0 # datasets dimension
+        self.nv  = 0 # number of value columns
         self.files = []
         self.titles = []
         self.lines = []
@@ -26,6 +26,8 @@ class Dataset:
         self.noextra = False # no extra columns
         self.skipnan = False # skip nan data
         self.fmt = [".4", ".4"] # format for positional and value columns
+        self.sort = False # sort when output 
+        self.uniq = False # uniq when output 
         if len(files):
             self.append(files)
 
@@ -47,10 +49,14 @@ class Dataset:
         self.update()
 
 
+    def reset(self):
+        while self.nds:
+            self.pop()
+        self.append(self.files)
+
+
     def pop(self):
         if self.nds > 0:
-            self.files.pop()
-            self.lines.pop()
             self.nds -= 1
         self.update()
 
@@ -73,7 +79,136 @@ class Dataset:
                 self.fmt = kwargs['fmt']
                 if len(kwargs['fmt']) == 1:
                     self.fmt = [kwargs['fmt'][0], kwargs['fmt'][0]]
+            elif option == 'sort':
+                self.sort = kwargs['sort']
+            elif option == 'uniq':
+                self.uniq = kwargs['uniq']
         self.update()
+
+
+    def get_truncated(self):
+        # outputs a nan dataset object with header and footer lines removed
+        truncated = []
+        for ids in range(self.nds):
+            if self.footer != 0:
+                extra = self.lines[ids][self.header:-self.footer]
+            else:
+                extra = self.lines[ids][self.header:]
+            truncated.append(
+                [[ ], [ ], extra]
+            #   [pos, val, extra]
+            )
+        return truncated
+
+
+    def merge(self, inverse=False):
+        if self.nds < 2:
+            return
+        if self.nan:
+            self.union()
+            merge = self.processed[0]
+        else:
+            merge = [ [[] for ix in range(self.nx)], [[] for ival in range(self.nv)], [] ]
+            for ids in range(self.nds):
+                nol = len(self.processed[ids][2])
+                for iline in range(nol):
+                    for ix in range(self.nx):
+                        merge[0][ix].append(self.processed[ids][0][ix][iline])
+                    for iv in range(self.nv):
+                        merge[1][iv].append(self.processed[ids][1][iv][iline])
+                    merge[2].append(self.processed[ids][2][iline])
+
+        if inverse:
+            self.processed = [calc_complementary_dataset(self.processed, merge)]
+            self.titles = ['merge_inv']
+        else:
+            self.processed = [merge]
+            self.titles = ['merge']
+        self.nds = 1
+
+
+    def union(self, inverse=False):
+        if self.nds < 2:
+            return
+        if self.nan:
+            union = [[], [], []]
+            for ids in range(self.nds):
+                for line in self.processed[ids][2]:
+                    if line not in union[2]:
+                        union[2].append(line)
+        else:
+            union = [ [[] for ix in range(self.nx)], [[] for iv in range(self.nv)], [] ]
+            pos_data_uniq = []
+            for ids in range(self.nds):
+                nol = len(self.processed[ids][2]) # number of lines for this dataset
+                for iline in range(nol):
+                    pos_data = [self.processed[ids][0][k][iline] for k in range(self.nx)]
+                    val_data = [self.processed[ids][1][k][iline] for k in range(self.nv)]
+                    ext_data = self.processed[ids][2][iline]
+                    if pos_data not in pos_data_uniq:
+                        pos_data_uniq.append(pos_data)
+                        for ix in range(self.nx):
+                            union[0][ix].append(pos_data[ix])
+                        for iv in range(self.nv):
+                            union[1][iv].append(val_data[iv])
+                        union[2].append(ext_data)
+        if inverse:
+            self.processed = [calc_complementary_dataset(self.processed, union)]
+            self.titles = ['union_inv']
+        else:
+            self.processed = [union]
+            self.titles = ['union']
+        self.nds = 1
+
+
+
+    def intersect(self, inverse=False):
+        if self.nds < 2:
+            return
+        if self.nan:
+
+            intersect = [[], [], []]
+            nol = len(self.processed[0][2])
+            comparing_extras = []
+            for ids in range(1, self.nds):
+                comparing_extras.append(self.processed[ids][2])
+
+            print(comparing_extras)
+            for iline in range(nol):
+                line = self.processed[0][2][iline]
+                if all(line in l for l in comparing_extras):
+                    intersect[2].append(line)
+        else:
+            pass
+
+        if inverse:
+            self.processed = [calc_complementary_dataset(self.processed, intersect)]
+            self.titles = ['intersect_inv']
+            print(self.processed)
+        else:
+            self.processed = [intersect]
+            self.titles = ['intersect']
+        self.nds = 1
+
+
+
+    def difference(self, inverse=False):
+        if self.nan:
+            pass
+        else:
+            pass
+
+    def add_intersect(self):
+        if self.nan:
+            pass
+        else:
+            pass
+
+    def split(self):
+        if self.nan:
+            pass
+        else:
+            pass
 
 
     def write(self, path=None):
@@ -93,6 +228,14 @@ class Dataset:
                 if len(self.processed[ids][2][iline]) and not self.noextra:
                     str_line = "%s %s" %(str_line, self.processed[ids][2][iline])
                 output_lines.append(str_line)
+        if self.sort:
+            output_lines = sorted(output_lines)
+        if self.uniq:
+            uniq_lines = []
+            for line in output_lines:
+                if line not in uniq_lines:
+                    uniq_lines.append(line)
+            output_lines = uniq_lines
 
         if path:
             pass
@@ -124,6 +267,16 @@ class Dataset:
             print("Error: argument 'skipnan' must be a boolean")
             exit(1)
         try:
+            assert isinstance(self.sort, bool)
+        except AssertionError:
+            print("Error: argument 'sort' must be a boolean")
+            exit(1)
+        try:
+            assert isinstance(self.uniq, bool)
+        except AssertionError:
+            print("Error: argument 'uniq' must be a boolean")
+            exit(1)
+        try:
             assert isinstance(self.x, list)
         except AssertionError:
             print("Error: argument 'x' must be a list")
@@ -143,7 +296,7 @@ class Dataset:
         if len(self.titles) != len(self.processed):
             self.titles = []
             for i in range(self.nds):
-                self.titles.append(os.path.split(self.files[i]))
+                self.titles.append(os.path.split(self.files[i])[1])
 
         # is it a nan dataset?
         if len(self.x) == 0 and len(self.v) == 0:
@@ -153,22 +306,14 @@ class Dataset:
         else:
             self.nan = False
 
-        
         # update/finalize dataset
         self.nx = len(self.x)
         self.nv = len(self.v)
 
-        # initially consider the datasets as non-numerical (extra-only)
-        for ids in range(self.nds):
-            if self.footer != 0:
-                extra = self.lines[ids][self.header:-self.footer]
-            else:
-                extra = self.lines[ids][self.header:]
-            self.processed.append(
-                [[ ], [ ], extra]
-            #   [[x],[v]   extra]
-            )
+        # truncate (remove header and footer lines): a nan dataset object
+        self.processed = self.get_truncated()
 
+        # initial processing of numerical datasets:
         if not self.nan:
             for ids in range(self.nds):
                 pos = [[] for ix in range(self.nx)] # list of positional values
@@ -215,8 +360,79 @@ class Dataset:
                         if x in extra_line_split:
                             extra_line_split.remove(x)
 
-                    extra_this_line = ' '.join(extra_line_split).strip()
-                    self.processed[ids][2][iline] = extra_this_line
+                    extra_line = ' '.join(extra_line_split).strip()
+                    self.processed[ids][2][iline] = extra_line
                 self.processed[ids][0] = pos
                 self.processed[ids][1] = val
+
+            # skipnan process
+            if self.skipnan:
+                for ids in range(self.nds):
+                    pos_skipnan = [[] for ix in range(self.nx)]
+                    val_skipnan = [[] for iv in range(self.nx)]
+                    extra_skipnan = []
+                    nol = len(self.processed[ids][2])
+                    for iline in range(nol):
+                        temp = []
+                        for ix in range(self.nx):
+                            temp.append(self.processed[ids][0][ix][iline])
+                        for iv in range(self.nv):
+                            temp.append(self.processed[ids][1][iv][iline])
+                        
+                        if np.nan not in temp:
+                            for ix in range(self.nx):
+                                pos_skipnan[ix].append(self.processed[ids][0][ix][iline])
+                            for iv in range(self.nv):
+                                val_skipnan[iv].append(self.processed[ids][1][iv][iline])
+                            extra_skipnan.append(self.processed[ids][2][iline])
+                    self.processed[ids] = [pos_skipnan, val_skipnan, extra_skipnan]
+
+
+
+#------------FUNCTIONS------------#
+
+def calc_complementary_dataset(datasets, sub_dataset):
+    # both datasets and sub_dataset must have the same number of
+    # positional and value columns
+    nds = len(datasets) # number of datasets
+    nx = len(datasets[0][0]) # number of positional columns
+    nv = len(datasets[0][1]) # number of velue columns
+    complementary_dataset = [[[] for ix in range(nx)],\
+                            [[] for iv in range(nv)],\
+                             []]
+    fmt = [".10",".10"]
+    # collect sub_dataset lines
+    sub_dataset_lines = []
+    nol = len(sub_dataset[2]) # number of lines
+    for iline in range(nol):
+        line = ' '
+        for ix in range(nx):
+            line = f"%s %{fmt[0]}f" %(line, sub_dataset[0][ix][iline])
+        for iv in range(nv):
+            line = f"%s %{fmt[1]}f" %(line, sub_dataset[1][iv][iline])
+        line = f"%s %s" %(line, sub_dataset[2][iline])
+        sub_dataset_lines.append(line.strip())
+
+    # compare sub_dataset lines with all lines in datasets
+    # and store the complementary ones
+    found_complementary_lines = []
+    for ids in range(nds):
+        nol = len(datasets[ids][2]) # number of lines
+        for iline in range(nol):
+            line = ''
+            for ix in range(nx):
+                line = f"%s %{fmt[0]}f" %(line, datasets[ids][0][ix][iline])
+            for iv in range(nv):
+                line = f"%s %{fmt[1]}f" %(line, datasets[ids][1][iv][iline])
+            line = f"%s %s" %(line, datasets[ids][2][iline])
+            line = line.strip()
+            if (line not in sub_dataset_lines) and (line not in found_complementary_lines):
+                found_complementary_lines.append(line)
+                for ix in range(nx):
+                    complementary_dataset[0][ix].append(datasets[ids][0][ix][iline])
+                for iv in range(nv):
+                    complementary_dataset[1][iv].append(datasets[ids][1][iv][iline])
+                complementary_dataset[2].append(datasets[ids][2][iline])
+
+    return complementary_dataset
 

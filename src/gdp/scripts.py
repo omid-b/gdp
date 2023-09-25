@@ -16,19 +16,25 @@ from .io.ascii import Dataset
 
 #-------------------------#
 def test(args):
+    if args.nan:
+        args.x = args.v = []
+    
     dataset = Dataset(args.input_files)
-
     dataset.options(**vars(args))
-
     dataset.write()
 
-    # dataset.write()
+    print()
+    print("intersect")
+    dataset.intersect()
+    dataset.write()
+
+    print()
+    print("intersect_inv")
+    dataset.intersect(inverse=True)
+    dataset.write()
+    print(dataset.titles)
 
 
-
-    # ds.append(args.input_files)
-
-    # print(dataset.__dir__())
 
 
 #-------------------------#

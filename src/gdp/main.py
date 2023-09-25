@@ -62,70 +62,70 @@ def parse_args(*args, **kwargs):
     data_subparsers = data.add_subparsers(dest='submodule')
     
     #------------------------# 
-    # $> gdp data cat
-    data_cat = data_subparsers.add_parser('cat', help='concatenate and reformat input data files',
-    description="Concatenate and reformat input data files")
-    data_cat.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
-    data_cat.add_argument(
+    # $> gdp data merge
+    data_merge = data_subparsers.add_parser('merge', help='merge/concatenated and reformat input data files',
+    description="Merge/concatenated and reformat input data files")
+    data_merge.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
+    data_merge.add_argument(
         '--nan',
         action='store_true',
         help='not a numerical data type')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '-x',
         nargs='*',
         type=int,
         action='store',
         default=[1, 2],
         help='positional column number(s) (default=[1, 2]; [] is also accepted)')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '-v',
         nargs='*',
         type=int,
         action='store',
         default=[3],
         help='value/data column number(s) (default=[3]; [] is also accepted)')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '--header',
         type=int,
         action='store',
         default=0,
         help='number of header lines to ignore (default=0)')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '--footer',
         type=int,
         action='store',
         default=0,
         help='number of footer lines to ignore (default=0)')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '--fmt',
         nargs='+',
         type=str,
         action='store',
         default=[".4",".4"],
         help='float format for positional and value columns respectively (default=[".4",".4"])')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '--sort',
         action='store_true',
         help='apply sort to output lines')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '--uniq',
         action='store_true',
         help='apply uniq to output lines')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '--noextra',
         action='store_true',
         help='do not output extra columns (other than numerical columns)')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '--skipnan',
         action='store_true',
         help='do not output lines with nan value(s); numerical data only')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '-o',
         '--outfile',
         type=str,
         action='store',
         help='output file')
-    data_cat.add_argument(
+    data_merge.add_argument(
         '-a',
         '--append',
         action='store_true',
@@ -421,7 +421,7 @@ def parse_args(*args, **kwargs):
 
     #------------------------#
     # $> gdp data split
-    data_split = data_subparsers.add_parser('split', help='split concatenated dataset',
+    data_split = data_subparsers.add_parser('split', help='split concatenated/merged dataset',
     description="Split a concatenated dataset into multiple data files")
     data_split._positionals.title = 'required positional arguments'
     data_split._optionals.title = 'optional/Required arguments'
@@ -2817,7 +2817,7 @@ def main(*args, **kwargs):
 
     if args.module == 'data':
 
-        if args.submodule == 'cat':
+        if args.submodule == 'merge':
         
             scripts.test(args)
             # scripts.data_concatenate(args)

@@ -193,7 +193,7 @@ def calc_intersect(datasets, inverse=False):
     num_pos = len(datasets[0][0]) # number of positional columns
     num_val = len(datasets[0][1]) # number of value columns
 
-    intersect = [[[] for ipos in range(num_pos)],[[] for ival in range(num_val)],[]]
+    intersect = [[[] for ipos in range(num_pos)], [[] for ival in range(num_val)], []]
 
     pos_data_datasets = [[] for i in range(nod)]
     for ids in range(nod):
