@@ -1,67 +1,52 @@
 #!/usr/bin/env python3
 
 """
- Numerical & Non-numerical ascii datasets
+ Numerical & Non-numerical ascii Dataset class
+
+ List of possible processes:
+    - merge
+    - union
+    - intersect
+    - difference
+    - add intersect values
+    - split by row
+    - split by column
+    - return numerical dataset
+    - return truncated lines
+    - ...
 
 """
 
 import os
 import numpy as np
+from argparse import Namespace
 
 class Dataset:
 
     def __init__(self, files=[]):
-        self.processed = [] # [[pos, val, extra], ..., [pos, val, extra]]
         self.nds = 0 # number of datasets
-        self.nx  = 0 # datasets dimension
-        self.nv  = 0 # number of value columns
-        self.files = []
-        self.titles = []
-        self.lines = []
-        self.header = 0
-        self.footer = 0
-        self.x = [] # positional columns e.g. x, y, z
-        self.v = [] # value columns e.g. velocity, density
-        self.nan = True # nan dataset i.e. only has extra
-        self.noextra = False # no extra columns
-        self.skipnan = False # skip nan data
-        self.fmt = [".4", ".4"] # format for positional and value columns
-        self.sort = False # sort when output 
-        self.uniq = False # uniq when output 
-        if len(files):
-            self.append(files)
-
-
-    def append(self, *new_files):
-        new_files = new_files[0]
-        nof = len(new_files)
-        for i in range(nof):
-            try:
-                fopen = open(new_files[i], 'r')
-                lines = fopen.read().splitlines()
-                fopen.close()
-            except Exception as e:
-                print(f"{e}")
-                exit(1)
-            self.files.append(new_files[i])
-            self.lines.append(lines)
-            self.nds += 1
-        self.update()
-
-
-    def reset(self):
-        while self.nds:
-            self.pop()
-        self.append(self.files)
-
-
-    def pop(self):
-        if self.nds > 0:
-            self.nds -= 1
-        self.update()
+        self.files = [] # list of files
+        self.lines = [] # list of file lines
+        self.titles = [] # list of processed datset titles
+        self.processed = [] # list of processed datsets
+        self.last_process = None
+        self.default_args = Namespace(
+            header = 0,
+            footer = 0,
+            x = [], # positional columns e.g. x, y, z
+            v = [], # value columns e.g. velocity, density
+            noextra = False, # no extra columns
+            skipnan = False, # skip nan data
+            fmt = [".4", ".4"], # format for positional and value columns
+            sort = False, # sort when output 
+            uniq = False, # uniq when output
+        )
+        self.options(**vars(self.default_args))
+        self.append(files) # must be after self.options()
 
 
     def options(self, **kwargs):
+        self.input_args = Namespace(**kwargs)
         for option in kwargs.keys():
             if option == 'header':
                 self.header = kwargs['header']
@@ -86,27 +71,37 @@ class Dataset:
         self.update()
 
 
-    def get_truncated(self):
-        # outputs a nan dataset object with header and footer lines removed
-        truncated = []
-        for ids in range(self.nds):
-            if self.footer != 0:
-                extra = self.lines[ids][self.header:-self.footer]
-            else:
-                extra = self.lines[ids][self.header:]
-            truncated.append(
-                [[ ], [ ], extra]
-            #   [pos, val, extra]
-            )
-        return truncated
+    def append(self, new_files):
+        try:
+            assert isinstance(new_files, list)
+        except AssertionError:
+            new_files = [new_files]
+        nof = len(new_files)
+        for i in range(nof):
+            if new_files[i] in self.files:
+                continue
+            try:
+                fopen = open(new_files[i], 'r')
+                lines = fopen.read().splitlines()
+                fopen.close()
+            except Exception as e:
+                print(f"{e}")
+                exit(1)
+            self.files.append(new_files[i])
+            self.lines.append(lines)
+        self.nds = len(self.files)
+        self.update()
 
 
     def merge(self, inverse=False):
+        self.reset()
         if self.nds < 2:
             return
         if self.nan:
-            self.union()
-            merge = self.processed[0]
+            merge = [[], [], []]
+            for ids in range(self.nds):
+                for line in self.processed[ids][2]:
+                    merge[2].append(line)
         else:
             merge = [ [[] for ix in range(self.nx)], [[] for ival in range(self.nv)], [] ]
             for ids in range(self.nds):
@@ -117,17 +112,19 @@ class Dataset:
                     for iv in range(self.nv):
                         merge[1][iv].append(self.processed[ids][1][iv][iline])
                     merge[2].append(self.processed[ids][2][iline])
-
+        # finalize self.processed
         if inverse:
             self.processed = [calc_complementary_dataset(self.processed, merge)]
             self.titles = ['merge_inv']
         else:
             self.processed = [merge]
             self.titles = ['merge']
+        self.last_process = 'merge'
         self.nds = 1
 
 
     def union(self, inverse=False):
+        self.reset()
         if self.nds < 2:
             return
         if self.nan:
@@ -152,17 +149,19 @@ class Dataset:
                         for iv in range(self.nv):
                             union[1][iv].append(val_data[iv])
                         union[2].append(ext_data)
+        # finalize self.processed
         if inverse:
             self.processed = [calc_complementary_dataset(self.processed, union)]
             self.titles = ['union_inv']
         else:
             self.processed = [union]
             self.titles = ['union']
+        self.last_process = 'union'
         self.nds = 1
 
 
-
     def intersect(self, inverse=False):
+        self.reset()
         if self.nds < 2:
             return
         if self.nan:
@@ -173,46 +172,195 @@ class Dataset:
             for ids in range(1, self.nds):
                 comparing_extras.append(self.processed[ids][2])
 
-            print(comparing_extras)
             for iline in range(nol):
                 line = self.processed[0][2][iline]
                 if all(line in l for l in comparing_extras):
                     intersect[2].append(line)
         else:
-            pass
+            intersect = [ [[] for ix in range(self.nx)], [[] for iv in range(self.nv)], [] ]
+            pos_data_datasets = [[] for ids in range(self.nds)]
+            for ids in range(self.nds):
+                nol = len(self.processed[ids][2]) # number of lines for this dataset
+                for iline in range(nol):
+                    pos_data = [self.processed[ids][0][ix][iline] for ix in range(self.nx)]
+                    pos_data_datasets[ids].append(pos_data)
 
+            first_ds_nol = len(self.processed[0][2]) # first dataset number of lines
+            for iline in range(first_ds_nol):
+                first_ds_pos_data = [self.processed[0][0][ix][iline] for ix in range(self.nx)]
+                first_ds_val_data = [self.processed[0][1][iv][iline] for iv in range(self.nv)]
+                first_ds_ext_data = self.processed[0][2][iline]
+                if all(first_ds_pos_data in l for l in pos_data_datasets[1:]):
+                    for ipos in range(self.nx):
+                        intersect[0][ipos].append(first_ds_pos_data[ipos])
+                    for ival in range(self.nv):
+                        intersect[1][ival].append(first_ds_val_data[ival])
+                    intersect[2].append(first_ds_ext_data)
+        # finalize self.processed
         if inverse:
             self.processed = [calc_complementary_dataset(self.processed, intersect)]
             self.titles = ['intersect_inv']
-            print(self.processed)
         else:
             self.processed = [intersect]
             self.titles = ['intersect']
+        self.last_process = 'intersect'
         self.nds = 1
 
 
 
     def difference(self, inverse=False):
+        self.reset()
+        if self.nds < 2:
+            return
         if self.nan:
-            pass
+            difference = [[], [], []]
+            comparing_extras = []
+            for ids in range(1, self.nds):
+                comparing_extras.append(self.processed[ids][2])
+            nol = len(self.processed[0][2])
+            for iline in range(nol):
+                line = self.processed[0][2][iline]
+                if all(line not in l for l in comparing_extras):
+                    difference[2].append(line)
         else:
-            pass
+            difference = [[[] for ix in range(self.nx)],[[] for iv in range(self.nv)],[]]
+            pos_data_datasets = [[] for ids in range(self.nds)]
+            for ids in range(self.nds):
+                nol = len(self.processed[ids][2]) # number of lines for this dataset
+                for iline in range(nol):
+                    pos_data = [self.processed[ids][0][ix][iline] for ix in range(self.nx)]
+                    pos_data_datasets[ids].append(pos_data)
+
+            first_ds_nol = len(self.processed[0][2]) # first dataset number of lines
+            for iline in range(first_ds_nol):
+                first_ds_pos_data = [self.processed[0][0][ix][iline] for ix in range(self.nx)]
+                first_ds_val_data = [self.processed[0][1][iv][iline] for iv in range(self.nv)]
+                first_ds_ext_data = self.processed[0][2][iline]
+                if all(first_ds_pos_data not in l for l in pos_data_datasets[1:]):
+                    for ix in range(self.nx):
+                        difference[0][ix].append(first_ds_pos_data[ix])
+                    for iv in range(self.nv):
+                        difference[1][iv].append(first_ds_val_data[iv])
+                    difference[2].append(first_ds_ext_data)
+        # finalize self.processed
+        if inverse:
+            self.processed = [calc_complementary_dataset(self.processed, difference)]
+            self.titles = ['difference_inv']
+        else:
+            self.processed = [difference]
+            self.titles = ['difference']
+        self.last_process = 'difference'
+        self.nds = 1
+
 
     def add_intersect(self):
+        self.reset()
         if self.nan:
-            pass
-        else:
-            pass
+            print("Error: add_intersect operation is only allowed for numerical datasets.")
+            exit(1)
+        if self.nds < 2:
+            return
+        # store intersect dataset first
+        self.intersect()
+        intersect_ds = self.processed[0]
+        num_intersects = len(intersect_ds[2])
+        if not num_intersects:
+            print("Error: found no intersect dataset to calculate 'add_intersect'.")
+            exit(0)
+        self.reset()
+        # lines for intersect_ds positional data
+        intersect_pos_data = [[] for ii in range(num_intersects)]
+        for ii in range(num_intersects):
+            for ix in range(self.nx):
+                intersect_pos_data[ii].append(intersect_ds[0][ix][ii])
+        # initialize with zeros
+        added_values = [[] for iv in range(self.nv)]
+        for iv in range(self.nv):
+            for ii in range(num_intersects):
+                added_values[iv].append(0)
+        # calculate add_intersect values
+        for ii in range(num_intersects):
+            candidate_intersect_pos_data = intersect_pos_data[ii]
+            for ids in range(self.nds):
+                nol = len(self.processed[ids][2]) # number of lines for this dataset
+                for iline in range(nol):
+                    pos_data = []
+                    for ix in range(self.nx):
+                        pos_data.append(self.processed[ids][0][ix][iline])
+                    if pos_data == candidate_intersect_pos_data:
+                        for iv in range(self.nv):
+                            added_values[iv][ii] += self.processed[ids][1][iv][iline]
+        # finalize self.processed
+        self.processed = [intersect_ds]
+        self.processed[0][1] = added_values
+        self.titles = ['add_intersect']
+        self.last_process = 'add_intersect'
+        self.nds = 1
 
-    def split(self):
-        if self.nan:
-            pass
-        else:
-            pass
+
+    def split_by_row(self, number, name_index_offset=0):
+        self.reset()
+        if self.nds != 1:
+            print("Error: split dataset operation is only allowed for single file input.")
+            exit(1)
+        combined_dataset = self.get_truncated()[0][2]
+        split_dataset = {}
+        split_indices = [x for x in range(0, len(combined_dataset), number)]
+        if split_indices[-1] < len(combined_dataset):
+            split_indices.append(len(combined_dataset))
+        num_split_datasets = len(split_indices) - 1 # number of split datasets
+        # start split_by_row
+        self.titles = []
+        self.processed = [[[], [], []] for ids in range(num_split_datasets)]
+        for ids in range(num_split_datasets):
+            split_data_lines = combined_dataset[split_indices[ids]:split_indices[ids + 1]]
+            split_data_name = f"{'_'.join(split_data_lines[name_index_offset].split())}"
+            self.processed[ids][2] = split_data_lines
+            self.titles.append(split_data_name)
+        # finalize self.processed
+        self.sort = self.uniq = self.skipnan =  False
+        self.nds = num_split_datasets
+        self.last_process = 'split_by_row'
 
 
-    def write(self, path=None):
-        output_lines = []
+    def split_by_column(self, number, start_index_offset=0, name_index_offset=0):
+        self.reset()
+        if self.nds != 1:
+            print("Error: split dataset operation is only allowed for single file input.")
+            exit(1)
+
+        combined_dataset = self.get_truncated()[0][2]
+        split_dataset = {}
+        split_indices = []
+        for i, line in enumerate(combined_dataset):
+            if len(line.split()) == number:
+                split_indices.append(i + start_index_offset)
+                if split_indices[-1] < 0:
+                    print("Error: split_by_column(): 'split_index' cannot be negative!")
+                    print("       (check argument 'start_index_offset')")
+                    exit(1)
+
+        if split_indices[-1] < len(combined_dataset):
+            split_indices.append(len(combined_dataset))
+        num_split_datasets = len(split_indices) - 1 # number of split datasets
+
+        # start split_by_column
+        self.titles = []
+        self.processed = [[[], [], []] for ids in range(num_split_datasets)]
+        for ids in range(num_split_datasets):
+            split_data_lines = combined_dataset[split_indices[ids]:split_indices[ids+1]]
+            split_data_name = f"{'_'.join(split_data_lines[name_index_offset].split())}"
+            # self.processed[ids][2] = split_data_lines
+            self.processed[ids][2] = ["", "", f"'{split_data_name}'"] + split_data_lines
+            self.titles.append(split_data_name)
+        # finalize self.processed
+        self.sort = self.uniq = self.skipnan =  False
+        self.nds = num_split_datasets
+        self.last_process = 'split_by_column'
+
+
+    def return_lines(self, merge=False):
+        output_lines = [[] for ids in range(self.nds)]
         for ids in range(self.nds):
             nol = len(self.processed[ids][2])
             for iline in range(nol):
@@ -227,25 +375,92 @@ class Dataset:
                         str_line = f"{str_line} {np.nan}"
                 if len(self.processed[ids][2][iline]) and not self.noextra:
                     str_line = "%s %s" %(str_line, self.processed[ids][2][iline])
-                output_lines.append(str_line)
-        if self.sort:
-            output_lines = sorted(output_lines)
-        if self.uniq:
-            uniq_lines = []
-            for line in output_lines:
-                if line not in uniq_lines:
-                    uniq_lines.append(line)
-            output_lines = uniq_lines
+                if self.nan:
+                    str_line = str_line.strip()
+                output_lines[ids].append(str_line)
 
+        if merge:
+            output_lines_merged = []
+            for ids in range(len(output_lines)):
+                output_lines_merged += output_lines[ids]
+            output_lines = output_lines_merged
+        
+        for ids in range(len(output_lines)):
+            if self.sort:
+                output_lines[ids] = sorted(output_lines[ids])
+            if self.uniq:
+                uniq_lines = []
+                for line in output_lines[ids]:
+                    if line not in uniq_lines:
+                        uniq_lines.append(line)
+                output_lines[ids] = uniq_lines
+        
+        return output_lines
+
+
+    def return_numerical(self, merge=False):
+        if self.nan:
+            print("Error: return_numerical operation is only allowed for numerical datasets")
+            exit(1)
+        num_numericals = self.nx + self.nv
+        numericals = []
+        if self.nds == 1:
+            for ix in range(self.nx):
+                numericals.append(self.processed[0][0][ix])
+            for iv in range(self.nv):
+                numericals.append(self.processed[0][1][iv])
+        else:
+            for ids in range(self.nds):
+                numericals.append([])
+                for ix in range(self.nx):
+                    numericals[ids].append(self.processed[ids][0][ix])
+                for iv in range(self.nv):
+                    numericals[ids].append(self.processed[ids][1][iv])
+            if merge:
+                numericals_merged = numericals[0]
+                for ids in range(1, self.nds):
+                    for inum in range(num_numericals):
+                        numericals_merged[inum] += numericals[ids][inum]
+                numericals = numericals_merged
+
+        return numericals
+
+
+    def return_dataset(self):
+        return self.processed
+
+
+    def write(self, path=None):
         if path:
             pass
         else:
+            output_lines = self.return_lines(merge=True)
             for line in output_lines:
                 print(line)
 
 
+    def get_truncated(self):
+        # outputs a nan dataset object with header and footer lines removed
+        truncated = []
+        for ids in range(self.nds):
+            if self.footer != 0:
+                extra = self.lines[ids][self.header:-self.footer]
+            else:
+                extra = self.lines[ids][self.header:]
+            truncated.append(
+                [[ ], [ ], extra]
+            #   [pos, val, extra]
+            )
+        return truncated
+
+
     def update(self):
         # check types
+        try:
+            assert isinstance(self.files, list)
+        except AssertionError:
+            print("Error: argument 'files' must be a list")
+            exit(1)
         try:
             assert isinstance(self.header, int)
         except AssertionError:
@@ -255,26 +470,6 @@ class Dataset:
             assert isinstance(self.footer, int)
         except AssertionError:
             print("Error: argument 'footer' must be an integer")
-            exit(1)
-        try:
-            assert isinstance(self.noextra, bool)
-        except AssertionError:
-            print("Error: argument 'noextra' must be a boolean")
-            exit(1)
-        try:
-            assert isinstance(self.skipnan, bool)
-        except AssertionError:
-            print("Error: argument 'skipnan' must be a boolean")
-            exit(1)
-        try:
-            assert isinstance(self.sort, bool)
-        except AssertionError:
-            print("Error: argument 'sort' must be a boolean")
-            exit(1)
-        try:
-            assert isinstance(self.uniq, bool)
-        except AssertionError:
-            print("Error: argument 'uniq' must be a boolean")
             exit(1)
         try:
             assert isinstance(self.x, list)
@@ -287,10 +482,33 @@ class Dataset:
             print("Error: argument 'v' must be a list")
             exit(1)
         try:
+            assert isinstance(self.skipnan, bool)
+        except AssertionError:
+            print("Error: argument 'skipnan' must be a boolean")
+            exit(1)
+        try:
+            assert isinstance(self.noextra, bool)
+        except AssertionError:
+            print("Error: argument 'noextra' must be a boolean")
+            exit(1)
+        try:
             assert isinstance(self.fmt, list)
         except AssertionError:
             print("Error: argument 'fmt' must be a list")
             exit(1)
+        try:
+            assert isinstance(self.sort, bool)
+        except AssertionError:
+            print("Error: argument 'sort' must be a boolean")
+            exit(1)
+        try:
+            assert isinstance(self.uniq, bool)
+        except AssertionError:
+            print("Error: argument 'uniq' must be a boolean")
+            exit(1)
+
+        # truncate (remove header and footer lines): a nan dataset object
+        self.processed = self.get_truncated()
 
         # update self.titles ?
         if len(self.titles) != len(self.processed):
@@ -300,9 +518,9 @@ class Dataset:
 
         # is it a nan dataset?
         if len(self.x) == 0 and len(self.v) == 0:
+            self.nan = True
             self.noextra = False
             self.skipnan = False
-            self.nan = True
         else:
             self.nan = False
 
@@ -310,8 +528,6 @@ class Dataset:
         self.nx = len(self.x)
         self.nv = len(self.v)
 
-        # truncate (remove header and footer lines): a nan dataset object
-        self.processed = self.get_truncated()
 
         # initial processing of numerical datasets:
         if not self.nan:
@@ -388,6 +604,14 @@ class Dataset:
                     self.processed[ids] = [pos_skipnan, val_skipnan, extra_skipnan]
 
 
+    def reset(self):
+        self.titles = []
+        self.processed = []
+        self.options(**vars(self.input_args))
+        self.append(self.files)
+        self.update()
+
+
 
 #------------FUNCTIONS------------#
 
@@ -405,7 +629,7 @@ def calc_complementary_dataset(datasets, sub_dataset):
     sub_dataset_lines = []
     nol = len(sub_dataset[2]) # number of lines
     for iline in range(nol):
-        line = ' '
+        line = ''
         for ix in range(nx):
             line = f"%s %{fmt[0]}f" %(line, sub_dataset[0][ix][iline])
         for iv in range(nv):

@@ -18,21 +18,125 @@ from .io.ascii import Dataset
 def test(args):
     if args.nan:
         args.x = args.v = []
-    
-    dataset = Dataset(args.input_files)
-    dataset.options(**vars(args))
-    dataset.write()
 
-    print()
-    print("intersect")
-    dataset.intersect()
-    dataset.write()
+    # dataset = Dataset()
+    # dataset.options(**vars(args))
+    # dataset.append(list(args.input_files))
+    # dataset.split_by_column(4, -2, 2)
+    # dataset.write()
 
-    print()
-    print("intersect_inv")
-    dataset.intersect(inverse=True)
-    dataset.write()
-    print(dataset.titles)
+    # print()
+    # dataset = Dataset()
+    # dataset.options(**vars(args))
+    # dataset.append(list(args.input_files))
+
+    # print(dataset.return_numerical())
+    # print(dataset.return_numerical(merge=True))
+
+    # print()
+    # print('dataset.x', dataset.x)
+    # print('dataset.v', dataset.v)
+    # print('dataset.nx', dataset.nx)
+    # print('dataset.nv', dataset.nv)
+    # print('dataset.nds', dataset.nds)
+    # print('dataset.files', dataset.files)
+    # # print('dataset.lines', dataset.lines)
+    # print('> dataset.titles', dataset.titles)
+    # # print('dataset.processed', dataset.processed)
+    # # print('dataset.input_args', dataset.input_args)
+    # print()
+
+
+    # print("---original---")
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+
+    # print("---merge---")
+    # dataset.merge()
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print("---merge inverse---")
+    # dataset.merge(inverse=True)
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print("---union---")
+    # dataset.union()
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print("---union inverse---")
+    # dataset.union(inverse=True)
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print("---intersect---")
+    # dataset.intersect()
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print("---intersect inverse---")
+    # dataset.intersect(inverse=True)
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print("---add_intersect---")
+    # dataset.add_intersect()
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+
+    # print("---difference---")
+    # dataset.difference()
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print("---difference inverse---")
+    # dataset.difference(inverse=True)
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print("---reset---")
+    # dataset.reset()
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+    # print()
+
+    # print(dataset.return_lines(merge=False))
+    # print(dataset.return_lines(merge=True))
+    # print(dataset.return_dataset())
+
+
+
+
+    # print()
+    # print("---union---")
+    # dataset.union()
+    # dataset.write()
+    # print('> dataset.titles', dataset.titles)
+
+
+    # print()
+    # print('dataset.x', dataset.x)
+    # print('dataset.v', dataset.v)
+    # print('dataset.nx', dataset.nx)
+    # print('dataset.nv', dataset.nv)
+    # print('dataset.nds', dataset.nds)
+    # print('dataset.files', dataset.files)
+    # print('> dataset.titles', dataset.titles)
+    # print()
 
 
 

@@ -63,8 +63,8 @@ def parse_args(*args, **kwargs):
     
     #------------------------# 
     # $> gdp data merge
-    data_merge = data_subparsers.add_parser('merge', help='merge/concatenated and reformat input data files',
-    description="Merge/concatenated and reformat input data files")
+    data_merge = data_subparsers.add_parser('merge', help='merge/concatenate and reformat input ascii files',
+    description="Merge/concatenate and reformat input ascii files")
     data_merge.add_argument("input_files", nargs='+', help='input ascii files (can use wildcards)')
     data_merge.add_argument(
         '--nan',
@@ -114,7 +114,7 @@ def parse_args(*args, **kwargs):
     data_merge.add_argument(
         '--noextra',
         action='store_true',
-        help='do not output extra columns (other than numerical columns)')
+        help='do not output extra columns (columns other than numerical columns)')
     data_merge.add_argument(
         '--skipnan',
         action='store_true',
