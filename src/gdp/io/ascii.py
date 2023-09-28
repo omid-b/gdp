@@ -21,9 +21,10 @@ from argparse import Namespace
 
 class Dataset:
 
-    def __init__(self, files=[]):
+    def __init__(self, files=[], datasets=[]):
         self.nds = 0 # number of datasets
         self.files = [] # list of files
+        self.datasets = [] # list of datasets
         self.lines = [] # list of file lines
         self.titles = [] # list of processed datset titles
         self.processed = [] # list of processed datsets
@@ -41,7 +42,7 @@ class Dataset:
         )
         self.parameters = self.default_parameters
         self.set(**vars(self.default_parameters))
-        self.append(files) # must be after self.set()
+        self.append(files, datasets) # must be after self.set()
 
 
     def __str__(self):
@@ -86,7 +87,8 @@ class Dataset:
         self.update()
 
 
-    def append(self, new_files):
+    def append(self, new_files=[], new_datasets=[]):
+        # append new_files
         try:
             assert isinstance(new_files, list)
         except AssertionError:
@@ -104,7 +106,55 @@ class Dataset:
 
             self.files.append(new_files[i])
             self.lines.append(lines)
-        self.nds = len(self.files)
+
+        # append new_datasets
+        try:
+            assert isinstance(new_datasets, list)
+        except AssertionError:
+            raise AssertionError("appended dataset is not a list")
+        nod = len(new_datasets)
+        # loop through datasets and check data format
+        for i in range(nod): 
+            if len(new_datasets[i]) != 3: # [[pos], [val], [extra]]
+                raise Exception(f"Error: input dataset format is not correct:\ndatasets[{i}]={new_datasets[i]}")
+            nol = len(new_datasets[i][2])
+            nx = len(new_datasets[i][0])
+            nv = len(new_datasets[i][1])
+            # check extra for this dataset
+            for iline in range(nol):
+                assert type(new_datasets[i][2][iline]) is str
+            # check positional for this dataset
+            if nx and nx != nol:
+                raise Exception(f"Error: input dataset format is not correct for the positional list.\ndatasets[{i}]={new_datasets[i]}")
+            for ix in range(nx):
+                for iline in range(nol):
+                    assert type(new_datasets[i][0][ix][iline]) is float
+            # check value list for this dataset
+            if nv and nv != nol:
+                raise Exception(f"Error: input dataset format is not correct for the values list.\ndatasets[{i}]={new_datasets[i]}")
+            for iv in range(nv):
+                for iline in range(nol):
+                    assert type(new_datasets[i][1][iv][iline]) is float
+        # if we reach this line, datasets format was OK!
+        for i in range(nod):
+            lines = []
+            for iline in range(nol):
+                nx = len(new_datasets[i][0])
+                nv = len(new_datasets[i][1])
+                pos = []
+                val = []
+                extra = new_datasets[i][2]
+                for ix in range(nx):
+                    pos.append(new_datasets[i][0][ix])
+                for iv in range(nv):
+                    val.append(new_datasets[i][1][iv])
+                line = ' '.join(pos + val + extra)
+                lines.append(line)
+
+            self.datasets.append(f"dataset_%02.0f" %(float(i)))
+            self.lines.append(lines)
+
+        self.nds = len(self.files) + len(self.datasets)
         self.update()
 
 
@@ -460,19 +510,19 @@ class Dataset:
         return truncated
 
 
-    def anomaly(self, refmodel_dataset, calc_percent=True):
-        # assert if self is 1D/2D/3D
-        if len(self.x) not in [1, 2, 3]:
-            raise Exception("Error: dataset must be either 1D/2D/3D")
-            return
-        # check if the input refmodel is a type Dataset
-        try:
-            assert isinstance(refmodel_dataset, Dataset)
-        except AssertionError:
-            raise Exception("Error: input reference model dataset must be a type 'gdp.io.ascii.Dataset'")
-            return
+    # def anomaly(self, refmodel_dataset, calc_percent=True):
+    #     # assert if self is 1D/2D/3D
+    #     if len(self.x) not in [1, 2, 3]:
+    #         raise Exception("Error: dataset must be either 1D/2D/3D")
+    #         return
+    #     # check if the input refmodel is a type Dataset
+    #     try:
+    #         assert isinstance(refmodel_dataset, Dataset)
+    #     except AssertionError:
+    #         raise Exception("Error: input reference model dataset must be a type 'gdp.io.ascii.Dataset'")
+    #         return
 
-        # XXX
+    #     # XXX
 
 
     def update(self):
@@ -481,6 +531,10 @@ class Dataset:
             assert isinstance(self.files, list)
         except AssertionError:
             raise Exception("Error: argument 'files' must be a list")
+        try:
+            assert isinstance(self.datasets, list)
+        except AssertionError:
+            raise Exception("Error: argument 'datasets' must be a list")
         try:
             assert isinstance(self.header, int)
         except AssertionError:
@@ -524,8 +578,10 @@ class Dataset:
         # update self.titles ?
         if len(self.titles) != len(self.processed):
             self.titles = []
-            for i in range(self.nds):
+            for i in range(len(self.files)):
                 self.titles.append(os.path.split(self.files[i])[1])
+            for i in range(len(self.datasets)):
+                self.titles.append("dataset_%02.0f" %(float(i)))
 
         # is it a nan dataset?
         if len(self.x) == 0 and len(self.v) == 0:
