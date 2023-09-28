@@ -16,15 +16,15 @@
 """
 
 import os
-import numpy as np
+import math
 from argparse import Namespace
 
 class Dataset:
 
-    def __init__(self, files=[], datasets=[]):
+    def __init__(self, files=[], dataset=None):
         self.nds = 0 # number of datasets
         self.files = [] # list of files
-        self.datasets = [] # list of datasets
+        self.datasets = [] # manually input datasets
         self.lines = [] # list of file lines
         self.titles = [] # list of processed datset titles
         self.processed = [] # list of processed datsets
@@ -42,7 +42,7 @@ class Dataset:
         )
         self.parameters = self.default_parameters
         self.set(**vars(self.default_parameters))
-        self.append(files, datasets) # must be after self.set()
+        self.append(files=files, dataset=dataset) # must be after self.set()
 
 
     def __str__(self):
@@ -87,74 +87,142 @@ class Dataset:
         self.update()
 
 
-    def append(self, new_files=[], new_datasets=[]):
-        # append new_files
-        try:
-            assert isinstance(new_files, list)
-        except AssertionError:
-            new_files = [new_files]
-        nof = len(new_files)
-        for i in range(nof):
-            if new_files[i] in self.files:
-                continue
+    def append(self, files=[], dataset=None, dataset_title=None):
+        # wish to append a dataset object?
+        if type(dataset) == Dataset:
+            dataset.merge()
+            dataset = dataset.get_dataset()[0]
+        if type(files) == Dataset:
+            files.merge()
+            dataset = files.get_dataset()[0]
+            files=[]
+
+        # append new files
+        if len(files):
             try:
-                fopen = open(new_files[i], 'r')
-                lines = fopen.read().splitlines()
-                fopen.close()
-            except FileNotFoundError:
-                raise Exception(f"Error: could not read file: {new_files[i]}")
+                assert isinstance(files, list)
+            except AssertionError:
+                files = [files]
+            nof = len(files)
+            for i in range(nof):
+                if files[i] in self.files:
+                    continue
+                try:
+                    fopen = open(files[i], 'r')
+                    lines = fopen.read().splitlines()
+                    fopen.close()
+                except FileNotFoundError:
+                    raise Exception(f"Error: could not read file: {files[i]}")
 
-            self.files.append(new_files[i])
-            self.lines.append(lines)
+                self.files.append(files[i])
+                self.lines.append(lines)
 
-        # append new_datasets
+        if dataset == None:
+            self.nds = len(self.files) + len(self.datasets)
+            self.update()
+            return
+        
+        if dataset_title == None:
+            dataset_title = f"dataset_%02.0f" %(float(len(self.datasets) + 1))
+        elif dataset_title in self.datasets:
+            return
+
+        # append dataset
+
         try:
-            assert isinstance(new_datasets, list)
+            assert isinstance(dataset, list)
         except AssertionError:
             raise AssertionError("appended dataset is not a list")
-        nod = len(new_datasets)
-        # loop through datasets and check data format
-        for i in range(nod): 
-            if len(new_datasets[i]) != 3: # [[pos], [val], [extra]]
-                raise Exception(f"Error: input dataset format is not correct:\ndatasets[{i}]={new_datasets[i]}")
-            nol = len(new_datasets[i][2])
-            nx = len(new_datasets[i][0])
-            nv = len(new_datasets[i][1])
-            # check extra for this dataset
-            for iline in range(nol):
-                assert type(new_datasets[i][2][iline]) is str
-            # check positional for this dataset
-            if nx and nx != nol:
-                raise Exception(f"Error: input dataset format is not correct for the positional list.\ndatasets[{i}]={new_datasets[i]}")
+
+        # check input dataset data format
+        if len(dataset) != 3: # [[pos], [val], [extra]]
+            raise Exception(f"Error: input dataset format is not correct:\ndataset={dataset}")
+        else:
+            for k in range(3):
+                assert type(dataset[k]) is list
+
+        # check dataset's dimentions (i.e. number of lines for all [[pos], [val], [extra]])
+        nx = len(dataset[0])
+        nv = len(dataset[1])
+        nol = len(dataset[2])
+
+        if nx == nv == nol == 0:
+            raise Exception(f"Error: cannot append an empty dataset")
+
+        if nx:
+            nol_x = []
             for ix in range(nx):
-                for iline in range(nol):
-                    assert type(new_datasets[i][0][ix][iline]) is float
-            # check value list for this dataset
-            if nv and nv != nol:
-                raise Exception(f"Error: input dataset format is not correct for the values list.\ndatasets[{i}]={new_datasets[i]}")
+                try:
+                    nol_x.append(len(dataset[0][ix]))
+                except TypeError:
+                    raise Exception(f"Dataset format error: positional list must contain a sublist of float numbers.")
+            if min(nol_x) != max(nol_x):
+                raise Exception(f"Error: number of lines in the input positional list does not match.")
+            else:
+                nol_x = nol_x[0]
+        else:
+            nol_x = 0
+
+        if nv:
+            nol_v = []
             for iv in range(nv):
-                for iline in range(nol):
-                    assert type(new_datasets[i][1][iv][iline]) is float
-        # if we reach this line, datasets format was OK!
-        for i in range(nod):
-            lines = []
+                try:
+                    nol_v.append(len(dataset[1][iv]))
+                except TypeError:
+                    raise Exception(f"Dataset format error: values list must contain a sublist of float numbers.")
+            if min(nol_v) != max(nol_v):
+                raise Exception(f"Error: number of lines in the input values list does not match.")
+            else:
+                nol_v = nol_v[0]
+        else:
+            nol_v = 0
+
+        if nx and nv:
+            if nol_x != nol_v:
+                raise Exception(f"Error: number of lines in the input values and positional lists must match.")
+
+        if nol and nol_x and nol != nol_x:
+            raise Exception(f"Error: number of lines in the input positional and extra lists must match.")
+
+        if nol and nol_v and nol != nol_v:
+            raise Exception(f"Error: number of lines in the input values and extra lists must match.")
+
+        if not nol:
+            nol = max([nol_x, nol_v])
+            dataset[2] = ['' for iline in range(nol)]
+
+        # check extra for this dataset
+        for iline in range(nol):
+            assert type(dataset[2][iline]) is str
+
+        # check positional for this dataset
+        for ix in range(nx):
             for iline in range(nol):
-                nx = len(new_datasets[i][0])
-                nv = len(new_datasets[i][1])
-                pos = []
-                val = []
-                extra = new_datasets[i][2]
-                for ix in range(nx):
-                    pos.append(new_datasets[i][0][ix])
-                for iv in range(nv):
-                    val.append(new_datasets[i][1][iv])
-                line = ' '.join(pos + val + extra)
-                lines.append(line)
+                assert type(float(dataset[0][ix][iline])) is float
 
-            self.datasets.append(f"dataset_%02.0f" %(float(i)))
-            self.lines.append(lines)
+        # check value list for this dataset
+        for iv in range(nv):
+            for iline in range(nol):
+                assert type(float(dataset[1][iv][iline])) is float
 
-        self.nds = len(self.files) + len(self.datasets)
+        # if we reach this line, input dataset format was OK!
+        lines = [] # each line in lines is type=str
+        for iline in range(nol):
+            pos_line = []
+            val_line = []
+            extra_line = dataset[2][iline]
+            for ix in range(nx):
+                pos_line.append(str(dataset[0][ix][iline]))
+            pos_line = ' '.join(pos_line)
+            for iv in range(nv):
+                val_line.append(str(dataset[1][iv][iline]))
+            val_line = ' '.join(val_line)
+            line = f"{pos_line} {val_line} {extra_line}"
+            lines.append(line.strip())
+
+        self.datasets.append(dataset_title)
+        self.lines.append(lines)
+        self.nds = len(self.files) + len(self.datasets) # or = len(self.lines)
         self.update()
 
 
@@ -435,10 +503,10 @@ class Dataset:
                     pos_str.append( f"%{self.fmt[0]}f" %(self.processed[ids][0][ix][iline]) )
                 str_line = ' '.join(pos_str)
                 for iv in range(len(self.processed[ids][1])):
-                    if self.processed[ids][1][iv][iline] != np.nan:
+                    if not math.isnan(self.processed[ids][1][iv][iline]):
                         str_line = f"%s %{self.fmt[1]}f" %(str_line, self.processed[ids][1][iv][iline])
                     else:
-                        str_line = f"{str_line} {np.nan}"
+                        str_line = f"{str_line} {float('nan')}"
                 if len(self.processed[ids][2][iline]) and not self.noextra:
                     str_line = "%s %s" %(str_line, self.processed[ids][2][iline])
                 if self.nan:
@@ -496,7 +564,7 @@ class Dataset:
 
 
     def get_truncated(self):
-        # outputs a nan dataset object with header and footer lines removed
+        # outputs a nan dataset-like object with header and footer lines removed
         truncated = []
         for ids in range(self.nds):
             if self.footer != 0:
@@ -510,19 +578,137 @@ class Dataset:
         return truncated
 
 
-    # def anomaly(self, refmodel_dataset, calc_percent=True):
-    #     # assert if self is 1D/2D/3D
-    #     if len(self.x) not in [1, 2, 3]:
-    #         raise Exception("Error: dataset must be either 1D/2D/3D")
-    #         return
-    #     # check if the input refmodel is a type Dataset
-    #     try:
-    #         assert isinstance(refmodel_dataset, Dataset)
-    #     except AssertionError:
-    #         raise Exception("Error: input reference model dataset must be a type 'gdp.io.ascii.Dataset'")
-    #         return
+    def convert_to_anomaly(self, refmodel, percent=True):
+        if self.last_process == 'convert_to_anomaly':
+            raise Exception("this dataset was already converted to an anomaly model!")
+        # Note: this version only works for 1D datasets
+        try:
+            import numpy as np 
+        except ImportError:
+            raise ImportError("numpy is not installed; this method requires numpy")
+        # self must be 1D
+        if not (self.nx == self.nv == 1):
+            raise Exception("Error: this operation is only allowed for 1D datasets; self.nx==self.nv==1")
+        # input reference model must be a 1D dataset
+        if type(refmodel) != Dataset:
+            raise Exception("Error: input reference model must be a type 'Dataset'")
+        if not (refmodel.nds == refmodel.nx == refmodel.nv == 1):
+            raise Exception("Error: reference model must be explicit 1D; refmodel.nds==refmodel.nx==refmodel.nv==1")
+        # self uniq positional
+        self_uniq_pos = []
+        for ids in range(self.nds):
+            nol = len(self.processed[ids][2])
+            for iline in range(nol):
+                if self.processed[ids][0][0][iline] not in self_uniq_pos:
+                    self_uniq_pos.append(self.processed[ids][0][0][iline])
+        # refmodel uniq positional
+        refmodel_uniq_pos = []
+        nol = len(refmodel.processed[0][2])
+        for iline in range(nol):
+            if refmodel.processed[0][0][0][iline] not in refmodel_uniq_pos:
+                refmodel_uniq_pos.append(refmodel.processed[0][0][0][iline])
 
-    #     # XXX
+        if  min(self_uniq_pos) < min(refmodel_uniq_pos) or\
+            max(self_uniq_pos) > max(refmodel_uniq_pos):
+            print("WARNING: reference model does not fully cover the dataset positional range")
+
+        # loop through datasets and run 1D linear interpolations
+        for ids in range(self.nds):
+            absmodel_x = np.array(self.processed[ids][0][0], dtype=float)
+            absmodel_v = np.array(self.processed[ids][1][0], dtype=float)
+            refmodel_x = np.array(refmodel.processed[0][0][0], dtype=float)
+            refmodel_v = np.array(refmodel.processed[0][1][0], dtype=float)
+            refmodel_x_interp = np.array(absmodel_x, dtype=float)
+            refmodel_v_interp = np.interp(refmodel_x_interp, refmodel_x, refmodel_v)
+            anomaly_model_v = absmodel_v - refmodel_v_interp # unit: percent=False
+            if percent:
+                anomaly_model_v = (anomaly_model_v / refmodel_v_interp) * 100
+            # update self.processed '[val]' for this dataset
+            self.processed[ids][1][0] = anomaly_model_v.tolist()
+        self.last_process = 'convert_to_anomaly'
+
+
+    def convert_to_absolute(self, refmodel, percent=True):
+        if self.last_process == 'convert_to_absolute':
+            raise Exception("this dataset was already converted to an absolute model!")
+        # Note: this version only works for 1D datasets
+        try:
+            import numpy as np 
+        except ImportError:
+            raise ImportError("numpy is not installed; this method requires numpy")
+        # self must be 1D
+        if not (self.nx == self.nv == 1):
+            raise Exception("Error: this operation is only allowed for 1D datasets; self.nx==self.nv==1")
+        # input reference model must be a 1D dataset
+        if type(refmodel) != Dataset:
+            raise Exception("Error: input reference model must be a type 'Dataset'")
+        if not (refmodel.nds == refmodel.nx == refmodel.nv == 1):
+            raise Exception("Error: reference model must be explicit 1D; refmodel.nds==refmodel.nx==refmodel.nv==1")
+
+        # self uniq positional
+        self_uniq_pos = []
+        for ids in range(self.nds):
+            nol = len(self.processed[ids][2])
+            for iline in range(nol):
+                if self.processed[ids][0][0][iline] not in self_uniq_pos:
+                    self_uniq_pos.append(self.processed[ids][0][0][iline])
+        # refmodel uniq positional
+        refmodel_uniq_pos = []
+        nol = len(refmodel.processed[0][2])
+        for iline in range(nol):
+            if refmodel.processed[0][0][0][iline] not in refmodel_uniq_pos:
+                refmodel_uniq_pos.append(refmodel.processed[0][0][0][iline])
+
+        if  min(self_uniq_pos) < min(refmodel_uniq_pos) or\
+            max(self_uniq_pos) > max(refmodel_uniq_pos):
+            print("WARNING: reference model does not fully cover the dataset positional range")
+
+        # loop through datasets and run 1D linear interpolations
+        for ids in range(self.nds):
+            anom_model_x = np.array(self.processed[ids][0][0], dtype=float)
+            anom_model_v = np.array(self.processed[ids][1][0], dtype=float)
+            refmodel_x = np.array(refmodel.processed[0][0][0], dtype=float)
+            refmodel_v = np.array(refmodel.processed[0][1][0], dtype=float)
+            refmodel_x_interp = np.array(anom_model_x, dtype=float)
+            refmodel_v_interp = np.interp(refmodel_x_interp, refmodel_x, refmodel_v)
+
+            if percent:
+                abs_model_v = ((anom_model_v / 100) + 1) * refmodel_v_interp
+            else:
+                abs_model_v = anom_model_v + refmodel_v_interp
+            # update self.processed '[val]' for this dataset
+            self.processed[ids][1][0] = abs_model_v.tolist()
+
+        self.last_process = 'convert_to_absolute'
+
+
+    def convert_to_1D(self, position_info_dataset=None):
+        # self must be either 3D or 2D
+        # even if self is 2D, self.nx could be 3. In this case,
+        # the third positional is considered as the position info.
+        # Alternatively for the 2D case, one can input 
+        # the 'position_info_dataset' with the following settings:
+        #   position_info_dataset.nds = 1
+        #   len(position_info_dataset[0][2]) = self.nds
+        #   position_info_dataset = [pos, [], []]
+        #   pos = [[z/depth etc.]]
+        pass
+
+
+    def convert_to_2D(self, position_info_dataset=None):
+        # self must be either 1D or 3D
+        # If 1D, 'position_info_dataset' is required
+        # type(position_info_dataset) = Dataset
+        # position_info_dataset.nds = 1
+        # len(position_info_dataset[0][2]) = self.nds
+        # position_info_dataset = [pos, [], []]
+        # pos = [[x/lon], [y/lat]]
+        pass
+
+    def convert_to_3D(self, position_info_dataset):
+        # self must be either 1D or 2D
+        # in both 1D/2D cases, 'position_info_dataset' is required
+        pass
 
 
     def update(self):
@@ -580,8 +766,8 @@ class Dataset:
             self.titles = []
             for i in range(len(self.files)):
                 self.titles.append(os.path.split(self.files[i])[1])
-            for i in range(len(self.datasets)):
-                self.titles.append("dataset_%02.0f" %(float(i)))
+            for dst in self.datasets:
+                self.titles.append(dst)
 
         # is it a nan dataset?
         if len(self.x) == 0 and len(self.v) == 0:
@@ -611,13 +797,13 @@ class Dataset:
                     for ix in range(self.nx):
                         pos_col = self.x[ix] - 1
                         if pos_col < 0 or pos_col >= ncol:
-                            pos[ix].append(np.nan)
+                            pos[ix].append(float('nan'))
                             continue
                         pos_data_str = extra_line_split[pos_col]
                         try:
                             pos[ix].append(float(pos_data_str))
                         except ValueError:
-                            pos[ix].append(np.nan)
+                            pos[ix].append(float('nan'))
                         # update remove_from_extra
                         if pos_data_str in extra_line_split:
                             remove_from_extra.append(pos_data_str)
@@ -626,13 +812,13 @@ class Dataset:
                     for iv in range(self.nv):
                         val_col = self.v[iv] - 1
                         if val_col < 0 or val_col >= ncol:
-                            val[iv].append(np.nan)
+                            val[iv].append(float('nan'))
                             continue
                         val_data_str = extra_line_split[val_col]
                         try:
                             val[iv].append(float(val_data_str))
                         except ValueError:
-                            val[iv].append(np.nan)
+                            val[iv].append(float('nan'))
                         # update remove_from_extra
                         if val_data_str in extra_line_split:
                             remove_from_extra.append(val_data_str)
@@ -651,7 +837,7 @@ class Dataset:
             if self.skipnan:
                 for ids in range(self.nds):
                     pos_skipnan = [[] for ix in range(self.nx)]
-                    val_skipnan = [[] for iv in range(self.nx)]
+                    val_skipnan = [[] for iv in range(self.nv)]
                     extra_skipnan = []
                     nol = len(self.processed[ids][2])
                     for iline in range(nol):
@@ -661,12 +847,17 @@ class Dataset:
                         for iv in range(self.nv):
                             temp.append(self.processed[ids][1][iv][iline])
                         
-                        if np.nan not in temp:
-                            for ix in range(self.nx):
-                                pos_skipnan[ix].append(self.processed[ids][0][ix][iline])
-                            for iv in range(self.nv):
-                                val_skipnan[iv].append(self.processed[ids][1][iv][iline])
-                            extra_skipnan.append(self.processed[ids][2][iline])
+                        has_nan = False
+                        for tmp in temp:
+                            if math.isnan(tmp):
+                                has_nan = True
+                        if has_nan:
+                            continue
+                        for ix in range(self.nx):
+                            pos_skipnan[ix].append(self.processed[ids][0][ix][iline])
+                        for iv in range(self.nv):
+                            val_skipnan[iv].append(self.processed[ids][1][iv][iline])
+                        extra_skipnan.append(self.processed[ids][2][iline])
                     self.processed[ids] = [pos_skipnan, val_skipnan, extra_skipnan]
 
 
@@ -679,10 +870,20 @@ class Dataset:
                 print(line)
 
 
-    def reset(self):
+    def reset(self, hard=False):
         current_parameters = self.parameters
-        self.__init__(self.files)
-        self.set(**vars(current_parameters))
+        current_self_lines = self.lines
+        current_dataset_titles = self.datasets
+        nof = len(self.files) # number of files
+        nod = len(self.datasets) # number of manually input datasets
+        self.__init__(files=self.files)
+        for ids in range(nod):
+            self.append(dataset=[[], [], current_self_lines[nof + ids]],\
+                        dataset_title=current_dataset_titles[ids])
+        if hard == True:
+            self.set(**vars(self.default_parameters))
+        else:
+            self.set(**vars(current_parameters))
 
 ###################################
 
@@ -732,6 +933,12 @@ def calc_complementary_dataset(datasets, sub_dataset):
                 complementary_dataset[2].append(datasets[ids][2][iline])
 
     return complementary_dataset
+
+
+
+
+
+
 
 
 #########################################################
