@@ -484,8 +484,7 @@ class Dataset:
         for ids in range(num_split_datasets):
             split_data_lines = combined_dataset[split_indices[ids]:split_indices[ids+1]]
             split_data_name = f"{'_'.join(split_data_lines[name_index_offset].split())}"
-            # self.processed[ids][2] = split_data_lines
-            self.processed[ids][2] = ["", "", f"'{split_data_name}'"] + split_data_lines
+            self.processed[ids][2] = split_data_lines
             self.titles.append(split_data_name)
         # finalize self.processed
         self.sort = self.uniq = self.skipnan =  False
@@ -563,14 +562,17 @@ class Dataset:
         return self.processed
 
 
-    def get_truncated(self):
+    def get_truncated(self, lines=None):
+        if lines == None:
+            lines = self.lines
         # outputs a nan dataset-like object with header and footer lines removed
         truncated = []
-        for ids in range(self.nds):
+        nds = len(lines)
+        for ids in range(nds):
             if self.footer != 0:
-                extra = self.lines[ids][self.header:-self.footer]
+                extra = lines[ids][self.header:-self.footer]
             else:
-                extra = self.lines[ids][self.header:]
+                extra = lines[ids][self.header:]
             truncated.append(
                 [[ ], [ ], extra]
             #   [pos, val, extra]
@@ -759,7 +761,8 @@ class Dataset:
             raise Exception("Error: argument 'uniq' must be a boolean")
 
         # truncate (remove header and footer lines): a nan dataset object
-        self.processed = self.get_truncated()
+        if not len(self.processed):
+            self.processed = self.get_truncated()
 
         # update self.titles ?
         if len(self.titles) != len(self.processed):
@@ -788,8 +791,14 @@ class Dataset:
                 val = [[] for iv in range(self.nv)] # list of values/data
                 extra = self.processed[ids][2]
                 nol = len(extra)
+                print("nol", nol)
+                
+
                 for iline in range(nol):
                     extra_line_split = extra[iline].split()
+                    print("extra_line_split", ids, iline, extra_line_split)
+
+
                     remove_from_extra = []
                     ncol = len(extra_line_split)
 
@@ -884,6 +893,11 @@ class Dataset:
             self.set(**vars(self.default_parameters))
         else:
             self.set(**vars(current_parameters))
+
+
+    # def commit(self):
+    #     pass
+
 
 ###################################
 
