@@ -17,14 +17,24 @@
 
 import os
 import math
+import numpy as np
+
 from argparse import Namespace
+from alphashape import alphashape # concave hull
+from scipy.spatial import ConvexHull
+
+try:
+    from .._extensions import _geographic as geographic
+except ImportError:
+    print("WARNING! Could not use cythonized module: geographic")
+    from .._extensions import geographic
 
 class Dataset:
 
     def __init__(self, files=[], dataset=None):
         self.nds = 0 # number of datasets
-        self.files = [] # list of files
         self.datasets = [] # manually input datasets
+        self.files = [] # list of files
         self.lines = [] # list of file lines
         self.titles = [] # list of processed datset titles
         self.processed = [] # list of processed datsets
@@ -99,6 +109,7 @@ class Dataset:
 
         # append new files
         if len(files):
+
             try:
                 assert isinstance(files, list)
             except AssertionError:
@@ -536,24 +547,18 @@ class Dataset:
             raise Exception("Error: get_numericals operation is only allowed for numerical datasets")
         num_numericals = self.nx + self.nv
         numericals = []
-        if self.nds == 1:
+        for ids in range(self.nds):
+            numericals.append([])
             for ix in range(self.nx):
-                numericals.append(self.processed[0][0][ix])
+                numericals[ids].append(self.processed[ids][0][ix])
             for iv in range(self.nv):
-                numericals.append(self.processed[0][1][iv])
-        else:
-            for ids in range(self.nds):
-                numericals.append([])
-                for ix in range(self.nx):
-                    numericals[ids].append(self.processed[ids][0][ix])
-                for iv in range(self.nv):
-                    numericals[ids].append(self.processed[ids][1][iv])
-            if merge:
-                numericals_merged = numericals[0]
-                for ids in range(1, self.nds):
-                    for inum in range(num_numericals):
-                        numericals_merged[inum] += numericals[ids][inum]
-                numericals = numericals_merged
+                numericals[ids].append(self.processed[ids][1][iv])
+        if self.nds > 1 and merge:
+            numericals_merged = numericals[0]
+            for ids in range(1, self.nds):
+                for inum in range(num_numericals):
+                    numericals_merged[inum] += numericals[ids][inum]
+            numericals = numericals_merged
 
         return numericals
 
@@ -563,9 +568,9 @@ class Dataset:
 
 
     def get_truncated(self, lines=None):
+        # outputs a nan dataset-like object with header and footer lines removed
         if lines == None:
             lines = self.lines
-        # outputs a nan dataset-like object with header and footer lines removed
         truncated = []
         nds = len(lines)
         for ids in range(nds):
@@ -583,11 +588,7 @@ class Dataset:
     def convert_to_anomaly(self, refmodel, percent=True):
         if self.last_process == 'convert_to_anomaly':
             raise Exception("this dataset was already converted to an anomaly model!")
-        # Note: this version only works for 1D datasets
-        try:
-            import numpy as np 
-        except ImportError:
-            raise ImportError("numpy is not installed; this method requires numpy")
+
         # self must be 1D
         if not (self.nx == self.nv == 1):
             raise Exception("Error: this operation is only allowed for 1D datasets; self.nx==self.nv==1")
@@ -633,11 +634,7 @@ class Dataset:
     def convert_to_absolute(self, refmodel, percent=True):
         if self.last_process == 'convert_to_absolute':
             raise Exception("this dataset was already converted to an absolute model!")
-        # Note: this version only works for 1D datasets
-        try:
-            import numpy as np 
-        except ImportError:
-            raise ImportError("numpy is not installed; this method requires numpy")
+        
         # self must be 1D
         if not (self.nx == self.nv == 1):
             raise Exception("Error: this operation is only allowed for 1D datasets; self.nx==self.nv==1")
@@ -682,6 +679,80 @@ class Dataset:
             self.processed[ids][1][0] = abs_model_v.tolist()
 
         self.last_process = 'convert_to_absolute'
+
+    def interpolate_2D(self, interval=None, nodes=None, n=8):
+        # 2D interpolation using adaptive Gaussian smoothing 
+        # that for each grid node includes n neighbours while 
+        # while ensuring that the data values are all in 
+        # 3xSTD range to also account for outlier removal
+        if self.nx != 2:
+            raise Exception("Error: this operation is only allowed for a 2D dataset: self.nx==2")
+            
+
+        # which one is given? nodes or interval
+        
+        if interval:
+
+            if type(interval) == float or type(interval) == int:
+                interval = [interval, interval]
+
+            nodes = Dataset()
+
+            numericals = self.get_numericals()
+            for ids in range(self.nds):
+                data_x, data_y = numericals[ids][0], numericals[ids][1]                
+                data_xy = np.vstack((data_x, data_y)).T
+                # find concave polygon enclosing all data points
+                alpha = 0.5 # initial alpha
+                hull = alphashape(data_xy, alpha)
+                while hull.is_empty:
+                    alpha *= 0.5
+                    hull = alphashape(data_xy, alpha)
+                    if alpha < 1e-12:
+                        raise("Error: could not figure out a concave polygon in the process of constructing the nodes object!")
+                hull_x, hull_y = hull.exterior.xy
+                hull_x, hull_y = hull_x.tolist(), hull_y.tolist()
+                hull_x.append(hull_x[0])
+                hull_y.append(hull_y[0])
+                # instanciate polygon object and check nodes point in polygon
+                polygon = geographic.Polygon(hull_x, hull_y)
+
+                data_xrange = [ np.floor(np.nanmin(data_x)),
+                            np.ceil(np.nanmax(data_x)) ]
+                data_yrange = [ np.floor(np.nanmin(data_y)),
+                            np.ceil(np.nanmax(data_y)) ]
+                nodes_x, nodes_y, nodes_extra = [[], [], []]
+                for xn in np.arange(data_xrange[0], data_xrange[1] + interval[0], interval[0]):
+                    for yn in np.arange(data_yrange[0], data_yrange[1] + interval[1], interval[1]):
+                        point = geographic.Point(xn, yn)
+                        if polygon.is_point_in(point):
+                            nodes_x.append(xn)
+                            nodes_y.append(yn)
+                            nodes_extra.append("")
+
+                nodes.append(dataset=[[nodes_x, nodes_y], [], nodes_extra])
+
+        
+        if nodes: # nodes object is already generated if interval above
+            if type(nodes) != Dataset:
+                raise Exception("Error: input argument 'nodes' must be a type 'Dataset'")
+            else:
+                if nodes.nds != self.nds:
+                    if nodes.nds != 1:
+                        raise Exception("Error: input nodes.nds must either be 1 or match self.nds!")
+                    for i in range(1, self.nds):
+                        nodes.append(dataset=nodes)
+        else:
+            raise Exception("Error: either of these arguments must be given: interval/nodes")
+
+
+        print(nodes.nds)
+
+
+
+
+
+
 
 
     def convert_to_1D(self, position_info_dataset=None):
@@ -761,8 +832,7 @@ class Dataset:
             raise Exception("Error: argument 'uniq' must be a boolean")
 
         # truncate (remove header and footer lines): a nan dataset object
-        if not len(self.processed):
-            self.processed = self.get_truncated()
+        self.processed = self.get_truncated()
 
         # update self.titles ?
         if len(self.titles) != len(self.processed):
@@ -786,18 +856,16 @@ class Dataset:
 
         # initial processing of numerical datasets:
         if not self.nan:
+            
             for ids in range(self.nds):
                 pos = [[] for ix in range(self.nx)] # list of positional values
                 val = [[] for iv in range(self.nv)] # list of values/data
                 extra = self.processed[ids][2]
                 nol = len(extra)
-                print("nol", nol)
-                
+
 
                 for iline in range(nol):
                     extra_line_split = extra[iline].split()
-                    print("extra_line_split", ids, iline, extra_line_split)
-
 
                     remove_from_extra = []
                     ncol = len(extra_line_split)
@@ -880,6 +948,8 @@ class Dataset:
 
 
     def reset(self, hard=False):
+        # reset to original unprocessed dataset
+        # a hard reset will also reset to default parameters
         current_parameters = self.parameters
         current_self_lines = self.lines
         current_dataset_titles = self.datasets
