@@ -795,3 +795,135 @@ def ps2pdf(input_ps, outdir):
         fname_ext_out = f"{fname}.ps"
     return fname_ext_out
 
+
+def plot_data_geotiff(args):
+    from . import dat
+    from . import io
+    from . import epsg
+
+    # step 1: read and transform input data to wgs84 if not already
+    [data_x, data_y],[data_v], _ = io.read_numerical_data(args.input_file, 0, 0, [".10",".10"], args.x, [args.v], skipnan=True)
+    nop = len(data_x)
+    if args.cs[0].lower() not in ['wgs84', '4326']:
+        for i in range(nop): 
+            old_x, old_y = data_x[i], data_y[i]
+            new_x, new_y = dat.transform_point_coordinates(old_x, old_y, args.cs[0], args.cs[1], accept_same_cs=False)
+            data_x[i], data_y[i] = [new_x, new_y]
+    if args.refvalue != 999.99:
+        data_v = np.subtract(data_v, args.refvalue)
+        data_v = np.divide(data_v, args.refvalue)
+        data_v = np.multiply(data_v, 100.0)
+
+    # step 2: check and populate input args and GMT parameters
+    if args.xrange == [-999.99, 999.99]:
+        args.xrange = [np.nanmin(data_x), np.nanmax(data_x)]
+    if args.yrange == [-999.99, 999.99]:
+        args.yrange = [np.nanmin(data_y), np.nanmax(data_y)]
+    if args.xrange[0] < -180 or args.xrange[0] > 180:
+        raise ValueError("Error: input data longitude range is outside [-180, 180]")
+    if args.yrange[0] < -90 or args.yrange[0] > 90:
+        raise ValueError("Error: input data latitude range is outside [-90, 90]")
+
+    epsg_from = dat.return_epsg_code(args.cs[0])
+    epsg_to = dat.return_epsg_code(args.cs[1])
+    if str(epsg_to).upper() not in epsg.WGS84_EPSG_to_UTM.keys():
+        print("ERROR: Output coordinate system must be a WGS84 UTM system.")
+        exit(1)
+    utm_to = epsg.WGS84_EPSG_to_UTM[f'{epsg_to}']
+
+    # color scale range
+    if args.crange == [-999.99, 999.99]:
+        data_mean = np.nanmean(data_v)
+        data_std = np.nanstd(data_v)
+        args.crange = [np.round(data_mean-3*data_std, 4), np.round(data_mean+3*data_std, 4)]
+    if args.cstep == 999.99:
+        args.cstep = np.round((args.crange[1] - args.crange[0])/20, 4)
+    
+    ndecimals = len(str(args.interval).split('.')[1])
+    gmt_reg = [
+        str(np.round(args.xrange[0], ndecimals)),
+        str(np.round(args.xrange[1], ndecimals)),
+        str(np.round(args.yrange[0], ndecimals)),
+        str(np.round(args.yrange[1], ndecimals)),
+    ]
+    gmt_reg = '/'.join(gmt_reg)
+    gmt_prj = f"U{utm_to[:-1]}/1000p"
+    gmt_crange = f"{args.crange[0]}/{args.crange[1]}/{args.cstep}"
+
+
+    # step 3: build GMT script
+    outdir, fname = os.path.split(os.path.abspath(args.outfile))
+    fname, _ = os.path.splitext(fname)
+    fout = os.path.join(outdir, fname)
+
+    # GMT
+    GMT = dependency.find_gmt_path()
+    if len(GMT) == 0 or not os.path.isfile(GMT):
+        print(f"Error! Could not find GMT executable:\nGMT: '{GMT}'\n")
+        exit(1)
+
+    #  write gmt input xyz file and run blockmean
+    fopen = open(os.path.join(outdir, f"{fname}.tmp"), 'w')
+    for i in range(nop):
+        fopen.write(f"{data_x[i]} {data_y[i]} {data_v[i]}\n")
+    fopen.close()
+
+    gmt_script_1 = [
+        f"#!/bin/bash",
+        f"cd {outdir}",
+        f"{GMT} set GMT_VERBOSE v",
+        f"{GMT} set PS_MEDIA 2000px2000p",
+        f"{GMT} makecpt -C{args.cpt}  -T{gmt_crange} > {fname}.cpt",
+        f"{GMT} blockmean {fname}.tmp -R{gmt_reg} -I{args.interval} > {fname}.dat",
+    ]
+
+    print(f"\n$> Input File: {args.input_file}")
+    print("\n".join(gmt_script_1))
+    subprocess.call("\n".join(gmt_script_1), shell=True)
+
+    # calculate mask polygon
+    args.points_file = os.path.join(outdir, f'{fname}.dat')
+    args.x = [1, 2]
+    args.header = 0
+    args.footer = 0
+    args.smooth = 0
+    args.alpha = 0.001
+    args.fmt = ['.10', '.10']
+    args.outfile = os.path.join(outdir, f'{fname}.ply')
+    dat.alpha_shape_polygon(args)
+
+    gmt_script_2 = [
+        f"{GMT} surface {fname}.dat  -R{gmt_reg} -I{args.interval} -T{args.tension} -G{fname}.nc",
+        f"{GMT} grdmask {fname}.ply -R{gmt_reg} -I{args.interval} -NNaN/1/1 -Gmask.nc",
+        f"{GMT} grdmath mask.nc {fname}.nc MUL = {fname}_masked.nc"
+    ]
+
+    if args.pscoast_N == '0':
+        gmt_script_2.append(
+            f"{GMT} grdimage {fname}_masked.nc  -R{gmt_reg} -J{gmt_prj} -C{fname}.cpt -E{args.dpi} -P > {fname}.ps",
+        )
+    else:
+        gmt_script_2 += [
+            f"{GMT} grdimage {fname}_masked.nc  -R{gmt_reg} -J{gmt_prj} -C{fname}.cpt -E{args.dpi} -P -K > {fname}.ps",
+            f"{GMT} pscoast -R{gmt_reg} -J{gmt_prj} -W{args.pscoast_W} -D{args.pscoast_D} -A{args.pscoast_A} -N{args.pscoast_N} -P -O >> {fname}.ps",
+        ]
+    gmt_script_2 += [
+        f"{GMT} psconvert -TG -W {fname}.ps",
+        f"gdalwarp -s_srs EPSG:{epsg_to} {fname}.png {fname}.tiff",
+    ]
+
+    print("\n".join(gmt_script_2))
+    subprocess.call("\n".join(gmt_script_2), shell=True)
+
+    # remove temporary files
+    for xxx in ['tmp','dat','cpt', 'nc', 'ply', 'ps', 'pgw']:
+        os.remove(os.path.join(outdir, f"{fname}.{xxx}"))
+    os.remove(os.path.join(outdir, f"{fname}_masked.nc"))
+    os.remove(os.path.join(outdir, f"mask.nc"))
+    os.remove(os.path.join(outdir, f"gmt.conf"))
+    os.remove(os.path.join(outdir, f"gmt.history"))
+
+
+
+
+

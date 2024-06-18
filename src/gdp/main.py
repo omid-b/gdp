@@ -978,6 +978,114 @@ def parse_args(*args, **kwargs):
         help="output plot file; default file extension, if not specified from ['pdf','png','jpg'] will be set to 'pdf'")
 
 
+    #------------------------#
+    # $> gdp data plot geotiff
+    data_plot_geotiff = data_plot_subparsers.add_parser(
+        'geotiff',
+        help='generate GeoTIFFs (UTM coordinate system)',
+        description='Generate GeoTIFFs from input scattered dataset.')
+
+    data_plot_geotiff.add_argument(
+        'input_file',
+        help='path to input geographic data file')
+    data_plot_geotiff.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        required=True,
+        help="REQUIRED: output file; file extension will be *.tiff")
+    data_plot_geotiff.add_argument(
+        '-x',
+        type=int,
+        nargs=2,
+        default=[1, 2],
+        help='positional columns i.e. [x/lon, y/lat]')
+    data_plot_geotiff.add_argument(
+        '-v',
+        type=int,
+        default=3,
+        help='value column default=3')
+    data_plot_geotiff.add_argument(
+        '--xrange',
+        type=float,
+        nargs=2,
+        default=[-999.99, 999.99],
+        help='longitude range (will be set to min/max data extent if not specified)')
+    data_plot_geotiff.add_argument(
+        '--yrange',
+        type=float,
+        nargs=2,
+        default=[-999.99, 999.99],
+        help='latitude range (will be set to min/max data extent if not specified)')
+    data_plot_geotiff.add_argument(
+        '--refvalue',
+        type=float,
+        default=999.99,
+        help='OPTIONAL: reference value to calculate perturbation model')
+    data_plot_geotiff.add_argument(
+        '--cs',
+        type=str,
+        nargs=2,
+        default=['wgs84', 'wgs84'],
+        required=True,
+        help='REQUIRED: coordinate systems (e.g., EPSG or short name): [input_cs, output_cs]'
+        )
+    data_plot_geotiff.add_argument(
+        '--interval',
+        type=float,
+        required=True,
+        help='REQUIRED: GMT geographic gridding resolution (degrees)'
+        )
+    data_plot_geotiff.add_argument(
+        '--tension',
+        type=float,
+        default=0.0,
+        help='GMT gridding tension parameter (between 0 and 1); default=0.0')
+    data_plot_geotiff.add_argument(
+        '--cpt',
+        default='roma',
+        help='GMT colormap (visit: https://docs.generic-mapping-tools.org/6.4/cookbook/cpts.html); default=roma'
+        )
+    data_plot_geotiff.add_argument(
+        '--invert_color',
+        action='store_true',
+        help='invert color map')
+    data_plot_geotiff.add_argument(
+        '--dpi',
+        type=float,
+        default=600,
+        help='output map DPI (dot per inch); default=600')
+    data_plot_geotiff.add_argument(
+        '--crange',
+        type=float,
+        nargs=2,
+        default=[-999.99, 999.99],
+        help='color scale range; default=mean \\pm 3std')
+    data_plot_geotiff.add_argument(
+        '--cstep',
+        type=float,
+        default=999.99,
+        help='color scale step/interval')
+    data_plot_geotiff.add_argument(
+        '--pscoast_N',
+        choices=['0', '1', '2', '3', 'a'],
+        default='2',
+        help='GMT pscoast flag: regarding political boundaries; default=2 (assign 0 to skip pscoast)')
+    data_plot_geotiff.add_argument(
+        '--pscoast_D',
+        choices=['a','c', 'l', 'i', 'h', 'f'],
+        default='a',
+        help='GMT pscoast flag: coast line data resolution; default=a')
+    data_plot_geotiff.add_argument(
+        '--pscoast_W',
+        type=float,
+        default=1,
+        help='GMT pscoast flag: line thickness; default=1')
+    data_plot_geotiff.add_argument(
+        '--pscoast_A',
+        type=str,
+        default='0/0/4',
+        help='GMT pscoast flag: minimum area flag (default="0/0/4 (all features)"); default=0/0/4')
     
 
     #=====MODULE: STATS=====#
@@ -2907,6 +3015,9 @@ def main(*args, **kwargs):
 
             if args.subsubmodule == 'scatter':        
                 plot.plot_data_scatter(args)
+
+            elif args.subsubmodule == 'geotiff':        
+                plot.plot_data_geotiff(args)
         else:
             subprocess.call("gdp data -h", shell=True)
             exit(0)
