@@ -801,13 +801,18 @@ def plot_data_geotiff(args):
     from . import io
     from . import epsg
 
+    if args.colorbar:
+        makecpt = True
+    else:
+        makecpt = False
+
     # step 1: read and transform input data to wgs84 if not already
     [data_x, data_y],[data_v], _ = io.read_numerical_data(args.input_file, 0, 0, [".10",".10"], args.x, [args.v], skipnan=True)
     nop = len(data_x)
     if args.cs[0].lower() not in ['wgs84', '4326']:
         for i in range(nop): 
             old_x, old_y = data_x[i], data_y[i]
-            new_x, new_y = dat.transform_point_coordinates(old_x, old_y, args.cs[0], args.cs[1], accept_same_cs=False)
+            new_x, new_y = dat.transform_point_coordinates(old_x, old_y, args.cs[0], 'wgs84', accept_same_cs=False)
             data_x[i], data_y[i] = [new_x, new_y]
     if args.refvalue != 999.99:
         data_v = np.subtract(data_v, args.refvalue)
@@ -820,8 +825,10 @@ def plot_data_geotiff(args):
     if args.yrange == [-999.99, 999.99]:
         args.yrange = [np.nanmin(data_y), np.nanmax(data_y)]
     if args.xrange[0] < -180 or args.xrange[0] > 180:
+        print(f"longitude range: {args.xrange}")
         raise ValueError("Error: input data longitude range is outside [-180, 180]")
     if args.yrange[0] < -90 or args.yrange[0] > 90:
+        print(f"latitude range: {args.yrange}")
         raise ValueError("Error: input data latitude range is outside [-90, 90]")
 
     epsg_from = dat.return_epsg_code(args.cs[0])
@@ -836,6 +843,7 @@ def plot_data_geotiff(args):
         data_mean = np.nanmean(data_v)
         data_std = np.nanstd(data_v)
         args.crange = [np.round(data_mean-3*data_std, 4), np.round(data_mean+3*data_std, 4)]
+        makecpt = True
     if args.cstep == 999.99:
         args.cstep = np.round((args.crange[1] - args.crange[0])/20, 4)
     
@@ -923,13 +931,23 @@ def plot_data_geotiff(args):
     os.remove(os.path.join(outdir, f"gmt.conf"))
     os.remove(os.path.join(outdir, f"gmt.history"))
 
+    if makecpt:
+        args.outfile = os.path.join(outdir, f"{fname}_colorbar.pdf")
+        args.B = 'a'
+        args.label = ['']
+        args.type = 'v'
+        args.size = 800
+        args.size_ratio = 20
+        plot_data_colorbar(args)
+
 
 
 def plot_data_colorbar(args):
     outdir, fname = os.path.split(os.path.abspath(args.outfile))
     fname, _ = os.path.splitext(fname)
     gmt_crange = f"{args.crange[0]}/{args.crange[1]}/{args.cstep}"
-    args.label = '\ '.join(args.label)
+    if len(args.label):
+        args.label = '\ '.join(args.label)
 
     # GMT
     GMT = dependency.find_gmt_path()
@@ -941,7 +959,7 @@ def plot_data_colorbar(args):
         f"#!/bin/bash",
         f"cd {outdir}",
         f"{GMT} set GMT_VERBOSE v",
-        f"{GMT} set PS_MEDIA 2500px2500p",
+        f"{GMT} set PS_MEDIA {int(args.size*3)}px{int(args.size*3)}p",
         f"{GMT} set FONT_ANNOT_PRIMARY 18p,Helvetica,black",        
     ]
     if args.invert_color:
@@ -953,11 +971,19 @@ def plot_data_colorbar(args):
             f"{GMT} makecpt -C{args.cpt}  -T{gmt_crange} > {fname}.cpt",
         )
     if args.type == 'v':
-        scale_flag = '-Dx0p/50p+w800p/30p+jTC+v'
+        scale_flag = f'-Dx50p/50p+w{int(args.size)}p/{int(args.size/args.size_ratio)}p+jBC+v'
+        if len(args.label):
+            label_flag = f'-By+l{args.label}'
+        else:
+            label_flag = ' '
     else:
-        scale_flag = '-Dx0p/50p+w800p/30p+jTL+h'
+        scale_flag = f'-Dx50p/50p+w{int(args.size)}p/{int(args.size/args.size_ratio)}p+jBC+h'
+        if len(args.label):
+            label_flag = f'-Bx+l{args.label}'
+        else:
+            label_flag = ' '
     gmt_script.append(
-        f"{GMT} psscale -X1000p -Y1000p -C{fname}.cpt {scale_flag} -B{args.B} -By+l{args.label} -P > {fname}.ps"
+        f"{GMT} psscale -X{int(args.size)}p -Y{int(args.size)}p -C{fname}.cpt -B{args.B} {label_flag} {scale_flag} -P > {fname}.ps"
     )
 
     subprocess.call("\n".join(gmt_script), shell=True)

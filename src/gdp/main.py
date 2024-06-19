@@ -1051,6 +1051,10 @@ def parse_args(*args, **kwargs):
         action='store_true',
         help='invert color map')
     data_plot_geotiff.add_argument(
+        '--colorbar',
+        action='store_true',
+        help='generate colorbar pdf file')
+    data_plot_geotiff.add_argument(
         '--dpi',
         type=float,
         default=600,
@@ -1125,20 +1129,25 @@ def parse_args(*args, **kwargs):
         default='a',
         help='colorbar annotation flag value; default=a')
     data_plot_colorbar.add_argument(
+        '--label',
+        type=str,
+        nargs='+',
+        default=[''],
+        help='colorbar label')
+    data_plot_colorbar.add_argument(
         '--invert_color',
         action='store_true',
         help='invert color map')
     data_plot_colorbar.add_argument(
-        '--dpi',
+        '--size',
         type=float,
-        default=600,
-        help='output map DPI (dot per inch); default=600')
+        default=800,
+        help='colorbar length size (unit=pixels); default=800')
     data_plot_colorbar.add_argument(
-        '--label',
-        type=str,
-        nargs='+',
-        default='',
-        help='colorbar label')
+        '--size_ratio',
+        type=float,
+        default=20,
+        help='colorbar length to width ratio; default=20')
 
     #=====MODULE: STATS=====#
 
