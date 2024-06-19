@@ -925,5 +925,50 @@ def plot_data_geotiff(args):
 
 
 
+def plot_data_colorbar(args):
+    outdir, fname = os.path.split(os.path.abspath(args.outfile))
+    fname, _ = os.path.splitext(fname)
+    gmt_crange = f"{args.crange[0]}/{args.crange[1]}/{args.cstep}"
+    args.label = '\ '.join(args.label)
+
+    # GMT
+    GMT = dependency.find_gmt_path()
+    if len(GMT) == 0 or not os.path.isfile(GMT):
+        print(f"Error! Could not find GMT executable:\nGMT: '{GMT}'\n")
+        exit(1)
+
+    gmt_script = [
+        f"#!/bin/bash",
+        f"cd {outdir}",
+        f"{GMT} set GMT_VERBOSE v",
+        f"{GMT} set PS_MEDIA 2500px2500p",
+        f"{GMT} set FONT_ANNOT_PRIMARY 18p,Helvetica,black",        
+    ]
+    if args.invert_color:
+        gmt_script.append(
+            f"{GMT} makecpt -C{args.cpt}  -T{gmt_crange} -I > {fname}.cpt",
+        )
+    else:
+        gmt_script.append(
+            f"{GMT} makecpt -C{args.cpt}  -T{gmt_crange} > {fname}.cpt",
+        )
+    if args.type == 'v':
+        scale_flag = '-Dx0p/50p+w800p/30p+jTC+v'
+    else:
+        scale_flag = '-Dx0p/50p+w800p/30p+jTL+h'
+    gmt_script.append(
+        f"{GMT} psscale -X1000p -Y1000p -C{fname}.cpt {scale_flag} -B{args.B} -By+l{args.label} -P > {fname}.ps"
+    )
+
+    subprocess.call("\n".join(gmt_script), shell=True)
+    ps2pdf(os.path.join(outdir, f"{fname}.ps"), outdir)
+
+    # remove temp files
+    os.remove(os.path.join(outdir, f"{fname}.ps"))
+    os.remove(os.path.join(outdir, f"{fname}.epsi"))
+    os.remove(os.path.join(outdir, f"{fname}.cpt"))
+    os.remove(os.path.join(outdir, f"gmt.conf"))
+    os.remove(os.path.join(outdir, f"gmt.history"))
+
 
 

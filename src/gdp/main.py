@@ -1087,6 +1087,58 @@ def parse_args(*args, **kwargs):
         default='0/0/4',
         help='GMT pscoast flag: minimum area flag (default="0/0/4 (all features)"); default=0/0/4')
     
+    #------------------------#
+    # $> gdp data plot colorbar
+    data_plot_colorbar = data_plot_subparsers.add_parser(
+        'colorbar',
+        help='generate colorbar (from GMT cpt)',
+        description='Generate horizontal/vertical colorbar from GMT colorpallets.')
+
+    data_plot_colorbar.add_argument(
+        '-o',
+        '--outfile',
+        required=True,
+        help='path to output colorbar file')
+    data_plot_colorbar.add_argument(
+        '--type',
+        choices=['v', 'h'],
+        default='v',
+        help='colorbar type: vertical (v) or horizontal (h); default=v')
+    data_plot_colorbar.add_argument(
+        '--cpt',
+        required=True,
+        help='GMT colormap (visit: https://docs.generic-mapping-tools.org/6.4/cookbook/cpts.html)'
+        )
+    data_plot_colorbar.add_argument(
+        '--crange',
+        type=float,
+        nargs=2,
+        required=True,
+        help='color scale range; default=mean \\pm 3std')
+    data_plot_colorbar.add_argument(
+        '--cstep',
+        type=float,
+        required=True,
+        help='color scale step/interval')
+    data_plot_colorbar.add_argument(
+        '-B',
+        default='a',
+        help='colorbar annotation flag value; default=a')
+    data_plot_colorbar.add_argument(
+        '--invert_color',
+        action='store_true',
+        help='invert color map')
+    data_plot_colorbar.add_argument(
+        '--dpi',
+        type=float,
+        default=600,
+        help='output map DPI (dot per inch); default=600')
+    data_plot_colorbar.add_argument(
+        '--label',
+        type=str,
+        nargs='+',
+        default='',
+        help='colorbar label')
 
     #=====MODULE: STATS=====#
 
@@ -3018,6 +3070,10 @@ def main(*args, **kwargs):
 
             elif args.subsubmodule == 'geotiff':        
                 plot.plot_data_geotiff(args)
+
+            elif args.subsubmodule == 'colorbar':        
+                plot.plot_data_colorbar(args)
+
         else:
             subprocess.call("gdp data -h", shell=True)
             exit(0)
