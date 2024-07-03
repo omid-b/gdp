@@ -895,7 +895,6 @@ def plot_data_geotiff(args):
     args.header = 0
     args.footer = 0
     args.smooth = 0
-    args.alpha = 10
     args.fmt = ['.10', '.10']
     args.outfile = os.path.join(outdir, f'{fname}.ply')
     dat.alpha_shape_polygon(args)

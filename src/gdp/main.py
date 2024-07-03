@@ -1023,6 +1023,11 @@ def parse_args(*args, **kwargs):
         default=999.99,
         help='OPTIONAL: reference value to calculate perturbation model')
     data_plot_geotiff.add_argument(
+        '--alpha',
+        type=float,
+        default=10.0,
+        help='alpha value for concave masking polygon operation (default=10.0)')
+    data_plot_geotiff.add_argument(
         '--cs',
         type=str,
         nargs=2,
