@@ -938,16 +938,27 @@ def alpha_shape_polygon(args):
     args.uniq = False
     args.offset = 0 # CHANGE LATER! XXX
     import matplotlib.pyplot as plt
+    import shapely
     from alphashape import alphashape
 
     data = io.read_numerical_data(args.points_file, args.header, args.footer, [".10",".10"], args.x, [])
     points = np.vstack((data[0][0], data[0][1])).T
 
-    hull = alphashape(points, args.alpha)
-    if hull.is_empty:
-        print("Error: empty concave polygon; decrease alpha value")
-        exit(1)
-    
+    alpha = args.alpha
+    ntries = 0
+    while True:
+        if ntries == 100:
+            print("[ERROR]: number of alpha value adjustments exceeds 100! Start with a smaller alpha!")
+            exit(1)
+        hull = alphashape(points, alpha)
+        ntries += 1
+        if type(hull)==shapely.geometry.multipolygon.MultiPolygon or hull.is_empty:
+            alpha *= 0.75
+            print(f"Adjusted alpha value: %.3f" %(alpha))
+            continue
+        else:
+            break
+
     hull_x, hull_y = hull.exterior.xy
 
     outlines = []
