@@ -2055,7 +2055,12 @@ def parse_args(*args, **kwargs):
         'dat2nc',
         help='convert dat/ascii (gridded) to nc format',
         description="Convert dat/ascii (must be gridded) to nc format")
-    convert_dat2nc.add_argument("input_file", type=str, action='store', help='input ascii file')
+    convert_dat2nc.add_argument(
+        "input_file",
+        type=str,
+        action='store',
+        help='input ascii file'
+    )
     convert_dat2nc.add_argument(
         'output_file',
         type=str,
@@ -2077,10 +2082,20 @@ def parse_args(*args, **kwargs):
         default=[3],
         help="data/value column (default=3)" )
     convert_dat2nc.add_argument(
+        '--glob',
+        action='store_true',
+        help='generate global grid using GMT' )
+    convert_dat2nc.add_argument(
         '--polygon',
         type=str,
         action='store',
         help='polygon to apply points-in-polygon')
+    convert_dat2nc.add_argument(
+        '--interval',
+        type=float,
+        required=False,
+        default=99999.0,
+        help='interpolation interval (Only if --glob is enabled)')
     convert_dat2nc.add_argument(
         '--xrange',
         nargs=2,
@@ -3171,7 +3186,10 @@ def main(*args, **kwargs):
             conv.nc2dat(args)
             exit(0)
         elif args.submodule == 'dat2nc':
-            conv.dat2nc(args)
+            if args.glob:
+                conv.dat2nc_global(args)
+            else:
+                conv.dat2nc(args)
             exit(0)
         else:
             subprocess.call("gdp convert -h", shell=True)

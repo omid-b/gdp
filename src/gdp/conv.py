@@ -242,6 +242,47 @@ def shp2dat(args):
                 io.output_lines(polygon_lines, args)
                 print(f"shp2dat: '{plyfile}' >> '{args.outfile}'")
 
+def dat2nc_global(args):
+    import sys
+    if args.interval == 99999.0:
+        print("[ERROR]: argument 'interval' was not given!", file=sys.stderr)
+        exit(1)
+    elif not agrgs.polygon:
+
+
+    import numpy as np
+    outdir, outfile = os.path.split(os.path.abspath(args.output_file))
+    outfname, _ = os.path.splitext(outfile)
+    outfile = os.path.join(outdir, f"{outfname}.nc")
+
+    if len(args.fmt) == 1:
+        args.fmt.append(args.fmt[0])
+
+    # reformat data for GMT
+    read_input_data = io.read_numerical_data(args.input_file, 0, 0, [".10",".10"], args.x, args.data)
+    xyz_data = np.vstack((read_input_data[0][0], read_input_data[0][1], read_input_data[1][0])).T.tolist()
+    
+    temp0 = os.path.join(outdir, "temp0")
+    temp1 = os.path.join(outdir, "temp1")
+    temp2 = os.path.join(outdir, "temp2")
+    temp3 = os.path.join(outdir, "temp3")
+    
+    fopen = open(temp0, 'w')
+    for xyz in xyz_data:
+        x, y, z = xyz
+        fopen.write(f"{x} {y} {z}\n")
+    fopen.close()
+
+    gmt_script = [
+        "#!/bin/bash",
+        f"gmt surface {temp0} -Rd -I{args.interval}d -Ve -fg -G{temp1}"
+    ]
+    if args.polygon:
+        print(args.polygon)
+
+
+
+
 
 def dat2nc(args):
     import warnings
