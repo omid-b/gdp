@@ -12,6 +12,15 @@ from . import epsg
 
 #####################################################################
 
+def raster_contour(args):
+    input_raster = os.path.join(args.input_raster)
+    output_shapefile = f"{os.path.splitext(os.path.abspath(args.output_shapefile))[0]}.shp"
+    temp0 = os.path.join(os.path.split(output_shapefile)[0], 'temp0.shp')
+    print(input_raster)
+    print(output_shapefile)
+    print(temp0)
+
+
 def raster_proc(args):
     import fiona
 

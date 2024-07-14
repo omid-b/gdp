@@ -1740,6 +1740,53 @@ def parse_args(*args, **kwargs):
     )
 
 
+    #------------------------#
+    # $> gdp raster contour
+    raster_contour = raster_subparsers.add_parser(
+        'contour',
+        help='generate contour lines from raster data using gdal_contour',
+        description='Generate contour lines (shapefile) from raster data using gdal_contour'
+    )
+
+    raster_contour.add_argument(
+        'input_raster',
+        action='store',
+        help='input raster to generate contour from'
+    )
+    raster_contour.add_argument(
+        'output_shapefile',
+        action='store',
+        help='output shape file'
+    )
+    raster_contour.add_argument(
+        '--interval',
+        type=float,
+        required=True,
+        help='REQUIRED: contour interval value'
+    )
+    raster_contour.add_argument(
+        '--field',
+        type=str,
+        default='Value',
+        help='output shapefile attribute field name (default=Value)'
+    )
+    raster_contour.add_argument(
+        '--xrange',
+        type=float,
+        nargs=2,
+        default=[99999.0, 99999],
+        help='Minimum and Maximum Y/Latitude for cropping'
+    )
+    raster_contour.add_argument(
+        '--yrange',
+        type=float,
+        nargs=2,
+        default=[99999.0, 99999],
+        help='Minimum and Maximum Y/Latitude for cropping'
+    )
+
+
+
     #=====MODULE: CONVERT=====#
     convert = subparsers.add_parser('convert',
         help='data conversion module',
@@ -3221,6 +3268,9 @@ def main(*args, **kwargs):
 
         elif args.submodule == 'proc':
             dat.raster_proc(args)
+
+        elif args.submodule == 'contour':
+            dat.raster_contour(args)
 
         else:
             subprocess.call("gdp raster -h", shell=True)
