@@ -796,7 +796,7 @@ def ps2pdf(input_ps, outdir):
     return fname_ext_out
 
 
-def plot_data_geotiff(args):
+def raster_geotiff(args):
     from . import dat
     from . import io
     from . import epsg
@@ -937,11 +937,11 @@ def plot_data_geotiff(args):
         args.type = 'v'
         args.size = 800
         args.size_ratio = 20
-        plot_data_colorbar(args)
+        raster_colorbar(args)
 
 
 
-def plot_data_colorbar(args):
+def raster_colorbar(args):
     outdir, fname = os.path.split(os.path.abspath(args.outfile))
     fname, _ = os.path.splitext(fname)
     gmt_crange = f"{args.crange[0]}/{args.crange[1]}/{args.cstep}"

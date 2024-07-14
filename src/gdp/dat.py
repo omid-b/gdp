@@ -1,13 +1,64 @@
 # numerical data type processing module
 
 import os
+import sys
+import subprocess
 import warnings
 import shutil
 import numpy as np
 from math import radians, degrees, sin, cos, atan2, acos, sqrt, inf, isinf
 from . import io
+from . import epsg
 
 #####################################################################
+
+def raster_proc(args):
+    input_raster = os.path.abspath(args.input_raster)
+    output_raster = os.path.abspath(args.output_raster)
+    input_ext = os.path.splitext(input_raster)[1][1:]
+    output_ext = os.path.splitext(output_raster)[1][1:]
+    temp0 = os.path.join(os.path.split(output_raster)[0], f'temp0.png')
+    temp1 = os.path.join(os.path.split(output_raster)[0], f'temp1.{output_ext}')
+    temp2 = os.path.join(os.path.split(output_raster)[0], f'temp2.{output_ext}')
+
+    if input_raster == output_raster:
+        print("[ERROR]: input and output rasters are the same. Use --overwrite flag", file=sys.stderr)
+        exit(1)
+
+    epsg_from = epsg.get_epsg_code(args.cs[0])
+    epsg_to = epsg.get_epsg_code(args.cs[1])
+    if epsg_from == None:
+        print(f"[ERROR]: could not figure out EPSG code for CRS: {args.cs[0]}", file=sys.stderr)
+        exit(1)
+    elif epsg_to == None:
+        print(f"[ERROR]: could not figure out EPSG code for CRS: {args.cs[1]}", file=sys.stderr)
+        exit(1)
+
+
+    gdal_script = [f"gdal_translate {input_raster} {temp0} -ot 'UInt16' > /dev/null"]
+    
+    if args.xrange != [99999.0, 99999.0] and args.yrange != [99999.0, 99999.0]:
+        gdal_script.append(
+            f'gdalwarp {temp0} {temp1} -s_srs EPSG:{epsg_from} -te {args.xrange[0]} {args.yrange[0]} {args.xrange[1]} {args.yrange[1]}  > /dev/null'
+        )
+    else:
+        gdal_script.append(f'cp {temp0} {temp1}')
+
+
+    if epsg_from != epsg_to:
+        gdal_script.append(
+            f"gdalwarp {temp1} {temp2} -s_srs EPSG:{epsg_from} -t_srs EPSG:{epsg_to} > /dev/null"
+        )
+    else:
+        gdal_script.append(f'cp {temp1} {temp2}')
+
+    gdal_script = '\n'.join(gdal_script)
+
+    subprocess.call(gdal_script, shell=True)
+    os.rename(temp2, output_raster)
+    os.remove(temp0)
+    os.remove(temp1)
+
 
 def csproj_fix(args):
     from . import epsg

@@ -8717,3 +8717,13 @@ def get_epsg(utm):
     else:
         return None
 
+def get_epsg_code(crs):
+    crs = str(crs).upper()
+    if crs == 'WGS84':
+        return '4326'
+    elif crs in EPSG_Info.keys():
+        return crs
+    elif crs in WGS84_UTM_to_EPSG.keys():
+        return WGS84_UTM_to_EPSG[f"{crs}"]
+    else:
+        return None

@@ -978,181 +978,7 @@ def parse_args(*args, **kwargs):
         help="output plot file; default file extension, if not specified from ['pdf','png','jpg'] will be set to 'pdf'")
 
 
-    #------------------------#
-    # $> gdp data plot geotiff
-    data_plot_geotiff = data_plot_subparsers.add_parser(
-        'geotiff',
-        help='generate GeoTIFFs (UTM coordinate system)',
-        description='Generate GeoTIFFs from input scattered dataset.')
-
-    data_plot_geotiff.add_argument(
-        'input_file',
-        help='path to input geographic data file')
-    data_plot_geotiff.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        required=True,
-        help="REQUIRED: output file; file extension will be *.tiff")
-    data_plot_geotiff.add_argument(
-        '-x',
-        type=int,
-        nargs=2,
-        default=[1, 2],
-        help='positional columns i.e. [x/lon, y/lat]')
-    data_plot_geotiff.add_argument(
-        '-v',
-        type=int,
-        default=3,
-        help='value column default=3')
-    data_plot_geotiff.add_argument(
-        '--xrange',
-        type=float,
-        nargs=2,
-        default=[-999.99, 999.99],
-        help='longitude range (will be set to min/max data extent if not specified)')
-    data_plot_geotiff.add_argument(
-        '--yrange',
-        type=float,
-        nargs=2,
-        default=[-999.99, 999.99],
-        help='latitude range (will be set to min/max data extent if not specified)')
-    data_plot_geotiff.add_argument(
-        '--refvalue',
-        type=float,
-        default=999.99,
-        help='OPTIONAL: reference value to calculate perturbation model')
-    data_plot_geotiff.add_argument(
-        '--alpha',
-        type=float,
-        default=10.0,
-        help='alpha value for concave masking polygon operation (default=10.0)')
-    data_plot_geotiff.add_argument(
-        '--cs',
-        type=str,
-        nargs=2,
-        default=['wgs84', 'wgs84'],
-        required=True,
-        help='REQUIRED: coordinate systems (e.g., EPSG or short name): [input_cs, output_cs]'
-        )
-    data_plot_geotiff.add_argument(
-        '--interval',
-        type=float,
-        required=True,
-        help='REQUIRED: GMT geographic gridding resolution (degrees)'
-        )
-    data_plot_geotiff.add_argument(
-        '--tension',
-        type=float,
-        default=0.0,
-        help='GMT gridding tension parameter (between 0 and 1); default=0.0')
-    data_plot_geotiff.add_argument(
-        '--cpt',
-        default='roma',
-        help='GMT colormap (visit: https://docs.generic-mapping-tools.org/6.4/cookbook/cpts.html); default=roma'
-        )
-    data_plot_geotiff.add_argument(
-        '--invert_color',
-        action='store_true',
-        help='invert color map')
-    data_plot_geotiff.add_argument(
-        '--colorbar',
-        action='store_true',
-        help='generate colorbar pdf file')
-    data_plot_geotiff.add_argument(
-        '--dpi',
-        type=float,
-        default=600,
-        help='output map DPI (dot per inch); default=600')
-    data_plot_geotiff.add_argument(
-        '--crange',
-        type=float,
-        nargs=2,
-        default=[-999.99, 999.99],
-        help='color scale range; default=mean \\pm 3std')
-    data_plot_geotiff.add_argument(
-        '--cstep',
-        type=float,
-        default=999.99,
-        help='color scale step/interval')
-    data_plot_geotiff.add_argument(
-        '--pscoast_N',
-        choices=['0', '1', '2', '3', 'a'],
-        default='2',
-        help='GMT pscoast flag: regarding political boundaries; default=2 (assign 0 to skip pscoast)')
-    data_plot_geotiff.add_argument(
-        '--pscoast_D',
-        choices=['a','c', 'l', 'i', 'h', 'f'],
-        default='a',
-        help='GMT pscoast flag: coast line data resolution; default=a')
-    data_plot_geotiff.add_argument(
-        '--pscoast_W',
-        type=float,
-        default=1,
-        help='GMT pscoast flag: line thickness; default=1')
-    data_plot_geotiff.add_argument(
-        '--pscoast_A',
-        type=str,
-        default='0/0/4',
-        help='GMT pscoast flag: minimum area flag (default="0/0/4 (all features)"); default=0/0/4')
     
-    #------------------------#
-    # $> gdp data plot colorbar
-    data_plot_colorbar = data_plot_subparsers.add_parser(
-        'colorbar',
-        help='generate colorbar (from GMT cpt)',
-        description='Generate horizontal/vertical colorbar from GMT colorpallets.')
-
-    data_plot_colorbar.add_argument(
-        '-o',
-        '--outfile',
-        required=True,
-        help='path to output colorbar file')
-    data_plot_colorbar.add_argument(
-        '--type',
-        choices=['v', 'h'],
-        default='v',
-        help='colorbar type: vertical (v) or horizontal (h); default=v')
-    data_plot_colorbar.add_argument(
-        '--cpt',
-        required=True,
-        help='GMT colormap (visit: https://docs.generic-mapping-tools.org/6.4/cookbook/cpts.html)'
-        )
-    data_plot_colorbar.add_argument(
-        '--crange',
-        type=float,
-        nargs=2,
-        required=True,
-        help='color scale range; default=mean \\pm 3std')
-    data_plot_colorbar.add_argument(
-        '--cstep',
-        type=float,
-        required=True,
-        help='color scale step/interval')
-    data_plot_colorbar.add_argument(
-        '-B',
-        default='a',
-        help='colorbar annotation flag value; default=a')
-    data_plot_colorbar.add_argument(
-        '--label',
-        type=str,
-        nargs='+',
-        default=[''],
-        help='colorbar label')
-    data_plot_colorbar.add_argument(
-        '--invert_color',
-        action='store_true',
-        help='invert color map')
-    data_plot_colorbar.add_argument(
-        '--size',
-        type=float,
-        default=800,
-        help='colorbar length size (unit=pixels); default=800')
-    data_plot_colorbar.add_argument(
-        '--size_ratio',
-        type=float,
-        default=20,
-        help='colorbar length to width ratio; default=20')
 
     #=====MODULE: STATS=====#
 
@@ -1558,18 +1384,225 @@ def parse_args(*args, **kwargs):
         default=4326,
         help='coordinate system or EPSG code (default=wgs84/4326)')
 
-    #------------------------#
-    # $> gdp raster plot
-    raster_plot = raster_subparsers.add_parser('plot',
-        help='plot module for raster data type',
-        description='plot module for raster data type')
-    raster_plot_subparsers = raster_plot.add_subparsers(dest='subsubmodule')
 
     #------------------------#
-    # $> gdp raster plot geotiff
-    raster_plot_geotiff = raster_plot_subparsers.add_parser('geotiff',
-        help='generate a map using georeferenced geotiff format',
-        description='generate a map using georeferenced geotiff format')
+    # $> gdp raster geotiff
+    raster_geotiff = raster_subparsers.add_parser(
+        'geotiff',
+        help='generate GeoTIFFs (UTM coordinate system)',
+        description='Generate GeoTIFFs from input scattered dataset.')
+
+    raster_geotiff.add_argument(
+        'input_file',
+        help='path to input geographic data file')
+    raster_geotiff.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        required=True,
+        help="REQUIRED: output file; file extension will be *.tiff")
+    raster_geotiff.add_argument(
+        '-x',
+        type=int,
+        nargs=2,
+        default=[1, 2],
+        help='positional columns i.e. [x/lon, y/lat]')
+    raster_geotiff.add_argument(
+        '-v',
+        type=int,
+        default=3,
+        help='value column default=3')
+    raster_geotiff.add_argument(
+        '--xrange',
+        type=float,
+        nargs=2,
+        default=[-999.99, 999.99],
+        help='longitude range (will be set to min/max data extent if not specified)')
+    raster_geotiff.add_argument(
+        '--yrange',
+        type=float,
+        nargs=2,
+        default=[-999.99, 999.99],
+        help='latitude range (will be set to min/max data extent if not specified)')
+    raster_geotiff.add_argument(
+        '--refvalue',
+        type=float,
+        default=999.99,
+        help='OPTIONAL: reference value to calculate perturbation model')
+    raster_geotiff.add_argument(
+        '--alpha',
+        type=float,
+        default=10.0,
+        help='alpha value for concave masking polygon operation (default=10.0)')
+    raster_geotiff.add_argument(
+        '--cs',
+        type=str,
+        nargs=2,
+        default=['wgs84', 'wgs84'],
+        required=True,
+        help='REQUIRED: coordinate systems (e.g., EPSG or short name): [input_cs, output_cs]'
+    )
+    raster_geotiff.add_argument(
+        '--interval',
+        type=float,
+        required=True,
+        help='REQUIRED: GMT geographic gridding resolution (degrees)'
+        )
+    raster_geotiff.add_argument(
+        '--tension',
+        type=float,
+        default=0.0,
+        help='GMT gridding tension parameter (between 0 and 1); default=0.0')
+    raster_geotiff.add_argument(
+        '--cpt',
+        default='roma',
+        help='GMT colormap (visit: https://docs.generic-mapping-tools.org/6.4/cookbook/cpts.html); default=roma'
+        )
+    raster_geotiff.add_argument(
+        '--invert_color',
+        action='store_true',
+        help='invert color map')
+    raster_geotiff.add_argument(
+        '--colorbar',
+        action='store_true',
+        help='generate colorbar pdf file')
+    raster_geotiff.add_argument(
+        '--dpi',
+        type=float,
+        default=600,
+        help='output map DPI (dot per inch); default=600')
+    raster_geotiff.add_argument(
+        '--crange',
+        type=float,
+        nargs=2,
+        default=[-999.99, 999.99],
+        help='color scale range; default=mean \\pm 3std')
+    raster_geotiff.add_argument(
+        '--cstep',
+        type=float,
+        default=999.99,
+        help='color scale step/interval')
+    raster_geotiff.add_argument(
+        '--pscoast_N',
+        choices=['0', '1', '2', '3', 'a'],
+        default='2',
+        help='GMT pscoast flag: regarding political boundaries; default=2 (assign 0 to skip pscoast)')
+    raster_geotiff.add_argument(
+        '--pscoast_D',
+        choices=['a','c', 'l', 'i', 'h', 'f'],
+        default='a',
+        help='GMT pscoast flag: coast line data resolution; default=a')
+    raster_geotiff.add_argument(
+        '--pscoast_W',
+        type=float,
+        default=1,
+        help='GMT pscoast flag: line thickness; default=1')
+    raster_geotiff.add_argument(
+        '--pscoast_A',
+        type=str,
+        default='0/0/4',
+        help='GMT pscoast flag: minimum area flag (default="0/0/4 (all features)"); default=0/0/4')
+    
+    #------------------------#
+    # $> gdp raster colorbar
+    raster_colorbar = raster_subparsers.add_parser(
+        'colorbar',
+        help='generate colorbar (from GMT cpt)',
+        description='Generate horizontal/vertical colorbar from GMT colorpallets.')
+
+    raster_colorbar.add_argument(
+        '-o',
+        '--outfile',
+        required=True,
+        help='path to output colorbar file')
+    raster_colorbar.add_argument(
+        '--type',
+        choices=['v', 'h'],
+        default='v',
+        help='colorbar type: vertical (v) or horizontal (h); default=v')
+    raster_colorbar.add_argument(
+        '--cpt',
+        required=True,
+        help='GMT colormap (visit: https://docs.generic-mapping-tools.org/6.4/cookbook/cpts.html)'
+        )
+    raster_colorbar.add_argument(
+        '--crange',
+        type=float,
+        nargs=2,
+        required=True,
+        help='color scale range; default=mean \\pm 3std')
+    raster_colorbar.add_argument(
+        '--cstep',
+        type=float,
+        required=True,
+        help='color scale step/interval')
+    raster_colorbar.add_argument(
+        '-B',
+        default='a',
+        help='colorbar annotation flag value; default=a')
+    raster_colorbar.add_argument(
+        '--label',
+        type=str,
+        nargs='+',
+        default=[''],
+        help='colorbar label')
+    raster_colorbar.add_argument(
+        '--invert_color',
+        action='store_true',
+        help='invert color map')
+    raster_colorbar.add_argument(
+        '--size',
+        type=float,
+        default=800,
+        help='colorbar length size (unit=pixels); default=800')
+    raster_colorbar.add_argument(
+        '--size_ratio',
+        type=float,
+        default=20,
+        help='colorbar length to width ratio; default=20')
+
+    #------------------------#
+    # $> gdp raster proc
+    raster_proc = raster_subparsers.add_parser(
+        'proc',
+        help='process raster data using GDAL and/or GMT',
+        description='Process raster data using GDAL and/or GMT')
+
+    raster_proc.add_argument(
+        'input_raster',
+        action='store',
+        help='input raster file',
+    )
+
+    raster_proc.add_argument(
+        'output_raster',
+        action='store',
+        help='output raster file (must include file extension)'
+    )
+
+    raster_proc.add_argument(
+        '--cs',
+        type=str,
+        nargs=2,
+        default=['wgs84', 'wgs84'],
+        help='Coordinate systems (e.g., EPSG or short name): [input_cs, output_cs]'
+    )
+    raster_proc.add_argument(
+        '--xrange',
+        type=float,
+        nargs=2,
+        default=[99999.0, 99999],
+        help='Minimum and Maximum Y/Latitude for cropping'
+    )
+    raster_proc.add_argument(
+        '--yrange',
+        type=float,
+        nargs=2,
+        default=[99999.0, 99999],
+        help='Minimum and Maximum Y/Latitude for cropping'
+    )
+
+
 
     #=====MODULE: CONVERT=====#
     convert = subparsers.add_parser('convert',
@@ -3097,12 +3130,6 @@ def main(*args, **kwargs):
             if args.subsubmodule == 'scatter':        
                 plot.plot_data_scatter(args)
 
-            elif args.subsubmodule == 'geotiff':        
-                plot.plot_data_geotiff(args)
-
-            elif args.subsubmodule == 'colorbar':        
-                plot.plot_data_colorbar(args)
-
         else:
             subprocess.call("gdp data -h", shell=True)
             exit(0)
@@ -3148,10 +3175,15 @@ def main(*args, **kwargs):
             app = georefmaps.Application(master=root, epsg=epsg)
             app.mainloop()
 
-        elif args.submodule == 'plot':
-            
-            if args.subsubmodule == 'geotiff':
-                under_dev()
+        elif args.submodule == 'geotiff':        
+            plot.raster_geotiff(args)
+
+        elif args.submodule == 'colorbar':        
+            plot.raster_colorbar(args)
+
+        elif args.submodule == 'proc':
+            dat.raster_proc(args)
+
         else:
             subprocess.call("gdp raster -h", shell=True)
             exit(0)
