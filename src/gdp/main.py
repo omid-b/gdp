@@ -1373,6 +1373,116 @@ def parse_args(*args, **kwargs):
         description="Raster data processing module")
     raster_subparsers = raster.add_subparsers(dest='submodule')
 
+    
+    #------------------------#
+    # $> gdp convert nc2dat
+    raster_nc2dat = raster_subparsers.add_parser('nc2dat',
+        help='convert nc to dat (ascii)',
+        description="Convert nc data to dat/ascii")
+    raster_nc2dat.add_argument(
+        "input_file",
+        type=str,
+        action='store',
+        nargs=1,
+        help='input nc file')
+    raster_nc2dat.add_argument(
+        '--metadata',
+        action='store_true',
+        help='only output metadata')
+    raster_nc2dat.add_argument(
+        '-v',
+        '--data',
+        nargs='*',
+        type=str,
+        help="data field name(s) / value column(s); hint: use '--metadata' flag for more information" )
+    raster_nc2dat.add_argument(
+        '-o',
+        '--outfile',
+        type=str,
+        action='store',
+        help='output data to file')
+    raster_nc2dat.add_argument(
+        '-a',
+        '--append',
+        action='store_true',
+        help='append to output' )
+    raster_nc2dat.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format for positional and value columns respectively (default=[".4",".4"])')
+
+    #------------------------#
+    # $> gdp convert dat2nc
+    raster_dat2nc = raster_subparsers.add_parser(
+        'dat2nc',
+        help='convert dat/ascii (gridded) to nc format',
+        description="Convert dat/ascii (must be gridded) to nc format")
+    raster_dat2nc.add_argument(
+        "input_file",
+        type=str,
+        action='store',
+        help='input ascii file'
+    )
+    raster_dat2nc.add_argument(
+        'output_file',
+        type=str,
+        action='store',
+        help='output nc file')
+    raster_dat2nc.add_argument(
+        '-x',
+        nargs=2,
+        type=int,
+        action='store',
+        default=[1, 2],
+        help='[x, y] column number(s) (default=[1, 2])')
+    raster_dat2nc.add_argument(
+        '-v',
+        '--data',
+        nargs=1,
+        type=int,
+        action='store',
+        default=[3],
+        help="data/value column (default=3)" )
+    raster_dat2nc.add_argument(
+        '--glob',
+        action='store_true',
+        help='generate global grid using GMT' )
+    raster_dat2nc.add_argument(
+        '--polygon',
+        type=str,
+        action='store',
+        help='polygon to apply points-in-polygon')
+    raster_dat2nc.add_argument(
+        '--interval',
+        type=float,
+        required=False,
+        default=99999.0,
+        help='interpolation interval (Only if --glob is enabled)')
+    raster_dat2nc.add_argument(
+        '--xrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='grid x/longitude range: [minX/minlon, minY/maxlon] (default=Auto)')
+    raster_dat2nc.add_argument(
+        '--yrange',
+        nargs=2,
+        type=float,
+        action='store',
+        default=[-0.999, 0.999],
+        help='grid y/latitude range: [minY/minlat, minY/maxlat] (default=Auto)')
+    raster_dat2nc.add_argument(
+        '--fmt',
+        nargs='+',
+        type=str,
+        action='store',
+        default=[".4",".4"],
+        help='float format (to store) for positional and value columns respectively (default=[".4",".4"])')
+
     #------------------------#
     # $> gdp raster georef
     raster_georef = raster_subparsers.add_parser('georef', help='georeference maps',
@@ -1601,7 +1711,33 @@ def parse_args(*args, **kwargs):
         default=[99999.0, 99999],
         help='Minimum and Maximum Y/Latitude for cropping'
     )
-
+    raster_proc.add_argument(
+        '--cutline',
+        action='store',
+        help='use polygon to cut rasters (masking polygon); outside areas would be transparent'
+    )
+    raster_proc.add_argument(
+        '--cutline_cs',
+        action='store',
+        default='wgs84',
+        help='input cutline polygon coordinate system code (default=wgs84)'
+    )
+    raster_proc.add_argument(
+        '--crop_to_cutline',
+        action='store_true',
+        help='crop output raster to specified input cutline polygon (only if --cutline used)'
+    )
+    raster_proc.add_argument(
+        '--regrid',
+        type=float,
+        help='regird at a different spacing (same unit as the input georeference raster)',
+    )
+    raster_proc.add_argument(
+        '--regrid_method',
+        default="bilinear",
+        choices=["nearest","bilinear","cubic","cubicspline","lanczos","average","rms","mode"],
+        help='regirdding method; only if "--regrid" is specified',
+    )
 
 
     #=====MODULE: CONVERT=====#
@@ -2042,114 +2178,6 @@ def parse_args(*args, **kwargs):
         default=[".4",".4"],
         help='float format for output (default=".4")')
 
-    #------------------------#
-    # $> gdp convert nc2dat
-    convert_nc2dat = convert_subparsers.add_parser('nc2dat',
-        help='convert nc to dat (ascii)',
-        description="Convert nc data to dat/ascii")
-    convert_nc2dat.add_argument(
-        "input_file",
-        type=str,
-        action='store',
-        nargs=1,
-        help='input nc file')
-    convert_nc2dat.add_argument(
-        '--metadata',
-        action='store_true',
-        help='only output metadata')
-    convert_nc2dat.add_argument(
-        '-v',
-        '--data',
-        nargs='*',
-        type=str,
-        help="data field name(s) / vlue column(s); hint: use '--metadata' flag for more information" )
-    convert_nc2dat.add_argument(
-        '-o',
-        '--outfile',
-        type=str,
-        action='store',
-        help='output data to file')
-    convert_nc2dat.add_argument(
-        '-a',
-        '--append',
-        action='store_true',
-        help='append to output' )
-    convert_nc2dat.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format for positional and value columns respectively (default=[".4",".4"])')
-
-    #------------------------#
-    # $> gdp convert dat2nc
-    convert_dat2nc = convert_subparsers.add_parser(
-        'dat2nc',
-        help='convert dat/ascii (gridded) to nc format',
-        description="Convert dat/ascii (must be gridded) to nc format")
-    convert_dat2nc.add_argument(
-        "input_file",
-        type=str,
-        action='store',
-        help='input ascii file'
-    )
-    convert_dat2nc.add_argument(
-        'output_file',
-        type=str,
-        action='store',
-        help='output nc file')
-    convert_dat2nc.add_argument(
-        '-x',
-        nargs=2,
-        type=int,
-        action='store',
-        default=[1, 2],
-        help='[x, y] column number(s) (default=[1, 2])')
-    convert_dat2nc.add_argument(
-        '-v',
-        '--data',
-        nargs=1,
-        type=int,
-        action='store',
-        default=[3],
-        help="data/value column (default=3)" )
-    convert_dat2nc.add_argument(
-        '--glob',
-        action='store_true',
-        help='generate global grid using GMT' )
-    convert_dat2nc.add_argument(
-        '--polygon',
-        type=str,
-        action='store',
-        help='polygon to apply points-in-polygon')
-    convert_dat2nc.add_argument(
-        '--interval',
-        type=float,
-        required=False,
-        default=99999.0,
-        help='interpolation interval (Only if --glob is enabled)')
-    convert_dat2nc.add_argument(
-        '--xrange',
-        nargs=2,
-        type=float,
-        action='store',
-        default=[-0.999, 0.999],
-        help='grid x/longitude range: [minX/minlon, minY/maxlon] (default=Auto)')
-    convert_dat2nc.add_argument(
-        '--yrange',
-        nargs=2,
-        type=float,
-        action='store',
-        default=[-0.999, 0.999],
-        help='grid y/latitude range: [minY/minlat, minY/maxlat] (default=Auto)')
-    convert_dat2nc.add_argument(
-        '--fmt',
-        nargs='+',
-        type=str,
-        action='store',
-        default=[".4",".4"],
-        help='float format (to store) for positional and value columns respectively (default=[".4",".4"])')
     
     #=====MODULE: UBC=====#
 
@@ -3164,8 +3192,18 @@ def main(*args, **kwargs):
             exit(0)
 
     elif args.module == 'raster':
+
+        if args.submodule == 'nc2dat':
+            conv.nc2dat(args)
+            exit(0)
+        elif args.submodule == 'dat2nc':
+            if args.glob:
+                conv.dat2nc_global(args)
+            else:
+                conv.dat2nc(args)
+            exit(0)
         
-        if args.submodule == 'georef':
+        elif args.submodule == 'georef':
 
             from . import georefmaps
             from . import dat
@@ -3214,15 +3252,7 @@ def main(*args, **kwargs):
                 exit(1)
             conv.shp2dat(args)
             exit(0)
-        elif args.submodule == 'nc2dat':
-            conv.nc2dat(args)
-            exit(0)
-        elif args.submodule == 'dat2nc':
-            if args.glob:
-                conv.dat2nc_global(args)
-            else:
-                conv.dat2nc(args)
-            exit(0)
+        
         else:
             subprocess.call("gdp convert -h", shell=True)
             exit(0)

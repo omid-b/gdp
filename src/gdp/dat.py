@@ -13,51 +13,115 @@ from . import epsg
 #####################################################################
 
 def raster_proc(args):
+    import fiona
+
     input_raster = os.path.abspath(args.input_raster)
     output_raster = os.path.abspath(args.output_raster)
     input_ext = os.path.splitext(input_raster)[1][1:]
     output_ext = os.path.splitext(output_raster)[1][1:]
-    temp0 = os.path.join(os.path.split(output_raster)[0], f'temp0.png')
+    temp0 = os.path.join(os.path.split(output_raster)[0], f'temp0.tif')
     temp1 = os.path.join(os.path.split(output_raster)[0], f'temp1.{output_ext}')
     temp2 = os.path.join(os.path.split(output_raster)[0], f'temp2.{output_ext}')
+    temp3 = os.path.join(os.path.split(output_raster)[0], f'temp3.{output_ext}')
 
     if input_raster == output_raster:
         print("[ERROR]: input and output rasters are the same. Use --overwrite flag", file=sys.stderr)
         exit(1)
+    
+    for f in [temp0, temp1, temp2, temp3, output_raster]:
+        if os.path.isfile(f):
+            os.remove(f)
 
     epsg_from = epsg.get_epsg_code(args.cs[0])
     epsg_to = epsg.get_epsg_code(args.cs[1])
+    epsg_cutline = epsg.get_epsg_code(args.cutline_cs)
     if epsg_from == None:
         print(f"[ERROR]: could not figure out EPSG code for CRS: {args.cs[0]}", file=sys.stderr)
         exit(1)
     elif epsg_to == None:
         print(f"[ERROR]: could not figure out EPSG code for CRS: {args.cs[1]}", file=sys.stderr)
         exit(1)
+    elif epsg_cutline == None:
+        print(f"[ERROR]: could not figure out EPSG code for CRS: {args.cutline_cs}", file=sys.stderr)
+        exit(1)
 
-
-    gdal_script = [f"gdal_translate {input_raster} {temp0} -ot 'UInt16' > /dev/null"]
+    # step 1: convert to geotiff (and regrid)
+    gdal_script = [f"gdal_translate {input_raster} {temp0} "]
+    if args.regrid:
+        gdal_script[-1] += f" -tr {args.regrid} {args.regrid} -r {args.regrid_method} "
+    gdal_script[-1] += " >> /dev/null "
     
+    # step 2: crop raster using xrange and yrange
+    gdal_script.append(f'gdalwarp {temp0} {temp1} -s_srs EPSG:{epsg_from} -t_srs EPSG:{epsg_from} ')
     if args.xrange != [99999.0, 99999.0] and args.yrange != [99999.0, 99999.0]:
-        gdal_script.append(
-            f'gdalwarp {temp0} {temp1} -s_srs EPSG:{epsg_from} -te {args.xrange[0]} {args.yrange[0]} {args.xrange[1]} {args.yrange[1]}  > /dev/null'
-        )
-    else:
-        gdal_script.append(f'cp {temp0} {temp1}')
+        gdal_script[-1] += f' -te {args.xrange[0]} {args.yrange[0]} {args.xrange[1]} {args.yrange[1]}'
+    gdal_script[-1] += ' >> /dev/null'
 
+    # step 3: transform coordinate system
+    gdal_script.append(
+        f"gdalwarp {temp1} {temp2} -s_srs EPSG:{epsg_from} -t_srs EPSG:{epsg_to} >> /dev/null"
+    )
 
-    if epsg_from != epsg_to:
-        gdal_script.append(
-            f"gdalwarp {temp1} {temp2} -s_srs EPSG:{epsg_from} -t_srs EPSG:{epsg_to} > /dev/null"
-        )
+    # step 4: perform cutline operation
+    if args.cutline:
+        if not os.path.isfile(args.cutline):
+            print("[ERROR]: cutline polygon not found!", file=sys.stderr)
+            exit(1)
+        polyfnm = os.path.splitext(args.cutline)[0]
+        polyext = os.path.splitext(args.cutline)[1][1:].lower()
+        if polyext != 'shp':
+            # read ascii polygon 
+            fopen = open(args.cutline, 'r')
+            flines = fopen.read().splitlines()
+            fopen.close()
+            xy = []
+            for line in flines:
+                x, y = line.split()
+                xy.append((float(x), float(y)))
+
+            schema = {
+                'geometry':'Polygon',
+                'properties':[('Name','str')]
+            }
+            polyShp = fiona.open(
+                f'{polyfnm}.shp',
+                mode='w',
+                driver='ESRI Shapefile',
+                schema=schema,
+                crs=f"EPSG:{epsg_cutline}",
+            )
+            polyDict = {
+                'geometry': {
+                    'type': 'Polygon',
+                    'coordinates': [xy],
+                },
+                'properties': {
+                    'Name': 'polygon',
+                },
+            }
+            polyShp.write(polyDict)
+            polyShp.close()
+
+        gdal_script.append(f'gdalwarp -cutline {polyfnm}.shp {temp2} {temp3} -srcnodata 0 -dstnodata 0 ')
+        if args.crop_to_cutline:
+            gdal_script[-1] += ' -crop_to_cutline >> /dev/null '
+        else:
+            gdal_script[-1] += ' >> /dev/null '
+
     else:
-        gdal_script.append(f'cp {temp1} {temp2}')
+        gdal_script.append(f'cp {temp2} {temp3}')
 
     gdal_script = '\n'.join(gdal_script)
 
     subprocess.call(gdal_script, shell=True)
-    os.rename(temp2, output_raster)
-    os.remove(temp0)
-    os.remove(temp1)
+    os.rename(temp3, output_raster)
+
+    # remove temp files
+    for temp in [temp0, temp1, temp2, temp3]:
+        if os.path.isfile(temp):
+            os.remove(temp)
+
+
 
 
 def csproj_fix(args):
