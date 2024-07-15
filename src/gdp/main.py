@@ -1784,6 +1784,13 @@ def parse_args(*args, **kwargs):
         default=[99999.0, 99999],
         help='Minimum and Maximum Y/Latitude for cropping'
     )
+    raster_contour.add_argument(
+        '--cs',
+        type=str,
+        nargs=2,
+        default=['wgs84', 'wgs84'],
+        help='Coordinate systems (e.g., EPSG or short name): [input_cs, output_cs]'
+    )
 
 
 

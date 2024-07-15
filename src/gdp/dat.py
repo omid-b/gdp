@@ -15,10 +15,36 @@ from . import epsg
 def raster_contour(args):
     input_raster = os.path.join(args.input_raster)
     output_shapefile = f"{os.path.splitext(os.path.abspath(args.output_shapefile))[0]}.shp"
-    temp0 = os.path.join(os.path.split(output_shapefile)[0], 'temp0.shp')
-    print(input_raster)
-    print(output_shapefile)
-    print(temp0)
+    temp0 = os.path.join(os.path.split(output_shapefile)[0], 'temp0.nc')
+    # temp1 = os.path.join(os.path.split(output_shapefile)[0], 'temp0.shp')
+
+    epsg_from = epsg.get_epsg_code(args.cs[0])
+    epsg_to = epsg.get_epsg_code(args.cs[1])
+
+    if epsg_from == None:
+        print(f"[ERROR]: could not figure out EPSG code for CRS: {args.cs[0]}", file=sys.stderr)
+        exit(1)
+    elif epsg_to == None:
+        print(f"[ERROR]: could not figure out EPSG code for CRS: {args.cs[1]}", file=sys.stderr)
+        exit(1)
+
+    # step 1: crop and set CRS
+    gdal_script = [
+        f"gdalwarp {input_raster} {temp0} -s_srs EPSG:{epsg_from} -t_srs EPSG:{epsg_to}"
+    ]
+    if args.xrange != [99999.0, 99999.0] and args.yrange != [99999.0, 99999.0]:
+        gdal_script[-1] += f" -te {args.xrange[0]} {args.yrange[0]} {args.xrange[1]} {args.yrange[1]} "
+    gdal_script[-1] += " >> /dev/null "
+
+    # step 2: calculate contour
+    gdal_script.append(
+        f"gdal_contour {temp0} {output_shapefile} -i {args.interval} >> /dev/null"
+    )
+
+    gdal_script = '\n'.join(gdal_script)
+
+    subprocess.call(gdal_script, shell=True)
+    os.remove(temp0)
 
 
 def raster_proc(args):
