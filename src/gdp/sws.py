@@ -141,7 +141,7 @@ class SWS_Dataset_App(tk.Frame):
                 if len(self.SAC) == 0 or not os.path.isfile(self.SAC):
                     print(f"Error! Could not find SAC software.\n")
                     exit(1)
-                for comp in ['N','E','Z']:
+                for comp in ['E','N','Z']:
                     sacfile = list(self.sws_dataset[event][station][comp].keys())[0]
                     sacproc.write_sac_headers(sacfile, headers, SAC=self.SAC)
 
@@ -436,9 +436,9 @@ class SWS_Dataset_App(tk.Frame):
         self.ax2.set_ylim([ax2_ylim[0], 1.3*ax2_ylim[1]])
         self.ax3.set_ylim([ax3_ylim[0], 1.3*ax3_ylim[1]])
         # set titles
-        self.ax1.set_title(f"{plot_data[0]['kstnm']}.{plot_data[0]['kcmpnm']}")
-        self.ax2.set_title(f"{plot_data[1]['kstnm']}.{plot_data[1]['kcmpnm']}")
-        self.ax3.set_title(f"{plot_data[2]['kstnm']}.{plot_data[2]['kcmpnm']}")
+        self.ax1.set_title(f"{plot_data[0]['otime_tag']}_{plot_data[0]['kstnm']}.{plot_data[0]['kcmpnm']}")
+        self.ax2.set_title(f"{plot_data[1]['otime_tag']}_{plot_data[1]['kstnm']}.{plot_data[1]['kcmpnm']}")
+        self.ax3.set_title(f"{plot_data[2]['otime_tag']}_{plot_data[2]['kstnm']}.{plot_data[2]['kcmpnm']}")
         self.ax3.set_xlabel("Time (s)")
 
         color_selected = "#f00"
@@ -536,7 +536,7 @@ class SWS_Dataset_App(tk.Frame):
         sws_datalist = []
         for event in self.sws_dataset.keys():
             for station in self.sws_dataset[event].keys():
-                for channel in ['N','E','Z']:
+                for channel in ['E','N','Z']:
                     sacfiles = list(self.sws_dataset[event][station][channel].keys())
                     sws_datalist.append(sacfiles[0])
         duplicates = []
@@ -551,7 +551,7 @@ class SWS_Dataset_App(tk.Frame):
         for event in self.sws_dataset.keys():
             for station in self.sws_dataset[event].keys():
                 plot_data = []
-                for channel in ['N','E','Z']:
+                for channel in ['E','N','Z']:
                     sacfile_key = list(self.sws_dataset[event][station][channel].keys())[0]
                     plot_data.append(self.sws_dataset[event][station][channel][sacfile_key])
                 plot_data.append(self.sws_dataset[event][station]['P'])
@@ -591,7 +591,7 @@ class SWS_Dataset_App(tk.Frame):
         for event in sws_dataset.keys():
             for station in sws_dataset[event].keys():
                 del_station = False
-                for channel in ['N','E','Z']:
+                for channel in ['E','N','Z']:
                     if channel not in sws_dataset[event][station].keys() or len(sws_dataset[event][station][channel].keys()) == 0:
                         del_station = True
                 del_stations.append(del_station)

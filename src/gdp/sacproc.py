@@ -57,6 +57,7 @@ def get_sacfiles_info(sacfiles, header=False, read_headers=False, read_data=Fals
             sacfiles_info[f"{sacfile}"] = {}
             sacfiles_info[f"{sacfile}"]['tag'] = tag
             sacfiles_info[f"{sacfile}"]['event'] = event_dir
+            starttime = tr.stats.starttime
             b = tr.stats.sac.b
             e = tr.stats.sac.e
             npts = tr.stats.sac.npts
@@ -72,6 +73,14 @@ def get_sacfiles_info(sacfiles, header=False, read_headers=False, read_data=Fals
                 evlo = tr.stats.sac.evlo
                 evdp = tr.stats.sac.evdp
                 o = tr.stats.sac.o
+                otime = starttime + o
+                otime_tag = "%2s%03d%02d%02d%02d" %(
+                    str(otime.year)[2:],
+                    otime.julday,
+                    otime.hour,
+                    otime.minute,
+                    otime.second,
+                )
                 gcarc = tr.stats.sac.gcarc
                 az = tr.stats.sac.az
                 baz = tr.stats.sac.baz
@@ -84,7 +93,11 @@ def get_sacfiles_info(sacfiles, header=False, read_headers=False, read_data=Fals
                 sacfiles_info[f"{sacfile}"]['evla'] = float(evla)
                 sacfiles_info[f"{sacfile}"]['evlo'] = float(evlo)
                 sacfiles_info[f"{sacfile}"]['evdp'] = float(evdp)
+                sacfiles_info[f"{sacfile}"]['otime_tag'] = otime_tag
                 sacfiles_info[f"{sacfile}"]['o'] = float(o)
+                sacfiles_info[f"{sacfile}"]['b'] = float(b)
+                sacfiles_info[f"{sacfile}"]['e'] = float(e)
+                sacfiles_info[f"{sacfile}"]['npts'] = int(npts)
                 sacfiles_info[f"{sacfile}"]['gcarc'] = float(gcarc)
                 sacfiles_info[f"{sacfile}"]['az'] = float(az)
                 sacfiles_info[f"{sacfile}"]['baz'] = float(baz)
