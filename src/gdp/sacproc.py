@@ -3,6 +3,7 @@ import os
 import re
 import obspy
 import subprocess
+import numpy as np 
 
 from . import dependency
 from . import download
@@ -56,6 +57,10 @@ def get_sacfiles_info(sacfiles, header=False, read_headers=False, read_data=Fals
             sacfiles_info[f"{sacfile}"] = {}
             sacfiles_info[f"{sacfile}"]['tag'] = tag
             sacfiles_info[f"{sacfile}"]['event'] = event_dir
+            b = tr.stats.sac.b
+            e = tr.stats.sac.e
+            npts = tr.stats.sac.npts
+
             if header != False:
                 sacfiles_info[f"{sacfile}"][header] = tr.stats.sac[header]
 
@@ -84,7 +89,7 @@ def get_sacfiles_info(sacfiles, header=False, read_headers=False, read_data=Fals
                 sacfiles_info[f"{sacfile}"]['az'] = float(az)
                 sacfiles_info[f"{sacfile}"]['baz'] = float(baz)
             if read_data:
-                times = st[0].times()
+                times = np.linspace(b, e, npts)
                 data = st[0].data
                 sacfiles_info[f"{sacfile}"]['times'] = times
                 sacfiles_info[f"{sacfile}"]['data'] = data

@@ -397,9 +397,14 @@ class SWS_Dataset_App(tk.Frame):
         self.ax1 = self.fig.add_subplot(311)
         self.ax2 = self.fig.add_subplot(312)
         self.ax3 = self.fig.add_subplot(313)
-        self.ax1.get_shared_x_axes().join(self.ax1, self.ax2, self.ax3)
-        self.ax2.get_shared_x_axes().join(self.ax1, self.ax2, self.ax3)
-        self.ax3.get_shared_x_axes().join(self.ax1, self.ax2, self.ax3)
+        try:
+            self.ax1.get_shared_x_axes().join(self.ax1, self.ax2, self.ax3)
+            self.ax2.get_shared_x_axes().join(self.ax1, self.ax2, self.ax3)
+            self.ax3.get_shared_x_axes().join(self.ax1, self.ax2, self.ax3)
+        except Exception: # newer versions of Python
+            self.ax2.sharex(self.ax1)
+            self.ax3.sharex(self.ax1)
+
         self.fig.subplots_adjust(hspace = 0.3)
         plt.close()
         canvas = tkagg.FigureCanvasTkAgg(self.fig , master=self.frm_canvas)
