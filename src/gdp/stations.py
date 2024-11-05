@@ -45,6 +45,8 @@ class STATIONS:
             datacenters.append("http://service.iris.edu/fdsnws/station/1")
         if self.config['datacenters']['ncedc']:
             datacenters.append("http://service.ncedc.org/fdsnws/station/1")
+        if self.config['datacenters']['nrcan']:
+            datacenters.append("https://www.earthquakescanada.nrcan.gc.ca/fdsnws/station/1")
         if self.config['datacenters']['scedc']:
             datacenters.append("http://service.scedc.caltech.edu/fdsnws/station/1")
         if self.config['datacenters']['ingv']:

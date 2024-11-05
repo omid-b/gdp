@@ -75,6 +75,8 @@ class MSEEDS:
             datacenters.append('NIEP')
         if self.config['datacenters']['noa']:
             datacenters.append('NOA')
+        if self.config['datacenters']['nrcan']:
+            datacenters.append('NRCAN')
         if self.config['datacenters']['odc']:
             datacenters.append('ODC')
         if self.config['datacenters']['orfeus']:
@@ -216,7 +218,10 @@ class MSEEDS:
                 xml_file = os.path.join(download_dir,f"{net}.{sta}.xml")
                 xml_file_renamed = os.path.join(download_dir,f"{net}.{sta}.{chn}")
                 try:
-                    client = Client(datacenter)
+                    if datacenter.lower() == 'nrcan':
+                        client = Client(base_url='https://www.earthquakescanada.nrcan.gc.ca')
+                    else:
+                        client = Client(datacenter)
                     mdl = MassDownloader(providers=[client])
                     mdl.download(domain, restrictions, mseed_storage=download_dir,
                     stationxml_storage=download_dir, print_report=False)

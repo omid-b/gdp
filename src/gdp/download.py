@@ -105,6 +105,7 @@ lmu = False
 ncedc = False
 niep = False
 noa = False
+nrcan = False
 odc = False
 orfeus = False
 raspishake = False
@@ -147,7 +148,7 @@ def read_download_config(args):
                             "event_maxlat"]
     datacenters_params = ["auspass", "bgr", "eth", "geofon", "icgc", "ingv",
                           "iris", "irisph5", "koeri", "lmu", "ncedc", "niep",
-                          "noa", "odc", "orfeus", "raspishake", "resif",
+                          "noa", "nrcan", "odc", "orfeus", "raspishake", "resif",
                           "resifph5", "scedc", "texnet", "usp"]    
     dependencies_params = ["perl", "sac"]
     list_params = ["stations", "networks","station_channels", "station_location_codes"]
