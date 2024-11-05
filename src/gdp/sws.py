@@ -75,6 +75,8 @@ class SWS_Dataset_App(tk.Frame):
         if headonly:
             print("Headers were successfully updated.")
             exit(0)
+        else:
+            print("Running GUI ...")
 
         self.old_select_status = self.get_select_status()
         self.current_select_status = self.get_select_status()
@@ -436,9 +438,11 @@ class SWS_Dataset_App(tk.Frame):
         self.ax2.set_ylim([ax2_ylim[0], 1.3*ax2_ylim[1]])
         self.ax3.set_ylim([ax3_ylim[0], 1.3*ax3_ylim[1]])
         # set titles
-        self.ax1.set_title(f"{plot_data[0]['otime_tag']}_{plot_data[0]['kstnm']}.{plot_data[0]['kcmpnm']}")
-        self.ax2.set_title(f"{plot_data[1]['otime_tag']}_{plot_data[1]['kstnm']}.{plot_data[1]['kcmpnm']}")
-        self.ax3.set_title(f"{plot_data[2]['otime_tag']}_{plot_data[2]['kstnm']}.{plot_data[2]['kcmpnm']}")
+        self.ax1.set_title(f"{os.path.split(plot_data[0]['fpath'])[1]}")
+        self.ax2.set_title(f"{os.path.split(plot_data[1]['fpath'])[1]}")
+        self.ax3.set_title(f"{os.path.split(plot_data[2]['fpath'])[1]}")
+
+
         self.ax3.set_xlabel("Time (s)")
 
         color_selected = "#f00"
@@ -486,11 +490,15 @@ class SWS_Dataset_App(tk.Frame):
             p_phase_selected = self.current_select_status[select_status_index_start + iP]
             if p_phase_selected:
                 color = color_selected
+                zorder = 10
+                linewidth = 2.5
             else:
                 color = color_not_selected
-            self.ax1.plot([p_phase_time, p_phase_time], ax1_ylim, color=color, linestyle='dashed', linewidth=2)
-            self.ax2.plot([p_phase_time, p_phase_time], ax2_ylim, color=color, linestyle='dashed', linewidth=2)
-            self.ax3.plot([p_phase_time, p_phase_time], ax3_ylim, color=color, linestyle='dashed', linewidth=2)
+                zorder = 1
+                linewidth = 2
+            self.ax1.plot([p_phase_time, p_phase_time], ax1_ylim, color=color, zorder=zorder, linestyle='dashed', linewidth=linewidth)
+            self.ax2.plot([p_phase_time, p_phase_time], ax2_ylim, color=color, zorder=zorder, linestyle='dashed', linewidth=linewidth)
+            self.ax3.plot([p_phase_time, p_phase_time], ax3_ylim, color=color, zorder=zorder, linestyle='dashed', linewidth=linewidth)
             self.ax1.text(p_phase_time, ax1_ylim[1]*1.2, p_phase_name, fontsize=12, color=color,
             verticalalignment='top',horizontalalignment='center', bbox=bbox_props, clip_on=True)
             self.ax2.text(p_phase_time, ax2_ylim[1]*1.2, p_phase_name, fontsize=12, color=color,
@@ -505,11 +513,15 @@ class SWS_Dataset_App(tk.Frame):
             s_phase_selected = self.current_select_status[select_status_index_start + iS]
             if s_phase_selected:
                 color = color_selected
+                zorder = 10
+                linewidth = 2.5
             else:
                 color = color_not_selected
-            self.ax1.plot([s_phase_time, s_phase_time], ax1_ylim, color=color, linestyle='dashed', linewidth=2)
-            self.ax2.plot([s_phase_time, s_phase_time], ax2_ylim, color=color, linestyle='dashed', linewidth=2)
-            self.ax3.plot([s_phase_time, s_phase_time], ax3_ylim, color=color, linestyle='dashed', linewidth=2)
+                zorder = 1
+                linewidth = 2
+            self.ax1.plot([s_phase_time, s_phase_time], ax1_ylim, color=color, zorder=zorder, linestyle='dashed', linewidth=linewidth)
+            self.ax2.plot([s_phase_time, s_phase_time], ax2_ylim, color=color, zorder=zorder, linestyle='dashed', linewidth=linewidth)
+            self.ax3.plot([s_phase_time, s_phase_time], ax3_ylim, color=color, zorder=zorder, linestyle='dashed', linewidth=linewidth)
             self.ax1.text(s_phase_time, ax1_ylim[1]*1.2, s_phase_name, fontsize=12, color=color,
             verticalalignment='top',horizontalalignment='center', bbox=bbox_props, clip_on=True)
             self.ax2.text(s_phase_time, ax2_ylim[1]*1.2, s_phase_name, fontsize=12, color=color,
@@ -553,9 +565,12 @@ class SWS_Dataset_App(tk.Frame):
                 plot_data = []
                 for channel in ['E','N','Z']:
                     sacfile_key = list(self.sws_dataset[event][station][channel].keys())[0]
-                    plot_data.append(self.sws_dataset[event][station][channel][sacfile_key])
+                    data_to_append = self.sws_dataset[event][station][channel][sacfile_key]
+                    data_to_append['fpath'] = sacfile_key # temporary fix for Fiona XXX
+                    plot_data.append(data_to_append)
                 plot_data.append(self.sws_dataset[event][station]['P'])
                 plot_data.append(self.sws_dataset[event][station]['S'])
+                plot_data.append(sacfile_key) # append file path
                 plot_datalist.append(plot_data)
         return plot_datalist
 
@@ -566,6 +581,7 @@ class SWS_Dataset_App(tk.Frame):
         events_uniq = []
         for key in sorted(self.sacfiles_info.keys()):
             event_dir, sacfile = os.path.split(key)
+            event = self.sacfiles_info[key]['otime_tag']
             kstnm = self.sacfiles_info[key]['kstnm']
             kcmpnm = self.sacfiles_info[key]['kcmpnm']
             if kcmpnm in ["BHN","HHN","BH1","HH1"]:
@@ -577,14 +593,14 @@ class SWS_Dataset_App(tk.Frame):
             else:
                 continue
             # build dict structure
-            if event_dir not in sws_dataset.keys():
-                sws_dataset[event_dir] = {}
-            if kstnm not in sws_dataset[event_dir].keys():
-                sws_dataset[event_dir][kstnm] = {}
-            if channel not in sws_dataset[event_dir][kstnm].keys():
-                sws_dataset[event_dir][kstnm][channel] = {}
+            if event not in sws_dataset.keys():
+                sws_dataset[event] = {}
+            if kstnm not in sws_dataset[event].keys():
+                sws_dataset[event][kstnm] = {}
+            if channel not in sws_dataset[event][kstnm].keys():
+                sws_dataset[event][kstnm][channel] = {}
             # append to lists
-            sws_dataset[event_dir][kstnm][channel][key] = self.sacfiles_info[key]
+            sws_dataset[event][kstnm][channel][key] = self.sacfiles_info[key]
 
         # delete station if data for a channel is missing
         del_stations = []
