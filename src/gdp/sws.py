@@ -23,7 +23,7 @@ from . import dependency
 
 class SWS_Dataset_App(tk.Frame):
     def __init__(self, sacfiles_info, master=None,
-        refmodel='iasp91', SAC='auto', headonly=False):
+        refmodel='iasp91', SAC='auto', headonly=True):
         super().__init__(master)
         matplotlib.rcParams["savefig.directory"] = os.getcwd()
         matplotlib.use("TkAgg")
@@ -57,7 +57,6 @@ class SWS_Dataset_App(tk.Frame):
 
         # build required dictionaries and lists
         self.sacfiles_info = sacfiles_info
-        print("Calculate theoretical travel times ...")
         self.sws_dataset = self.get_sws_dataset()
 
         duplicates = self.find_duplicates()
@@ -69,14 +68,14 @@ class SWS_Dataset_App(tk.Frame):
             print("Error! This dataset does not include any complete-set 3-component timeseries!")
             exit(1)
 
-        print(f"Write arrivals into headers (model={refmodel})...")
+        print(f"Calculate theoretical travel times and write headers (model={refmodel})...")
         self.write_traveltime_headers()
+        print("Headers were successfully updated.")
         
         if headonly:
-            print("Headers were successfully updated.")
             exit(0)
-        else:
-            print("Running GUI ...")
+
+        print("Running GUI ...")
 
         self.old_select_status = self.get_select_status()
         self.current_select_status = self.get_select_status()
@@ -644,26 +643,46 @@ class SWS_Dataset_App(tk.Frame):
                     distance_in_degree=sws_dataset[event][station]['Z'][sacfile_key]['gcarc'],
                     phase_list=["ttp"]
                 )
+
+                # P arrivals
+                ptt = model.get_travel_times(
+                    source_depth_in_km=sws_dataset[event][station]['Z'][sacfile_key]['evdp'],
+                    distance_in_degree=sws_dataset[event][station]['Z'][sacfile_key]['gcarc'],
+                    phase_list=["ttp"]
+                )
                 arrivals_p = {}
                 for i in range(len(ptt)):
+                    phase = ptt[i].name
+                    time = float(ptt[i].time)
+                    if phase not in arrivals_p.keys():
+                        arrivals_p[phase] = [time]
+                    else:
+                         arrivals_p[phase].append(time)
+
+                for phase in arrivals_p.keys():
+                    time = sorted(arrivals_p[phase])[0]
+                    fpath1 = list(sws_dataset[event][station]['N'].keys())[0]
+                    fpath2 = list(sws_dataset[event][station]['E'].keys())[0]
+                    fpath3 = list(sws_dataset[event][station]['Z'].keys())[0]
                     cmp1 = self.sacfiles_info[list(sws_dataset[event][station]['N'].keys())[0]]['kcmpnm']
                     cmp2 = self.sacfiles_info[list(sws_dataset[event][station]['E'].keys())[0]]['kcmpnm']
                     cmp3 = self.sacfiles_info[list(sws_dataset[event][station]['Z'].keys())[0]]['kcmpnm']
-                    fname1 = f"{os.path.basename(event)}_{station}_{ptt[i].name}.{cmp1}"
-                    fname2 = f"{os.path.basename(event)}_{station}_{ptt[i].name}.{cmp2}"
-                    fname3 = f"{os.path.basename(event)}_{station}_{ptt[i].name}.{cmp3}"
-                    fname1 = os.path.join(event, fname1)
-                    fname2 = os.path.join(event, fname2)
-                    fname3 = os.path.join(event, fname3)
+                    fname1 = f"{os.path.splitext(fpath1)[0]}_{phase}{os.path.splitext(fpath1)[1]}"
+                    fname2 = f"{os.path.splitext(fpath2)[0]}_{phase}{os.path.splitext(fpath2)[1]}"
+                    fname3 = f"{os.path.splitext(fpath3)[0]}_{phase}{os.path.splitext(fpath3)[1]}"
+                    
                     if os.path.isfile(fname1) and os.path.isfile(fname2) and os.path.isfile(fname3):
-                        arrivals_p[f"{ptt[i].name}"] = [float(ptt[i].time), 1]
+                        arrivals_p[f"{phase}"] = [float(time), 1]
                     else:
-                        arrivals_p[f"{ptt[i].name}"] = [float(ptt[i].time), 0]
+                        arrivals_p[f"{phase}"] = [float(time), 0]
+
                 # sort by value:
                 sorted_arrivals_p = sorted(arrivals_p.items(), key=operator.itemgetter(1))
                 arrivals_p = {}
                 for (key, val) in sorted_arrivals_p:
                     arrivals_p[key] = val
+
+
 
 
                 # S arrivals
@@ -674,19 +693,30 @@ class SWS_Dataset_App(tk.Frame):
                 )
                 arrivals_s = {}
                 for i in range(len(stt)):
+                    phase = stt[i].name
+                    time = float(stt[i].time)
+                    if phase not in arrivals_s.keys():
+                        arrivals_s[phase] = [time]
+                    else:
+                         arrivals_s[phase].append(time)
+
+                for phase in arrivals_s.keys():
+                    time = sorted(arrivals_s[phase])[0]
+                    fpath1 = list(sws_dataset[event][station]['N'].keys())[0]
+                    fpath2 = list(sws_dataset[event][station]['E'].keys())[0]
+                    fpath3 = list(sws_dataset[event][station]['Z'].keys())[0]
                     cmp1 = self.sacfiles_info[list(sws_dataset[event][station]['N'].keys())[0]]['kcmpnm']
                     cmp2 = self.sacfiles_info[list(sws_dataset[event][station]['E'].keys())[0]]['kcmpnm']
                     cmp3 = self.sacfiles_info[list(sws_dataset[event][station]['Z'].keys())[0]]['kcmpnm']
-                    fname1 = f"{os.path.basename(event)}_{station}_{stt[i].name}.{cmp1}"
-                    fname2 = f"{os.path.basename(event)}_{station}_{stt[i].name}.{cmp2}"
-                    fname3 = f"{os.path.basename(event)}_{station}_{stt[i].name}.{cmp3}"
-                    fname1 = os.path.join(event, fname1)
-                    fname2 = os.path.join(event, fname2)
-                    fname3 = os.path.join(event, fname3)
+                    fname1 = f"{os.path.splitext(fpath1)[0]}_{phase}{os.path.splitext(fpath1)[1]}"
+                    fname2 = f"{os.path.splitext(fpath2)[0]}_{phase}{os.path.splitext(fpath2)[1]}"
+                    fname3 = f"{os.path.splitext(fpath3)[0]}_{phase}{os.path.splitext(fpath3)[1]}"
+                    
                     if os.path.isfile(fname1) and os.path.isfile(fname2) and os.path.isfile(fname3):
-                        arrivals_s[f"{stt[i].name}"] = [float(stt[i].time), 1]
+                        arrivals_s[f"{phase}"] = [float(time), 1]
                     else:
-                        arrivals_s[f"{stt[i].name}"] = [float(stt[i].time), 0]
+                        arrivals_s[f"{phase}"] = [float(time), 0]
+
                 # sort by value:
                 sorted_arrivals_s = sorted(arrivals_s.items(), key=operator.itemgetter(1))
                 arrivals_s = {}
