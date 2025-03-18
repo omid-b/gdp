@@ -351,12 +351,28 @@ def get_event_sta_components(event_dir):
         try:
             st = obspy.read(os.path.join(event_dir, sacfile), headonly=True)
             kstnm = st[0].stats.sac.kstnm
-            cmpaz = float(st[0].stats.sac.cmpaz)
-            cmpinc = float(st[0].stats.sac.cmpinc)
             if kstnm not in event_sta_components.keys():
                 event_sta_components[f'{kstnm}'] = [[], [], []]
         except Exception as e:
-            pass
+            continue
+
+        try:
+            cmpaz = float(st[0].stats.sac.cmpaz)
+        except:
+            kcmpnm = st[0].stats.sac.kcmpnm
+            if kcmpnm[-1].upper() == 'E':
+                cmpaz = 90.0
+            elif kcmpnm[-1].upper() in['N', 'Z']:
+                cmpaz = 0.0
+
+        try:
+            cmpinc = float(st[0].stats.sac.cmpinc)
+        except:
+            kcmpnm = st[0].stats.sac.kcmpnm
+            if kcmpnm[-1].upper() == 'Z':
+                cmpinc = 0.0
+            elif kcmpnm[-1].upper() in ['E', 'N']:
+                cmpinc = 90.0
 
         # for ??1 and ??2 components
         if cmpaz> 315 or cmpaz< 45:
